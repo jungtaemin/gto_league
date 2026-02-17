@@ -165,12 +165,47 @@ class _CrossSwordsPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = const Color(0xFF78350F)
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
+      ..style = PaintingStyle.fill;
 
-    canvas.drawLine(Offset(4, 4), Offset(size.width - 4, size.height - 4), paint);
-    canvas.drawLine(Offset(size.width - 4, 4), Offset(4, size.height - 4), paint);
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    
+    // Draw two swords rotated +/- 45 degrees
+    _drawSword(canvas, paint, cx, cy, size.width, math.pi / 4);
+    _drawSword(canvas, paint, cx, cy, size.width, -math.pi / 4);
+  }
+
+  void _drawSword(Canvas canvas, Paint paint, double cx, double cy, double size, double angle) {
+    canvas.save();
+    canvas.translate(cx, cy);
+    canvas.rotate(angle);
+
+    // Dimensions
+    final halfLen = size * 0.4;
+    final bladeW = size * 0.08;
+    final guardW = size * 0.25;
+    final handleH = size * 0.15;
+
+    // 1. Blade (Tapered)
+    final path = Path();
+    path.moveTo(0, -halfLen); // Tip
+    path.lineTo(bladeW / 2, 0); // Base right
+    path.lineTo(-bladeW / 2, 0); // Base left
+    path.close();
+    canvas.drawPath(path, paint);
+
+    // 2. Guard (Rectangular bar)
+    final guardRect = Rect.fromCenter(center: Offset(0, 0), width: guardW, height: bladeW * 0.6);
+    canvas.drawRect(guardRect, paint);
+
+    // 3. Handle (Rect)
+    final handleRect = Rect.fromCenter(center: Offset(0, handleH / 2), width: bladeW * 0.7, height: handleH);
+    canvas.drawRect(handleRect, paint);
+
+    // 4. Pommel (Circle at bottom)
+    canvas.drawCircle(Offset(0, handleH), bladeW * 0.6, paint);
+
+    canvas.restore();
   }
 
   @override

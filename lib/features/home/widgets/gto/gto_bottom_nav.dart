@@ -40,7 +40,7 @@ class GtoBottomNav extends StatelessWidget {
           _buildNavItem(1, Icons.card_giftcard_rounded, "이벤트"),
           _buildBattleDiamond(),
           _buildNavItem(3, Icons.school_rounded, "훈련하기"),
-          _buildNavItem(4, Icons.bar_chart_rounded, "랭킹"),
+          _buildNavItem(4, Icons.bar_chart_rounded, "리그"),
         ],
       ),
     );
@@ -142,13 +142,43 @@ class _CrossSwordsPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = color
-      ..strokeWidth = 3.5
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
+      ..style = PaintingStyle.fill;
 
-    // Two crossed lines
-    canvas.drawLine(Offset(4, 4), Offset(size.width - 4, size.height - 4), paint);
-    canvas.drawLine(Offset(size.width - 4, 4), Offset(4, size.height - 4), paint);
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+
+    _drawSword(canvas, paint, cx, cy, size.width, math.pi / 4);
+    _drawSword(canvas, paint, cx, cy, size.width, -math.pi / 4);
+  }
+
+  void _drawSword(Canvas canvas, Paint paint, double cx, double cy, double size, double angle) {
+    canvas.save();
+    canvas.translate(cx, cy);
+    canvas.rotate(angle);
+
+    final halfLen = size * 0.4;
+    final bladeW = size * 0.12; // Slightly thicker for small icon
+    final guardW = size * 0.3;
+    final handleH = size * 0.18;
+
+    // Blade
+    final path = Path();
+    path.moveTo(0, -halfLen);
+    path.lineTo(bladeW / 2, 0);
+    path.lineTo(-bladeW / 2, 0);
+    path.close();
+    canvas.drawPath(path, paint);
+
+    // Guard
+    canvas.drawRect(Rect.fromCenter(center: Offset(0, 0), width: guardW, height: bladeW * 0.6), paint);
+
+    // Handle
+    canvas.drawRect(Rect.fromCenter(center: Offset(0, handleH / 2), width: bladeW * 0.7, height: handleH), paint);
+
+    // Pommel
+    canvas.drawCircle(Offset(0, handleH), bladeW * 0.6, paint);
+
+    canvas.restore();
   }
 
   @override

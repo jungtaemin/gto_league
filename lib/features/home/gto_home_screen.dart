@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'widgets/gto/gto_background.dart';
-import 'widgets/gto/gto_top_bar.dart';
-import 'widgets/gto/gto_title.dart';
-import 'widgets/gto/gto_hero_stage.dart';
-import 'widgets/gto/gto_right_menu.dart';
-import 'widgets/gto/gto_comp_play_button.dart';
 import 'widgets/gto/gto_bottom_nav.dart';
+import 'widgets/gto/gto_lobby_body.dart';
+import 'widgets/gto/gto_league_body.dart';
 
 /// GTO League Home Screen – Stitch V1 layout
 class GtoHomeScreen extends StatefulWidget {
@@ -16,69 +13,44 @@ class GtoHomeScreen extends StatefulWidget {
 }
 
 class _GtoHomeScreenState extends State<GtoHomeScreen> {
-  int _navIndex = 2; // default to battle tab
+  int _navIndex = 2; // default to battle tab (Lobby)
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // Layer 0: Full-screen background (gradient + bokeh + floating cards)
+          // Layer 0: Full-screen background (Persistent)
           const Positioned.fill(child: GtoBackground()),
 
-          // Layer 1: Main content column
-          SafeArea(
-            child: Column(
-              children: [
-                // Top Status Bar
-                const GtoTopBar(),
-
-                // Title Section (GTO LEAGUE + subtitle pill)
-                const SizedBox(height: 4),
-                const GtoTitle(),
-
-                // Hero Stage (arc + robot + podium + side buttons)
-                Expanded(
-                  child: Stack(
-                    alignment: Alignment.center,
-                    clipBehavior: Clip.none,
-                    children: [
-                      const GtoHeroStage(),
-
-                      // Right side menu (achievements + mail)
-                      const Positioned(
-                        right: 12,
-                        top: 80,
-                        child: GtoRightMenu(),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Play Button (배틀 시작 + speech bubble)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: GtoCompPlayButton(
-                    onPressed: () {
-                      // TODO: Navigate to battle screen
-                    },
-                  ),
-                ),
-
-                // Space for bottom nav bar so play button isn't covered
-                const SizedBox(height: 140),
-              ],
+          // Layer 1: Body Content (Switchable)
+          Positioned.fill(
+            child: SafeArea(
+              bottom: false,
+              child: IndexedStack(
+                index: _navIndex,
+                children: [
+                  const Center(child: Text("Shop (Wait)", style: TextStyle(color: Colors.white))), // 0
+                  const Center(child: Text("Events (Wait)", style: TextStyle(color: Colors.white))), // 1
+                  const GtoLobbyBody(), // 2: Battle (Lobby)
+                  const Center(child: Text("Training (Wait)", style: TextStyle(color: Colors.white))), // 3
+                  const GtoLeagueBody(), // 4: League (Ranking)
+                ],
+              ),
             ),
           ),
 
-          // Layer 2: Bottom Navigation Bar (pinned to bottom)
+          // Layer 2: Bottom Navigation Bar (Persistent)
           Positioned(
             left: 0, right: 0, bottom: 0,
             child: GtoBottomNav(
               selectedIndex: _navIndex,
               onTap: (index) {
                 setState(() { _navIndex = index; });
-                // TODO: Navigate to corresponding screens
+                // If special handling needs to push route instead of tab switch?
+                // User requirement: "below menu layout maintain... touch and scroll comfortably"
+                // Tab switching is best for this.
+                // However, Play Button in LobbyBody still pushes '/game'.
               },
             ),
           ),

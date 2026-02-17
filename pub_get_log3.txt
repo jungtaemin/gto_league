@@ -1,0 +1,8 @@
+Resolving dependencies...
+The current Flutter SDK version is 0.0.0-unknown.
+
+Because holdem_allin_fold depends on google_fonts 6.1.0 which requires Flutter SDK version >=2.10.0-0, version solving failed.
+
+
+You can try the following suggestion to make the pubspec resolve:
+* Try using the Flutter SDK version: 3.41.1. 

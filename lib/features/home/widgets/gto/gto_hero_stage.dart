@@ -81,50 +81,7 @@ class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderSt
             ),
           ),
 
-          // 5. GTO Chart mini (left side)
-          Positioned(
-            left: -10, top: 100,
-            child: Transform.rotate(
-              angle: -0.1,
-              child: Container(
-                width: 64, height: 64,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A).withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF8B5CF6).withOpacity(0.5)),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 8)],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.only(left: 6, top: 4),
-                      child: Text("GTO", style: TextStyle(color: Color(0xFFD8B4FE), fontSize: 7, fontWeight: FontWeight.bold)),
-                    ),
-                    const SizedBox(height: 4),
-                    // Grid of colored squares
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Column(
-                        children: List.generate(3, (row) => Row(
-                          children: List.generate(4, (col) {
-                            final colors = [Colors.red, Colors.blue, Colors.green, Colors.yellow];
-                            return Container(
-                              width: 10, height: 8, margin: const EdgeInsets.all(1),
-                              decoration: BoxDecoration(
-                                color: colors[col].withOpacity(0.6 - row * 0.15),
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            );
-                          }),
-                        )),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+
 
           // 6. Robot Character (CSS-built style, floating)
           Positioned(
