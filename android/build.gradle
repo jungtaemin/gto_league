@@ -1,0 +1,31 @@
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+// Provide 'flutter' ext map for plugins that reference flutter.compileSdkVersion
+// outside the Flutter Gradle Plugin scope (e.g. app_links 6.4.1).
+ext {
+    set("flutter", [
+        compileSdkVersion: 35,
+        minSdkVersion    : 21,
+        targetSdkVersion : 35,
+        ndkVersion       : "26.1.10909125",
+        versionCode      : 1,
+        versionName      : "1.0.0",
+    ])
+}
+
+rootProject.buildDir = "../build"
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}
