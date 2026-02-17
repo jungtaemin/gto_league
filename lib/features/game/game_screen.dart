@@ -1,6 +1,5 @@
 import 'dart:math' show min;
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,16 +22,8 @@ import '../../providers/game_providers.dart';
 import '../../core/utils/haptic_manager.dart';
 import '../../core/utils/sound_manager.dart';
 
-// Theme
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_text_styles.dart';
-import '../../core/theme/app_shadows.dart';
-import '../../core/widgets/neon_text.dart';
 // Widgets
 import 'widgets/poker_card_widget.dart';
-import 'widgets/action_clock_widget.dart';
-import 'widgets/snap_bonus_widget.dart';
-import 'widgets/combo_counter_widget.dart';
 import 'widgets/swipe_feedback_overlay.dart';
 import 'widgets/answer_result_overlay.dart';
 import 'widgets/fact_bomb_bottom_sheet.dart';
@@ -55,6 +46,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   CardQuestion? _lastQuestion;
   DateTime? _cardShownTime;
   double _dragProgress = 0.0;
+  int _currentCardIndex = 0;
+
+  // ─── Stitch Colors ──────────────────────────────
+  static const _accentPurple = Color(0xFF7C3AED);
+  static const _accentCyan = Color(0xFF22D3EE);
+  static const _accentGold = Color(0xFFFBBF24);
+  static const _accentRed = Color(0xFFEF4444);
+  static const _accentGreen = Color(0xFF22C55E);
 
   @override
   void initState() {
@@ -85,12 +84,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   void _handleTimerExpired() {
     if (_isDisabled) return;
-    
     setState(() => _isDisabled = true);
     HapticManager.wrong();
     SoundManager.play(SoundType.timerWarning);
-    
-    // Auto-fold after delay
     Future.delayed(const Duration(milliseconds: 50), () {
       if (mounted) {
         _swiperController.swipe(CardSwiperDirection.left);
@@ -122,7 +118,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     
     ref.read(gameStateNotifierProvider.notifier).processAnswer(result);
     
-    // Show answer result overlay
     setState(() {
       _showAnswerResult = true;
       _lastAnswerCorrect = isCorrect;
@@ -141,22 +136,24 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     } else {
       HapticManager.wrong();
       SoundManager.play(SoundType.wrong);
-      // Pause timer — will resume after fact bomb modal dismissed
       ref.read(timerProvider.notifier).pause();
     }
     
     if (_isDisabled) {
       setState(() => _isDisabled = false);
     }
+
+    // Update current card index
+    if (currentIndex != null) {
+      setState(() => _currentCardIndex = currentIndex);
+    }
     
-    // T24: Update defense mode for the NEXT card
     if (currentIndex != null && currentIndex < _deck.length) {
       final nextQuestion = _deck[currentIndex];
       ref.read(gameStateNotifierProvider.notifier)
           .setDefenseMode(nextQuestion.chartType == 'CALL');
     }
 
-    // Deck exhaustion: if no more cards, end game
     if (currentIndex == null || currentIndex >= _deck.length - 1) {
       Future.delayed(const Duration(milliseconds: 1200), () {
         if (mounted) _navigateToGameOver();
@@ -166,14 +163,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     return true;
   }
 
-  /// Called when answer result overlay animation completes.
   void _onAnswerResultComplete() {
     setState(() => _showAnswerResult = false);
-    
     final result = _lastResult;
     final question = _lastQuestion;
-    
-    // If incorrect and has fact bomb → show modal
     if (result != null && !result.isCorrect && result.factBombMessage != null && question != null) {
       if (!mounted) return;
       showFactBombModal(
@@ -185,28 +178,22 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         onDismiss: _onFactBombDismissed,
       );
     } else {
-      // Correct answer or no fact bomb → restart timer normally
       _restartTimerForNextCard();
     }
   }
 
-  /// Called when fact bomb modal is dismissed.
   void _onFactBombDismissed() {
     _restartTimerForNextCard();
-    
-    // Check game over after fact bomb is dismissed
     if (ref.read(gameStateNotifierProvider).hearts <= 0) {
       _navigateToGameOver();
     }
   }
 
-  /// Submit score and navigate to game over screen.
   void _navigateToGameOver() {
     final score = ref.read(gameStateNotifierProvider).score;
     ref.read(rankingServiceProvider).submitScore(score);
     ref.read(timerProvider.notifier).stop();
     SoundManager.play(SoundType.gameOver);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/game-over');
@@ -214,7 +201,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     });
   }
 
-  /// Restart timer for the next card (resume after pause or fresh start).
   void _restartTimerForNextCard() {
     _cardShownTime = DateTime.now();
     final combo = ref.read(gameStateNotifierProvider).combo;
@@ -257,189 +243,387 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
     if (_deck.isEmpty) {
       return Scaffold(
-        backgroundColor: AppColors.deepBlack,
-        body: Center(
-          child: const NeonText(
-            'LOADING...',
-            color: AppColors.neonCyan,
-            fontSize: 24,
-            animated: true,
-          ).animate(onPlay: (c) => c.repeat(reverse: true))
-              .fadeIn(duration: 400.ms)
-              .scale(begin: const Offset(0.95, 0.95), end: const Offset(1.0, 1.0), duration: 1500.ms),
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment(0, -0.3),
+              radius: 1.2,
+              colors: [Color(0xFF4338CA), Color(0xFF1E1B4B), Color(0xFF0B0A1A)],
+            ),
+          ),
+          child: const Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: Color(0xFF7C3AED), strokeWidth: 3),
+                SizedBox(height: 16),
+                Text('로딩 중...', style: TextStyle(color: Colors.white54, fontSize: 14)),
+              ],
+            ),
+          ),
         ),
       );
     }
 
+    // Current card for info display
+    final cardIdx = _currentCardIndex.clamp(0, _deck.length - 1);
+    final currentQ = _deck[cardIdx];
+
     return Scaffold(
-      backgroundColor: AppColors.deepBlack,
-      body: SafeArea(
-        child: Column(
-          children: [
-            ActionClockWidget(
-              seconds: timerState.seconds,
-              phase: timerState.phase,
-              maxDuration: ref.read(timerProvider.notifier).currentDuration,
-            ),
-            const SizedBox(height: 8),
-            
-            _buildStatusBar(gameState),
-            const SizedBox(height: 8),
-            
-            Expanded(
-              child: Stack(
-                children: [
-                  CardSwiper(
-                    controller: _swiperController,
-                    cardsCount: _deck.length,
-                    numberOfCardsDisplayed: min(3, _deck.length),
-                    onSwipe: _onSwipe,
-                    onSwipeDirectionChange: _onSwipeDirectionChange,
-                    isDisabled: _isDisabled,
-                    allowedSwipeDirection: const AllowedSwipeDirection.symmetric(horizontal: true),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    cardBuilder: (context, index, horizontalOffsetPercentage, verticalOffsetPercentage) {
-                      return PokerCardWidget(question: _deck[index]);
-                    },
-                  ),
-                  
-                  SwipeFeedbackOverlay(dragProgress: _dragProgress),
-                  
-                  AnswerResultOverlay(
-                    isCorrect: _lastAnswerCorrect,
-                    isVisible: _showAnswerResult,
-                    onComplete: _onAnswerResultComplete,
-                  ),
-                  
-                  if (_showSnapBonus)
-                    SnapBonusWidget(
-                      isVisible: _showSnapBonus,
-                      onComplete: () => setState(() => _showSnapBonus = false),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment(0, -0.3),
+            radius: 1.2,
+            colors: [Color(0xFF4338CA), Color(0xFF1E1B4B), Color(0xFF0B0A1A)],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              const SizedBox(height: 8),
+
+              // ── 1. Top Bar: Position + Hearts + Score ──
+              _buildTopBar(gameState, currentQ),
+              const SizedBox(height: 12),
+
+              // ── 2. Timer Bar ──
+              _buildTimerBar(timerState),
+              const SizedBox(height: 16),
+
+              // ── 3. Card Area ──
+              Expanded(
+                child: Stack(
+                  children: [
+                    CardSwiper(
+                      controller: _swiperController,
+                      cardsCount: _deck.length,
+                      numberOfCardsDisplayed: min(3, _deck.length),
+                      onSwipe: _onSwipe,
+                      onSwipeDirectionChange: _onSwipeDirectionChange,
+                      isDisabled: _isDisabled,
+                      allowedSwipeDirection: const AllowedSwipeDirection.symmetric(horizontal: true),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      cardBuilder: (context, index, horizontalOffsetPercentage, verticalOffsetPercentage) {
+                        return PokerCardWidget(question: _deck[index]);
+                      },
                     ),
-                ],
+                    
+                    SwipeFeedbackOverlay(dragProgress: _dragProgress),
+                    
+                    AnswerResultOverlay(
+                      isCorrect: _lastAnswerCorrect,
+                      isVisible: _showAnswerResult,
+                      onComplete: _onAnswerResultComplete,
+                    ),
+                    
+                    if (_showSnapBonus)
+                      _buildSnapBonusOverlay(),
+                  ],
+                ),
               ),
-            ),
-            
-            _buildBottomBar(gameState),
-          ],
+
+              // ── 4. Hand Info ──
+              _buildHandInfo(currentQ),
+              const SizedBox(height: 8),
+
+              // ── 5. Bottom Swipe Hints ──
+              _buildBottomBar(gameState),
+              const SizedBox(height: 8),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildStatusBar(GameState state) {
+  // ═══════════════════════════════════════════════
+  // STITCH DESIGN: TOP BAR
+  // ═══════════════════════════════════════════════
+  Widget _buildTopBar(GameState state, CardQuestion q) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // Position Badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF7C3AED), Color(0xFF6D28D9)],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [BoxShadow(color: _accentPurple.withOpacity(0.4), blurRadius: 10)],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('현재 포지션', style: TextStyle(color: Colors.white60, fontSize: 9, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 2),
+                Text(
+                  q.position,
+                  style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1),
+                ),
+              ],
+            ),
+          ),
+
+          const Spacer(),
+
+          // Hearts
           Row(
             children: List.generate(5, (index) {
               final isActive = index < state.hearts;
               return Padding(
-                padding: const EdgeInsets.only(right: 4.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    boxShadow: isActive
-                        ? AppColors.neonGlow(AppColors.neonPink, intensity: 0.3)
-                        : [],
-                  ),
-                  child: Icon(
-                    isActive ? Icons.favorite : Icons.favorite_border,
-                    color: isActive ? AppColors.neonPink : AppColors.darkGray,
-                    size: 24,
-                  ),
-                ).animate(target: isActive ? 0 : 1).shake(duration: 300.ms),
+                padding: const EdgeInsets.only(right: 3),
+                child: Icon(
+                  isActive ? Icons.favorite : Icons.favorite_border,
+                  color: isActive ? _accentRed : Colors.white24,
+                  size: 20,
+                ),
               );
             }),
           ),
-          
-          Row(
-            children: [
-              ComboCounterWidget(
-                combo: state.combo,
-                isFeverMode: state.isFeverMode,
-              ),
-              const SizedBox(width: 16),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                transitionBuilder: (child, animation) => 
-                  ScaleTransition(scale: animation, child: child),
-                child: NeonText(
+          const SizedBox(width: 12),
+
+          // Score
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.bolt, color: _accentGold, size: 16),
+                const SizedBox(width: 4),
+                Text(
                   '${state.score}',
-                  key: ValueKey(state.score),
-                  color: AppColors.acidYellow,
-                  fontSize: 28,
-                  glowIntensity: 0.8,
-                  strokeWidth: 1.5,
+                  style: TextStyle(color: _accentGold, fontSize: 16, fontWeight: FontWeight.w900),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBottomBar(GameState state) {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  // ═══════════════════════════════════════════════
+  // STITCH DESIGN: TIMER BAR
+  // ═══════════════════════════════════════════════
+  Widget _buildTimerBar(TimerState timerState) {
+    final isCritical = timerState.phase == TimerPhase.critical;
+    final isExpired = timerState.phase == TimerPhase.expired;
+    final maxDuration = ref.read(timerProvider.notifier).currentDuration;
+    final progress = (timerState.seconds / maxDuration).clamp(0.0, 1.0);
+
+    Color barColor;
+    if (isExpired) {
+      barColor = _accentRed;
+    } else if (isCritical) {
+      barColor = _accentRed;
+    } else {
+      barColor = _accentCyan;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
         children: [
-          Expanded(
-            child: Row(
-              children: [
-                const NeonText('← FOLD', color: AppColors.laserRed, fontSize: 12, glowIntensity: 0.3),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Text('|', style: AppTextStyles.caption(color: AppColors.darkGray)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('남은 시간', style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.w500)),
+              Text(
+                '${timerState.seconds.toStringAsFixed(0)}s',
+                style: TextStyle(
+                  color: isCritical ? _accentRed : Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
                 ),
-                const NeonText('ALL-IN →', color: AppColors.acidGreen, fontSize: 12, glowIntensity: 0.3),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Container(
+            height: 6,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(3),
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: FractionallySizedBox(
+                widthFactor: progress,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isCritical
+                          ? [_accentRed, _accentRed.withOpacity(0.7)]
+                          : [_accentCyan, const Color(0xFF818CF8)],
+                    ),
+                    borderRadius: BorderRadius.circular(3),
+                    boxShadow: [BoxShadow(color: barColor.withOpacity(0.5), blurRadius: 6)],
+                  ),
+                ),
+              ),
             ),
           ),
-          
-          GestureDetector(
-            onTap: state.timeBankCount > 0 
-              ? () {
-                  final success = ref.read(gameStateNotifierProvider.notifier).useTimeBank();
-                  if (success) {
-                    ref.read(timerProvider.notifier).addTime(30);
-                    HapticManager.swipe();
-                  }
-                }
-              : null,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: state.timeBankCount > 0 ? AppColors.darkGray : AppColors.pureBlack,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: state.timeBankCount > 0 ? AppColors.acidYellow : AppColors.darkGray,
-                  width: 2,
-                ),
-                boxShadow: state.timeBankCount > 0 
-                  ? [...AppShadows.neonHardShadow(AppColors.acidYellow), ...AppColors.neonGlow(AppColors.acidYellow, intensity: 0.3)]
-                  : [],
-              ),
-              child: Row(
+        ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════
+  // STITCH DESIGN: HAND INFO
+  // ═══════════════════════════════════════════════
+  Widget _buildHandInfo(CardQuestion q) {
+    final isDefense = q.chartType == 'CALL';
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.07),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            '현재 핸드: ${q.hand}',
+            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '유효 스택: ${q.stackBb.toStringAsFixed(0)}BB',
+            style: TextStyle(color: Colors.white54, fontSize: 12),
+          ),
+          if (isDefense && q.opponentPosition != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              '상대방: ${q.opponentPosition} Open',
+              style: TextStyle(color: _accentRed.withOpacity(0.8), fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════
+  // STITCH DESIGN: BOTTOM BAR (FOLD/ALL-IN)
+  // ═══════════════════════════════════════════════
+  Widget _buildBottomBar(GameState state) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Fold button
+              Row(
                 children: [
-                  const Text('🪙', style: TextStyle(fontSize: 18)),
-                  const SizedBox(width: 6),
-                  NeonText(
-                    '×${state.timeBankCount}',
-                    color: state.timeBankCount > 0 ? AppColors.acidYellow : AppColors.darkGray,
-                    fontSize: 16,
-                    glowIntensity: state.timeBankCount > 0 ? 0.8 : 0.0,
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _accentRed.withOpacity(0.15),
+                      border: Border.all(color: _accentRed.withOpacity(0.3)),
+                    ),
+                    child: const Center(
+                      child: Text('✕', style: TextStyle(color: Color(0xFFEF4444), fontSize: 20, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text('폴드', style: TextStyle(color: Color(0xFFEF4444), fontSize: 18, fontWeight: FontWeight.w900)),
+                ],
+              ),
+
+              // Time bank
+              if (state.timeBankCount > 0)
+                GestureDetector(
+                  onTap: () {
+                    final success = ref.read(gameStateNotifierProvider.notifier).useTimeBank();
+                    if (success) {
+                      ref.read(timerProvider.notifier).addTime(30);
+                      HapticManager.swipe();
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: _accentGold.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: _accentGold.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Text('🪙', style: TextStyle(fontSize: 16)),
+                        const SizedBox(width: 6),
+                        Text('×${state.timeBankCount}', style: TextStyle(color: _accentGold, fontSize: 14, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // All-in button
+              Row(
+                children: [
+                  const Text('올인', style: TextStyle(color: Color(0xFF22C55E), fontSize: 18, fontWeight: FontWeight.w900)),
+                  const SizedBox(width: 10),
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _accentGreen.withOpacity(0.15),
+                      border: Border.all(color: _accentGreen.withOpacity(0.3)),
+                    ),
+                    child: const Center(
+                      child: Text('→', style: TextStyle(color: Color(0xFF22C55E), fontSize: 20, fontWeight: FontWeight.bold)),
+                    ),
                   ),
                 ],
               ),
-            ),
-          ).animate(
-            target: state.timeBankCount > 0 ? 1 : 0,
-          ).scale(begin: const Offset(0.95, 0.95), end: const Offset(1.0, 1.0)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '← 스와이프하여 결정하세요 →',
+            style: TextStyle(color: Colors.white24, fontSize: 11),
+          ),
         ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════
+  // SNAP BONUS OVERLAY
+  // ═══════════════════════════════════════════════
+  Widget _buildSnapBonusOverlay() {
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if (mounted) setState(() => _showSnapBonus = false);
+    });
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            decoration: BoxDecoration(
+              color: _accentGold.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [BoxShadow(color: _accentGold.withOpacity(0.6), blurRadius: 20)],
+            ),
+            child: const Text(
+              '⚡ SNAP BONUS! ⚡',
+              style: TextStyle(color: Colors.black, fontSize: 22, fontWeight: FontWeight.w900),
+            ),
+          ),
+        ),
       ),
     );
   }

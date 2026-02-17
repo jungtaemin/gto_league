@@ -47,6 +47,9 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (!mounted) return;
 
+    // Force navigate to home for testing V2 UI
+    Navigator.of(context).pushReplacementNamed('/home');
+    /*
     if (hasSeenOnboarding) {
       Navigator.of(context).pushReplacementNamed('/home');
     } else {
@@ -54,6 +57,7 @@ class _SplashScreenState extends State<SplashScreen>
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed('/onboarding');
     }
+    */
   }
 
   @override

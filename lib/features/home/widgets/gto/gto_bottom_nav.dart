@@ -1,7 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 
-/// Stitch V1 Bottom Nav: glass bg, diamond battle icon, 5 tabs
+/// Stitch V2 Bottom Nav: Glassmorphism, 5 tabs, Center Home with Glow
 class GtoBottomNav extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onTap;
@@ -14,53 +14,62 @@ class GtoBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      // Stitch: bg-nav-gradient backdrop-blur-lg rounded-t-[2rem] border-t border-white/5
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-          colors: [
-            const Color(0xFF0F172A).withOpacity(0.95),
-            const Color(0xFF1E293B).withOpacity(0.8),
-          ],
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          height: 90,
+          decoration: BoxDecoration(
+            color: const Color(0xFF0D071E).withOpacity(0.9),
+          ),
+          child: Stack(
+            children: [
+              // Top border line (replaces non-uniform Border)
+              Positioned(
+                top: 0, left: 0, right: 0,
+                child: Container(height: 1, color: Colors.white.withOpacity(0.1)),
+              ),
+              // Content
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8, top: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    _buildNavItem(0, Icons.storefront_rounded, "상점"),
+                    _buildNavItem(1, Icons.style_rounded, "덱"),
+                    _buildHomeButton(),
+                    _buildNavItem(3, Icons.bar_chart_rounded, "랭킹"),
+                    _buildNavItem(4, Icons.account_circle_rounded, "프로필"),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 20, offset: const Offset(0, -5)),
-        ],
-      ),
-      padding: const EdgeInsets.only(bottom: 12, top: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          _buildNavItem(0, Icons.storefront_rounded, "상점"),
-          _buildNavItem(1, Icons.card_giftcard_rounded, "이벤트"),
-          _buildBattleDiamond(),
-          _buildNavItem(3, Icons.school_rounded, "훈련하기"),
-          _buildNavItem(4, Icons.bar_chart_rounded, "리그"),
-        ],
       ),
     );
   }
 
   Widget _buildNavItem(int index, IconData icon, String label) {
     final isSelected = selectedIndex == index;
+    final color = isSelected ? Colors.white : Colors.white.withOpacity(0.4);
+
     return GestureDetector(
       onTap: () => onTap(index),
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 64,
+        width: 60,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: isSelected ? Colors.white : const Color(0xFFCBD5E1), size: 24),
-            const SizedBox(height: 4),
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 2),
             Text(label, style: TextStyle(
-              color: isSelected ? Colors.white : const Color(0xFF94A3B8),
-              fontSize: 10, fontWeight: FontWeight.bold, fontFamily: 'Jua',
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 1.0,
             )),
           ],
         ),
@@ -68,119 +77,53 @@ class GtoBottomNav extends StatelessWidget {
     );
   }
 
-  /// Stitch V1: Diamond-shaped (rotate-45) blue gradient battle button
-  Widget _buildBattleDiamond() {
+  Widget _buildHomeButton() {
     return GestureDetector(
       onTap: () => onTap(2),
       child: SizedBox(
-        width: 64, height: 80,
-        child: Stack(
-          alignment: Alignment.topCenter,
-          clipBehavior: Clip.none,
+        width: 70,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Diamond button
-            Positioned(
-              top: -24,
-              child: Transform.rotate(
-                angle: math.pi / 4,
-                child: Container(
-                  width: 56, height: 56,
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                // Outer Glow Ring
+                Container(
+                  width: 54, height: 54,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border(top: BorderSide(color: const Color(0xFF60A5FA), width: 1)),
+                    shape: BoxShape.circle,
+                    color: const Color(0xFF22D3EE).withOpacity(0.2),
+                    border: Border.all(color: const Color(0xFF22D3EE).withOpacity(0.4)),
                     boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF3B82F6).withOpacity(0.6),
-                        blurRadius: 15, spreadRadius: 0,
-                      ),
+                      BoxShadow(color: const Color(0xFF22D3EE).withOpacity(0.4), blurRadius: 20),
                     ],
                   ),
-                  child: Center(
-                    child: Transform.rotate(
-                      angle: -math.pi / 4,
-                      child: _buildCrossedSwordsIcon(24, const Color(0xFFFDE047)),
-                    ),
-                  ),
                 ),
-              ),
+                // Inner Circle
+                Container(
+                  width: 44, height: 44,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFF22D3EE),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2)),
+                    ],
+                  ),
+                  child: const Icon(Icons.home_rounded, color: Color(0xFF0D071E), size: 30),
+                ),
+              ],
             ),
-            // Label
-            Positioned(
-              bottom: 0,
-              child: Text("배틀", style: TextStyle(
-                color: const Color(0xFFFBBF24), fontSize: 11,
-                fontWeight: FontWeight.w900, fontFamily: 'Jua',
-                letterSpacing: 1,
-                shadows: [Shadow(color: Colors.black.withOpacity(0.3), blurRadius: 2)],
-              )),
-            ),
+            const SizedBox(height: 4),
+            const Text("홈", style: TextStyle(
+              color: Color(0xFF22D3EE),
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.0,
+            )),
           ],
         ),
       ),
     );
   }
-
-  /// Cross/swords icon matching Stitch SVG
-  Widget _buildCrossedSwordsIcon(double size, Color color) {
-    return CustomPaint(
-      size: Size(size, size),
-      painter: _CrossSwordsPainter(color),
-    );
-  }
-}
-
-class _CrossSwordsPainter extends CustomPainter {
-  final Color color;
-  _CrossSwordsPainter(this.color);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-
-    _drawSword(canvas, paint, cx, cy, size.width, math.pi / 4);
-    _drawSword(canvas, paint, cx, cy, size.width, -math.pi / 4);
-  }
-
-  void _drawSword(Canvas canvas, Paint paint, double cx, double cy, double size, double angle) {
-    canvas.save();
-    canvas.translate(cx, cy);
-    canvas.rotate(angle);
-
-    final halfLen = size * 0.4;
-    final bladeW = size * 0.12; // Slightly thicker for small icon
-    final guardW = size * 0.3;
-    final handleH = size * 0.18;
-
-    // Blade
-    final path = Path();
-    path.moveTo(0, -halfLen);
-    path.lineTo(bladeW / 2, 0);
-    path.lineTo(-bladeW / 2, 0);
-    path.close();
-    canvas.drawPath(path, paint);
-
-    // Guard
-    canvas.drawRect(Rect.fromCenter(center: Offset(0, 0), width: guardW, height: bladeW * 0.6), paint);
-
-    // Handle
-    canvas.drawRect(Rect.fromCenter(center: Offset(0, handleH / 2), width: bladeW * 0.7, height: handleH), paint);
-
-    // Pommel
-    canvas.drawCircle(Offset(0, handleH), bladeW * 0.6, paint);
-
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

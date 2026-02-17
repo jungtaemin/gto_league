@@ -17,6 +17,7 @@ class _GtoHomeScreenState extends State<GtoHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('BUILDING GTO HOME SCREEN V2');
     return Scaffold(
       body: Stack(
         children: [
@@ -31,10 +32,10 @@ class _GtoHomeScreenState extends State<GtoHomeScreen> {
                 index: _navIndex,
                 children: [
                   const Center(child: Text("Shop (Wait)", style: TextStyle(color: Colors.white))), // 0
-                  const Center(child: Text("Events (Wait)", style: TextStyle(color: Colors.white))), // 1
-                  const GtoLobbyBody(), // 2: Battle (Lobby)
-                  const Center(child: Text("Training (Wait)", style: TextStyle(color: Colors.white))), // 3
-                  const GtoLeagueBody(), // 4: League (Ranking)
+                  const Center(child: Text("Deck (Wait)", style: TextStyle(color: Colors.white))), // 1
+                  const GtoLobbyBody(), // 2: Home
+                  const GtoLeagueBody(), // 3: Ranking
+                  const Center(child: Text("Profile (Wait)", style: TextStyle(color: Colors.white))), // 4
                 ],
               ),
             ),

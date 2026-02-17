@@ -11,7 +11,7 @@ class GtoCompPlayButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 320, height: 90,
+      width: 340, height: 90, // V2: Bigger button
       child: Stack(
         alignment: Alignment.bottomCenter,
         clipBehavior: Clip.none,
@@ -22,7 +22,7 @@ class GtoCompPlayButton extends StatelessWidget {
             child: Container(
               width: double.infinity,
               height: 80,
-              margin: const EdgeInsets.symmetric(horizontal: 16),
+              // margin: const EdgeInsets.symmetric(horizontal: 16), // Adjusted in parent
               decoration: BoxDecoration(
                 // Stitch: bg-button-gradient = linear-gradient(180deg, #FCD34D 0%, #F59E0B 100%)
                 gradient: const LinearGradient(
@@ -31,10 +31,10 @@ class GtoCompPlayButton extends StatelessWidget {
                   colors: [Color(0xFFFCD34D), Color(0xFFF59E0B)],
                 ),
                 borderRadius: BorderRadius.circular(24),
-                // Stitch: shadow-button-glow = 0 4px 0 #b45309, 0 10px 20px rgba(245,158,11,0.5)
+                // Stitch V2 shadow: 0 6px 0 #d97706, 0 15px 20px rgba(0,0,0,0.4)
                 boxShadow: [
-                  const BoxShadow(color: Color(0xFFB45309), offset: Offset(0, 4), blurRadius: 0),
-                  BoxShadow(color: const Color(0xFFF59E0B).withOpacity(0.5), offset: const Offset(0, 10), blurRadius: 20),
+                  const BoxShadow(color: Color(0xFFD97706), offset: Offset(0, 6), blurRadius: 0),
+                  BoxShadow(color: Colors.black.withOpacity(0.4), offset: const Offset(0, 15), blurRadius: 20),
                 ],
               ),
               child: ClipRRect(

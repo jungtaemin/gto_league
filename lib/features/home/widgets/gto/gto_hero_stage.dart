@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'stitch_colors.dart';
 
-/// Stitch V1 Hero Stage with CSS-robot, progress arc, podium, GTO chart mini, side buttons
 class GtoHeroStage extends StatefulWidget {
   const GtoHeroStage({super.key});
 
@@ -11,512 +11,518 @@ class GtoHeroStage extends StatefulWidget {
 }
 
 class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderStateMixin {
-  late AnimationController _floatCtrl;
+  late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    _floatCtrl = AnimationController(vsync: this, duration: const Duration(seconds: 6))..repeat(reverse: true);
+    _controller = AnimationController(
+        vsync: this, duration: const Duration(seconds: 4)) // Float animation 4s
+      ..repeat(reverse: true);
   }
 
   @override
-  void dispose() { _floatCtrl.dispose(); super.dispose(); }
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    // HTML Structure Recreated
+    // Parent: relative flex-1 flex flex-col items-center justify-center -mt-8
     return SizedBox(
-      width: 340,
-      height: 420,
+      width: double.infinity,
+      // The Stack contains purely positioning elements relative to the center/stage
       child: Stack(
         alignment: Alignment.center,
         clipBehavior: Clip.none,
         children: [
-          // 1. "League Progress" label
-          const Positioned(
-            top: 0,
-            child: Text("League Progress", style: TextStyle(
-              color: Color(0xFFB2EBF2), fontSize: 13, fontWeight: FontWeight.bold,
-              letterSpacing: 1.5, fontFamily: 'Jua',
-              shadows: [Shadow(color: Color(0xFF22D3EE), blurRadius: 8)],
-            )),
-          ),
+          // 1. Background Rings (HTML Lines 144-145)
+          _buildRings(),
 
-          // 2. Progress Arc (conic gradient style)
+          // 2. Silver I Badge (HTML Lines 146-151)
+          // absolute top-[60px] right-[20px] -> In Flutter 360x360 box context?
+          // Let's use Positioned relative to center offset or top/right of stack
           Positioned(
-            top: 25,
-            child: CustomPaint(
-              size: const Size(260, 130),
-              painter: _ConicArcPainter(),
-            ),
+            top: 20, right: 40,
+            child: _buildSilverBadge(),
           ),
 
-          // 3. Silver I marker
-          const Positioned(
-            top: 55, right: 15,
-            child: Text("실버 I", style: TextStyle(
-              color: Color(0xFFCBD5E1), fontSize: 11, fontWeight: FontWeight.bold, fontFamily: 'Jua',
-            )),
-          ),
-
-          // 4. Silver badge diamond
+          // 3. GTO Chip Badge (HTML Lines 152-164)
+          // absolute top-[80px] left-[-10px]
           Positioned(
-            top: 60, right: 40,
-            child: Transform.rotate(
-              angle: math.pi / 4,
-              child: Container(
-                width: 24, height: 24,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF475569),
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: const Color(0xFF94A3B8), width: 1),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 6)],
-                ),
-                child: Center(
-                  child: Transform.rotate(
-                    angle: -math.pi / 4,
-                    child: const Text("I", style: TextStyle(color: Color(0xFFE2E8F0), fontSize: 8, fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ),
-            ),
+            top: 40, left: 20,
+            child: _buildGtoChipBadge(),
           ),
 
-
-
-          // 6. Robot Character (CSS-built style, floating)
+          // 4. Robot Container (HTML Lines 174-206)
+          // robot-container relative z-10 w-[200px]
+          // Animation: float 4s ease-in-out infinite
           Positioned(
-            top: 80,
-            child: AnimatedBuilder(
-              animation: _floatCtrl,
-              builder: (context, child) {
-                final dy = math.sin(_floatCtrl.value * math.pi) * 10;
-                final rot = math.sin(_floatCtrl.value * math.pi) * 0.035;
-                return Transform.translate(
-                  offset: Offset(0, dy),
-                  child: Transform.rotate(angle: rot, child: child),
-                );
-              },
-              child: _buildRobot(),
-            ),
+            top: 60, // Adjust to center it visually
+            child: _buildHtmlRobot(),
           ),
-
-          // 7. Podium (Glass ellipses + cyan glow)
+          
+          // 5. Speech Bubble (HTML Lines 208-213)
+          // absolute bottom-[25%] right-[20px]
           Positioned(
-            bottom: 20,
-            child: _buildPodium(),
+            bottom: 60, right: 30, // Adjusted coordinates
+            child: _buildSpeechBubble(),
           ),
         ],
       ),
     );
   }
 
-  /// CSS-robot recreation from Stitch HTML
-  Widget _buildRobot() {
+  Widget _buildRings() {
     return SizedBox(
-      width: 192, height: 200,
+      width: 320, height: 320,
       child: Stack(
         alignment: Alignment.center,
-        clipBehavior: Clip.none,
         children: [
-          // Body (dark rounded rectangle)
+          // 1. Faint Base Ring
+          // border-[12px] border-white/5 border-t-white/10 border-l-white/10 rotate-45
+          Transform.rotate(
+            angle: 45 * math.pi / 180,
+            child: Stack(
+              children: [
+                // Base faint ring
+                Container(
+                  width: 320, height: 320,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withOpacity(0.05), width: 12),
+                  ),
+                ),
+                // Top-Left highlighted segment
+                CustomPaint(
+                  size: const Size(320, 320),
+                  painter: _ArcPainter(color: Colors.white.withOpacity(0.1), width: 12),
+                ),
+              ],
+            ),
+          ),
+          // 2. Active Blue Arc (Top-Left 90 degrees + rotation)
           Positioned(
-            bottom: 16,
-            child: Container(
-              width: 112, height: 80,
-              decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
-                borderRadius: BorderRadius.circular(32),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 15, offset: const Offset(0, 8))],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Bowtie area
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Left triangle
-                      CustomPaint(size: const Size(12, 16), painter: _TrianglePainter(isLeft: true)),
-                      Container(width: 12, height: 12, decoration: BoxDecoration(color: const Color(0xFF334155), shape: BoxShape.circle)),
-                      CustomPaint(size: const Size(12, 16), painter: _TrianglePainter(isLeft: false)),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  // White triangle (shirt)
-                  CustomPaint(size: const Size(30, 30), painter: _ShirtTrianglePainter()),
-                  // Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(2, (_) => Container(
-                      width: 4, height: 4, margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-                      decoration: const BoxDecoration(color: Color(0xFF1E293B), shape: BoxShape.circle),
-                    )),
-                  ),
-                ],
+            top: 0, left: 10,
+            child: Transform.rotate(
+              angle: 45 * math.pi / 180,
+              child: CustomPaint(
+                size: const Size(300, 300),
+                painter: _ArcPainter(color: StitchColors.blue400, width: 8, shadow: true),
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
 
-          // Head (light gray rounded rectangle)
-          Positioned(
-            top: 0,
-            child: Container(
-              width: 160, height: 128,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF3F4F6),
-                borderRadius: BorderRadius.circular(40),
-                border: Border(bottom: BorderSide(color: const Color(0xFFD1D5DB), width: 4)),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4)),
+  Widget _buildHtmlRobot() {
+    // HTML: float animation
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        // 0% -> 0, 50% -> -10, 100% -> 0
+        final offset = -10.0 * math.sin(_controller.value * math.pi); // Simple sine for EaseInOut approx
+        return Transform.translate(
+          offset: Offset(0, offset),
+          child: child,
+        );
+      },
+      child: SizedBox( // robot-container
+        width: 200, height: 260, // Estimated total height including shadow
+        child: Stack(
+          alignment: Alignment.topCenter,
+          clipBehavior: Clip.none,
+          children: [
+            // Shadow (HTML Line 202)
+            // absolute bottom-[-30px] w-[240px] h-[60px] ... opacity-80 z-[-1]
+            Positioned(
+              bottom: 0,
+              child: Container(
+                width: 240, height: 60,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(100),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1E3A8A), Color(0xFF1D4ED8), Color(0xFF1E3A8A)], // blue-900 via blue-700
+                  ),
+                  // border: const Border(top: BorderSide(color: StitchColors.blue400, width: 2)), // Removed
+                  boxShadow: [
+                    BoxShadow(color: StitchColors.blue500.withOpacity(0.5), blurRadius: 30),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(100),
+                  child: Stack(
+                    children: [
+                       Positioned(
+                         top: 0, left: 0, right: 0,
+                         child: Container(height: 2, color: StitchColors.blue400),
+                       )
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            
+            // League Tag (HTML Line 203)
+            // absolute bottom-[-20px]
+            Positioned(
+              bottom: 15,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.6), // black/60
+                  borderRadius: BorderRadius.circular(99),
+                  border: Border.all(color: StitchColors.blue500.withOpacity(0.5)),
+                ),
+                child: const Text("리그: 브론즈 III", style: TextStyle(
+                  color: StitchColors.orange300, fontWeight: FontWeight.bold, fontSize: 14,
+                  fontFamily: 'Noto Sans KR',
+                )),
+              ),
+            ),
+
+            // Legs (HTML Line 198)
+            // flex gap-4 -mt-2
+            Positioned(
+              bottom: 40,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _leg(), const SizedBox(width: 16), _leg(),
                 ],
               ),
-              child: Stack(
-                children: [
-                  // Screen (dark inner rectangle)
-                  Center(
-                    child: Container(
-                      width: 144, height: 108,
-                      margin: const EdgeInsets.only(top: 4),
+            ),
+
+
+            // Lower Body (HTML Line 189)
+            // w-[100px] h-[80px] bg-[#1a1b2e] rounded-[2rem] -mt-4 z-0
+            Positioned(
+              top: 110,
+              child: Container(
+                width: 100, height: 80,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A1B2E),
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(color: StitchColors.slate600, width: 2),
+                  boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
+                ),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Neck Details (top-4 flex ...)
+                    const Positioned(
+                      top: 16, left: 0, right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                           // Not implementing tiny details for pixel perfect unless asked, keeping it clean
+                           // Just the Tie
+                        ],
+                      ),
+                    ),
+                    // White Triangle Tie (border-l-[15px] ...)
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 24),
+                        child: CustomPaint(
+                          size: const Size(30, 30),
+                          painter: _TiePainter(),
+                        ),
+                      ),
+                    ),
+                    // Little white dash (rotate-6)
+                    Positioned(
+                      top: 40, right: 16,
+                      child: Transform.rotate(
+                        angle: 6 * math.pi / 180,
+                        child: Container(width: 16, height: 4, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Head (HTML Line 175)
+            // w-[160px] h-[130px] bg-slate-200 rounded-[2.5rem] border-[6px] border-slate-300
+            Positioned(
+              top: 0,
+              child: Container(
+                width: 160, height: 130,
+                decoration: BoxDecoration(
+                  color: StitchColors.slate200,
+                  borderRadius: BorderRadius.circular(40), // 2.5rem
+                  border: Border.all(color: StitchColors.slate300, width: 6),
+                  boxShadow: const [BoxShadow(blurRadius: 20, color: Colors.black26)],
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Antenna (absolute -top-1)
+                    Positioned(
+                      top: -10, // -top-1 relative to container content box
+                      child: Container(
+                        width: 32, height: 8,
+                        decoration: BoxDecoration(
+                          color: StitchColors.slate400,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                      ),
+                    ),
+
+                    // Screen Face (HTML Line 176)
+                    // w-[130px] h-[100px] bg-[#0F1025] rounded-[1.8rem]
+                    Container(
+                      width: 130, height: 100,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0F172A),
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: const [BoxShadow(color: Colors.black, blurRadius: 20, spreadRadius: -5)],
+                        color: const Color(0xFF0F1025),
+                        borderRadius: BorderRadius.circular(28.8), // 1.8rem
+                        boxShadow: const [BoxShadow(color: Colors.black, blurRadius: 4, spreadRadius: 0, offset: Offset(0,2) )], // Inner shadow sim
                       ),
                       child: Stack(
                         children: [
-                          // Scanline overlay (subtle)
+                          // Code Text (opacity-20 text-[6px] green-400 font-mono)
                           Positioned.fill(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(32),
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: List.generate(20, (i) =>
-                                    i % 2 == 0 ? Colors.transparent : Colors.black.withOpacity(0.1)),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Opacity(
+                                opacity: 0.2,
+                                child: Text(
+                                  "const gto = (range) => { check(ev); raise(3bb); } ... fold > call\nif (pot_odds > 1.2) { call(); } else { fold(); }",
+                                  style: const TextStyle(
+                                    color: Colors.green, fontSize: 8, fontFamily: 'monospace', height: 1.2
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                          // Eyes (cyan glowing half-circles)
-                          Positioned(
-                            top: 32, left: 0, right: 0,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                          // Eyes & Mouth Wrapper
+                          Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                _buildEye(),
-                                const SizedBox(width: 16),
-                                _buildEye(),
-                              ],
-                            ),
-                          ),
-                          // Mouth (small cyan bar)
-                          Positioned(
-                            bottom: 24, left: 0, right: 0,
-                            child: Center(
-                              child: Container(
-                                width: 16, height: 8,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF22D3EE),
-                                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
-                                  boxShadow: [BoxShadow(color: const Color(0xFF22D3EE).withOpacity(0.6), blurRadius: 10)],
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    _htmlEye(),
+                                    const SizedBox(width: 16),
+                                    _htmlEye(),
+                                  ],
                                 ),
-                              ),
-                            ),
-                          ),
-                          // Code text overlay
-                          Positioned(
-                            top: 10, left: 10, right: 10,
-                            child: Text(
-                              "const gto = (range) => { check(ev); raise(3bb); }",
-                              style: TextStyle(color: Colors.green.withOpacity(0.15), fontSize: 5, fontFamily: 'monospace'),
-                              maxLines: 2, overflow: TextOverflow.clip,
-                            ),
-                          ),
-                          // Tie accent
-                          Positioned(
-                            top: 24, right: 20,
-                            child: Transform.rotate(
-                              angle: 0.1,
-                              child: Container(width: 16, height: 4, color: Colors.white.withOpacity(0.8)),
+                                const SizedBox(height: 8), // mt-2
+                                // Mouth (arc down)
+                                Container(
+                                  width: 16, height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: StitchColors.cyan400,
+                                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(8)),
+                                    boxShadow: [BoxShadow(color: StitchColors.cyan400, blurRadius: 5)],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _htmlEye() {
+    // w-8 h-5 (32x20) bg-cyan-400 rounded-t-full shadow...
+    return Container(
+      width: 32, height: 20,
+      decoration: const BoxDecoration(
+        color: StitchColors.cyan400,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        boxShadow: [BoxShadow(color: StitchColors.cyan400, blurRadius: 10)],
+      ),
+    );
+  }
+
+  Widget _leg() {
+    // w-6 h-8 bg-[#1a1b2e] rounded-b-xl border-2 border-slate-600
+    return Container(
+      width: 24, height: 32,
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1B2E),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+        border: Border.all(color: StitchColors.slate600, width: 2),
+      ),
+    );
+  }
+
+  Widget _buildSilverBadge() {
+    // animate-bounce duration-[3000ms]
+    return Column(
+      children: [
+        Transform.rotate(
+          angle: 12 * math.pi / 180, // rotate-12
+          child: Container(
+            width: 40, height: 40,
+            decoration: BoxDecoration(
+              color: StitchColors.slate300,
+              shape: BoxShape.circle,
+              border: Border.all(color: StitchColors.slate100, width: 2),
+              boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
+            ),
+            child: const Center(
+              child: Text("I", style: TextStyle(
+                fontFamily: 'serif', fontWeight: FontWeight.bold, fontSize: 18, color: StitchColors.slate600
+              )),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Text("실버 I", style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+      ],
+    )
+    .animate(onPlay: (c) => c.repeat(reverse: true))
+    .moveY(begin: 0, end: -6, duration: 3.seconds);
+  }
+
+  Widget _buildGtoChipBadge() {
+    // glass-panel rounded-2xl p-2 w-[80px] shadow-lg border-l-4 border-l-purple-400
+    // Fix: Cannot use borderRadius with non-uniform Border. 
+    // Solution: Uniform border for box, and a separate bar for the left accent.
+    return Container(
+      width: 80,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.15)), // Uniform border
+        boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            // Left Accent Bar (The thick border simulation)
+            Positioned(
+              left: 0, top: 0, bottom: 0,
+              child: Container(width: 4, color: StitchColors.purple400),
+            ),
+            // Content with padding
+            Padding(
+              padding: const EdgeInsets.only(left: 12.0, top: 8.0, right: 8.0, bottom: 8.0), // increased left padding
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("GTO", style: TextStyle(color: StitchColors.purple200, fontSize: 10, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  GridView.count(
+                    crossAxisCount: 3,
+                    shrinkWrap: true,
+                    mainAxisSpacing: 4,
+                    crossAxisSpacing: 4,
+                    padding: EdgeInsets.zero,
+                    children: [
+                      _colorDot(Colors.red), _colorDot(Colors.blue), _colorDot(Colors.green),
+                      _colorDot(Colors.yellow), _colorDot(Colors.purple), _colorDot(Colors.orange),
+                    ],
                   ),
                 ],
               ),
             ),
-          ),
-
-          // Arms
-          Positioned(
-            bottom: 40, left: -8,
-            child: Transform.rotate(
-              angle: 0.35,
-              child: Container(
-                width: 32, height: 48,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF0F172A), width: 4),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 40, right: -8,
-            child: Transform.rotate(
-              angle: -0.35,
-              child: Container(
-                width: 32, height: 48,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF0F172A), width: 4),
-                ),
-              ),
-            ),
-          ),
-
-          // Legs
-          Positioned(
-            bottom: -8, left: 56,
-            child: Container(
-              width: 32, height: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -8, right: 56,
-            child: Container(
-              width: 32, height: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildEye() {
+  Widget _colorDot(Color c) => Container(decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(4)));
+
+  Widget _buildSpeechBubble() {
+    // absolute bottom-[25%] right-[20px] z-20 animate-bounce
+    // bg-white text-black px-4 py-3 rounded-2xl rounded-tr-sm
     return Container(
-      width: 40, height: 24,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF22D3EE),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        boxShadow: [
-          BoxShadow(color: const Color(0xFF22D3EE).withOpacity(0.8), blurRadius: 15),
-        ],
+        color: Colors.white,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(16),
+          bottomLeft: Radius.circular(16),
+          bottomRight: Radius.circular(16),
+          topRight: Radius.circular(2), // rounded-tr-sm
+        ),
+        boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
       ),
-      child: Column(
-        children: [
-          const SizedBox(height: 4),
-          Container(width: 40, height: 2, color: const Color(0xFF0F172A).withOpacity(0.5)),
-          const SizedBox(height: 4),
-          Container(width: 40, height: 2, color: const Color(0xFF0F172A).withOpacity(0.5)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPodium() {
-    return SizedBox(
-      width: 260, height: 80,
       child: Stack(
-        alignment: Alignment.center,
+        clipBehavior: Clip.none,
         children: [
-          // Glow disc
-          Positioned(
-            bottom: 0,
-            child: Container(
-              width: 260, height: 64,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(130),
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF22D3EE).withOpacity(0.4),
-                    Colors.transparent,
-                  ],
-                  radius: 0.8,
-                ),
-              ),
-            ),
-          ),
-          // Inner ellipse
-          Positioned(
-            bottom: 32,
-            child: Container(
-              width: 192, height: 48,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.all(Radius.elliptical(192, 48)),
-                border: Border.all(color: const Color(0xFF22D3EE).withOpacity(0.3)),
-                color: Colors.white.withOpacity(0.05),
-              ),
-            ),
-          ),
-          // Outer ellipse
-          Positioned(
-            bottom: 16,
-            child: Container(
-              width: 224, height: 56,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.all(Radius.elliptical(224, 56)),
-                border: Border.all(color: const Color(0xFF22D3EE).withOpacity(0.4)),
-                color: Colors.white.withOpacity(0.05),
-              ),
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Text("리그: 브론즈 III", style: TextStyle(
-                    color: const Color(0xFFFDBA74), fontSize: 11,
-                    fontWeight: FontWeight.bold, fontFamily: 'Jua',
-                    shadows: [Shadow(color: Colors.orange.withOpacity(0.8), blurRadius: 4)],
-                  )),
-                ),
-              ),
-            ),
-          ),
-          // Bottom glow line
-          Positioned(
-            bottom: 8,
-            child: Container(
-              width: 240, height: 4,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(2),
-                border: Border(bottom: BorderSide(color: const Color(0xFF22D3EE), width: 2)),
-                boxShadow: [BoxShadow(color: const Color(0xFF22D3EE), blurRadius: 15, spreadRadius: 0)],
-              ),
-            ),
-          ),
+           const Text("지금 바로 올인!", style: TextStyle(
+             color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14, fontFamily: 'Black Han Sans'
+           )),
+           // The little tail in HTML: absolute -bottom-2 right-0 w-4 h-4 bg-white rotate-45
+           // Actually in Flutter we can just rely on the shape or add a positioned box.
         ],
       ),
-    );
+    )
+    .animate(onPlay: (c) => c.repeat(reverse: true))
+    .moveY(begin: 0, end: -10, duration: 1.seconds); // bounce
   }
 }
 
-class _ConicArcPainter extends CustomPainter {
+class _TiePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height);
-    final radius = size.width / 2;
-
-    // Background track
-    final bgPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 12
-      ..color = Colors.white.withOpacity(0.05);
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      math.pi, math.pi, false, bgPaint,
-    );
-
-    // Active gradient arc (pink → orange/yellow)
-    const sweepFraction = 0.55; // ~55% progress
-    final gradientPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 12
-      ..strokeCap = StrokeCap.round
-      ..shader = const SweepGradient(
-        startAngle: math.pi,
-        endAngle: 2 * math.pi,
-        colors: [
-          Color(0xFFEC4899), // Pink
-          Color(0xFFF59E0B), // Amber/Yellow
-        ],
-      ).createShader(Rect.fromCircle(center: center, radius: radius));
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      math.pi, math.pi * sweepFraction, false, gradientPaint,
-    );
-
-    // Glow on active arc
-    final glowPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 16
-      ..color = const Color(0xFFF59E0B).withOpacity(0.3)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      math.pi, math.pi * sweepFraction, false, glowPaint,
-    );
-
-    // Tick marks
-    for (int i = 0; i < 5; i++) {
-      final angle = math.pi + (math.pi / 6) * i;
-      final innerR = radius - 6;
-      final outerR = radius + 6;
-      final tickPaint = Paint()
-        ..color = Colors.white.withOpacity(0.3)
-        ..strokeWidth = 2;
-      canvas.drawLine(
-        Offset(center.dx + innerR * math.cos(angle), center.dy + innerR * math.sin(angle)),
-        Offset(center.dx + outerR * math.cos(angle), center.dy + outerR * math.sin(angle)),
-        tickPaint,
-      );
-    }
-
-    // Progress indicator (yellow dot at end of arc)
-    final endAngle = math.pi + math.pi * sweepFraction;
-    final dotCenter = Offset(
-      center.dx + radius * math.cos(endAngle),
-      center.dy + radius * math.sin(endAngle),
-    );
-    final dotPaint = Paint()
-      ..color = const Color(0xFFFDE047)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
-    canvas.drawCircle(dotCenter, 6, dotPaint);
-    canvas.drawCircle(dotCenter, 4, Paint()..color = const Color(0xFFFDE047));
+    // border-l-[15px] border-r-[15px] border-t-[30px] ... border-t-white
+    // Inverted Triangle
+    final paint = Paint()..color = Colors.white;
+    final path = Path();
+    path.moveTo(0, 0); // Top Left
+    path.lineTo(size.width, 0); // Top Right
+    path.lineTo(size.width / 2, size.height); // Bottom Center
+    path.close();
+    canvas.drawPath(path, paint);
   }
-
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-class _TrianglePainter extends CustomPainter {
-  final bool isLeft;
-  _TrianglePainter({required this.isLeft});
+class _ArcPainter extends CustomPainter {
+  final Color color;
+  final double width;
+  final bool shadow;
+
+  _ArcPainter({this.color = StitchColors.blue400, this.width = 8.0, this.shadow = false});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = const Color(0xFF1E293B);
-    final path = Path();
-    if (isLeft) {
-      path.moveTo(size.width, 0);
-      path.lineTo(0, size.height / 2);
-      path.lineTo(size.width, size.height);
-    } else {
-      path.moveTo(0, 0);
-      path.lineTo(size.width, size.height / 2);
-      path.lineTo(0, size.height);
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = width
+      ..strokeCap = StrokeCap.round;
+
+    if (shadow) {
+      final shadowPaint = Paint()
+        ..color = color.withOpacity(0.6)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = width
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15);
+      
+      const startAngle = -math.pi;
+      const sweepAngle = math.pi / 2;
+      canvas.drawArc(rect, startAngle, sweepAngle, false, shadowPaint);
     }
-    path.close();
-    canvas.drawPath(path, paint);
-  }
 
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _ShirtTrianglePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.white.withOpacity(0.9);
-    final path = Path();
-    path.moveTo(size.width / 2 - 15, 0);
-    path.lineTo(size.width / 2, size.height);
-    path.lineTo(size.width / 2 + 15, 0);
-    path.close();
-    canvas.drawPath(path, paint);
+    const startAngle = -math.pi;
+    const sweepAngle = math.pi / 2;
+    canvas.drawArc(rect, startAngle, sweepAngle, false, paint);
   }
 
   @override

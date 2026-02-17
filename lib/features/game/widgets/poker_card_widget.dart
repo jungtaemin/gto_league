@@ -1,291 +1,233 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../../../data/models/card_question.dart';
 import '../../../data/models/poker_hand.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_text_styles.dart';
-import '../../../core/theme/app_shadows.dart';
-import '../../../core/widgets/neon_text.dart';
 
+/// Stitch V1 스타일 포커 카드 위젯
+/// 실제 카드 모양 (둥근 모서리, 랭크+수트 큰 표시)
 class PokerCardWidget extends StatelessWidget {
   final CardQuestion question;
 
   const PokerCardWidget({super.key, required this.question});
 
+  // ─── Stitch Colors ──────
+  static const _accentPurple = Color(0xFF7C3AED);
+  static const _accentRed = Color(0xFFEF4444);
+
+  // ─── 수트별 고정 색상 ──────
+  static const _redSuit = Color(0xFFDC2626);   // ♥♦ 빨간색
+  static const _blackSuit = Color(0xFF1F2937); // ♠♣ 진한 검정 (흰 배경에서 잘 보임)
+
   @override
   Widget build(BuildContext context) {
     final pokerHand = PokerHand.fromNotation(question.hand);
     final isDefense = question.chartType == 'CALL';
-    
-    // Determine position color for theming
-    final positionColor = _getPositionColor(question.position);
-
-    // Generate visual suits
     final suits = _generateSuits(pokerHand);
     final suit1 = suits[0];
     final suit2 = suits[1];
 
-    return Animate(
-      effects: [
-        FadeEffect(duration: 350.ms),
-        ScaleEffect(
-          begin: const Offset(0.92, 0.92),
-          end: const Offset(1.0, 1.0),
-          duration: 400.ms,
-          curve: Curves.easeOutBack,
-        ),
-      ],
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.darkGray,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.pureBlack, width: 4),
-          boxShadow: [
-            ...AppShadows.layeredShadow,
-            ...AppColors.neonGlow(positionColor, intensity: 0.4),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12), // Inner radius to match border
-          child: Stack(
-            children: [
-              // 1. Inner Gradient Overlay
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.white.withOpacity(0.08),
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.15),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              // 2. CRT Texture Overlay
-              Positioned.fill(
-                child: Container(color: AppColors.crtOverlay),
-              ),
-
-              // 3. Main Content
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Top Section: Position Badges
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildPositionBadge(question.position),
-                        if (isDefense) _buildDefenseBadge(),
-                      ],
-                    ),
-                  ),
-
-                  // Center Section: Hand Display
-                  Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Huge Hand Notation
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _buildCardText(pokerHand.rank1, suit1),
-                              const SizedBox(width: 12),
-                              _buildCardText(pokerHand.rank2, suit2),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          // Korean Display Name
-                          NeonText(
-                            pokerHand.displayName,
-                            style: AppTextStyles.heading(),
-                            fontSize: 24,
-                            glowIntensity: 0.4,
-                            color: AppColors.pureWhite,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Bottom Section: Stack Size (BB)
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: const BoxDecoration(
-                      gradient: AppColors.bananaGradient,
-                      border: Border(
-                        top: BorderSide(color: AppColors.pureBlack, width: 3),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Poker Chip Icon
-                        Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: AppColors.pureWhite,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.pureBlack, width: 2),
-                            boxShadow: AppShadows.hardShadowTiny,
-                          ),
-                          child: const Center(
-                            child: Icon(Icons.circle, color: AppColors.acidYellow, size: 12),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${question.stackBb.toStringAsFixed(0)} BB',
-                          style: AppTextStyles.button(color: AppColors.pureBlack).copyWith(fontSize: 22),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              // 4. Defense Alert Banner
-              if (isDefense && question.opponentPosition != null)
-                Positioned(
-                  top: 70,
-                  left: 0,
-                  right: 0,
-                  child: Animate(
-                    effects: [
-                      ShimmerEffect(duration: 800.ms),
-                      ShakeEffect(hz: 2, offset: const Offset(1.5, 0), duration: 600.ms),
-                    ],
-                    onPlay: (c) => c.repeat(reverse: true),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.laserRed,
-                        boxShadow: AppColors.neonGlow(AppColors.laserRed, intensity: 0.4),
-                      ),
-                      child: Text(
-                        '🚨 ${question.opponentPosition} 올인! 방어하라!',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.headingSmall(color: AppColors.pureWhite),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Color _getPositionColor(String position) {
-    if (['BTN', 'SB', 'CO'].contains(position)) {
-      return AppColors.acidGreen;
-    } else if (['UTG', 'UTG+1', 'UTG+2'].contains(position)) {
-      return AppColors.laserRed;
-    } else {
-      return AppColors.electricBlue;
-    }
-  }
-
-  Widget _buildPositionBadge(String position) {
-    final color = _getPositionColor(position);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.pureBlack, width: 3),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF2D2668), Color(0xFF1E1B4B), Color(0xFF15133A)],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.15), width: 1),
         boxShadow: [
-          ...AppShadows.neonHardShadow(color),
-          ...AppColors.neonGlow(color, intensity: 0.3),
+          BoxShadow(color: _accentPurple.withOpacity(0.3), blurRadius: 20, spreadRadius: 2),
+          const BoxShadow(color: Colors.black38, blurRadius: 12, offset: Offset(0, 6)),
         ],
       ),
-      child: Text(
-        position,
-        style: AppTextStyles.button(color: AppColors.pureBlack),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Stack(
+          children: [
+            // Subtle highlight gradient
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white.withOpacity(0.05),
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.1),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Main Content
+            Column(
+              children: [
+                // Top section: Defense alert (if applicable)
+                if (isDefense && question.opponentPosition != null)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: _accentRed.withOpacity(0.8),
+                    ),
+                    child: Text(
+                      '🚨 ${question.opponentPosition} 올인! 방어하라!',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800),
+                    ),
+                  ),
+
+                const Spacer(),
+
+                // ── Card Display Area ──
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildPlayingCard(pokerHand.rank1, suit1),
+                    const SizedBox(width: 16),
+                    _buildPlayingCard(pokerHand.rank2, suit2),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                // Hand Name
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  ),
+                  child: Text(
+                    '현재 핸드: ${question.hand}',
+                    style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Stack Info
+                Text(
+                  '유효 스택: ${question.stackBb.toStringAsFixed(0)}BB',
+                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                ),
+
+                if (isDefense && question.opponentPosition != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '상대방: ${question.opponentPosition} Open',
+                    style: const TextStyle(color: Colors.white38, fontSize: 11),
+                  ),
+                ],
+
+                const Spacer(),
+
+                // Bottom Position Badge
+                Container(
+                  margin: const EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [_accentPurple.withOpacity(0.6), _accentPurple.withOpacity(0.3)],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: _accentPurple.withOpacity(0.4)),
+                  ),
+                  child: Text(
+                    question.position,
+                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildDefenseBadge() {
-    return Animate(
-      onPlay: (c) => c.repeat(reverse: true),
-      effects: [
-        ScaleEffect(begin: const Offset(1.0, 1.0), end: const Offset(1.05, 1.05), duration: 800.ms),
-      ],
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: AppColors.pureBlack,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.laserRed, width: 2),
-          boxShadow: AppColors.neonGlow(AppColors.laserRed, intensity: 0.3),
-        ),
-        child: const NeonText(
-          '🛡️ DEFENSE',
-          color: AppColors.laserRed,
-          fontSize: 12,
-          glowIntensity: 0.8,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCardText(String rank, String suit) {
+  /// 실제 트럼프 카드 모양의 미니카드
+  Widget _buildPlayingCard(String rank, String suit) {
     final isRed = suit == '♥' || suit == '♦';
-    final suitColor = isRed ? AppColors.neonPink : AppColors.neonCyan;
+    // 핵심 수정: 흰 배경 위에서 항상 잘 보이는 색상 사용
+    final suitColor = isRed ? _redSuit : _blackSuit;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
-      children: [
-        NeonText(
-          rank,
-          fontSize: 72,
-          color: AppColors.pureWhite,
-          strokeWidth: 2.5,
-          glowIntensity: 0.9,
-          style: AppTextStyles.display(),
-        ),
-        const SizedBox(width: 4),
-        NeonText(
-          suit,
-          fontSize: 72,
-          color: suitColor,
-          animated: true,
-          glowIntensity: 0.9,
-          style: AppTextStyles.display(),
-        ),
-      ],
+    return Container(
+      width: 100,
+      height: 140,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 10, offset: const Offset(2, 4)),
+          BoxShadow(color: _accentPurple.withOpacity(0.2), blurRadius: 15, spreadRadius: 1),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Top-left rank + suit
+          Positioned(
+            top: 8,
+            left: 10,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(rank, style: TextStyle(color: suitColor, fontSize: 20, fontWeight: FontWeight.w900, height: 1.0)),
+                Text(suit, style: TextStyle(color: suitColor, fontSize: 16)),
+              ],
+            ),
+          ),
+          // Center large suit
+          Center(
+            child: Text(suit, style: TextStyle(color: suitColor.withOpacity(0.85), fontSize: 52)),
+          ),
+          // Bottom-right rank + suit (inverted)
+          Positioned(
+            bottom: 8,
+            right: 10,
+            child: Transform.rotate(
+              angle: 3.14159,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(rank, style: TextStyle(color: suitColor, fontSize: 20, fontWeight: FontWeight.w900, height: 1.0)),
+                  Text(suit, style: TextStyle(color: suitColor, fontSize: 16)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
+  /// 핸드 표기법에 따라 고정 수트 매핑 (깜박임 없음, 4가지 수트 전부 사용)
+  /// - Suited(s): 같은 수트 → 핸드 첫 글자 기반으로 수트 결정
+  /// - Offsuit(o): 다른 수트 → 첫 카드/두번째 카드 다른 계열
+  /// - Pair: 다른 수트 (♠♥ 고정)
   List<String> _generateSuits(PokerHand hand) {
-    final suits = ['♠', '♣', '♥', '♦'];
-    final random = Random();
-    
+    // 4가지 수트 순환 매핑: 핸드 첫 번째 랭크 기준
+    final allSuits = ['♠', '♥', '♦', '♣'];
+    final rankIndex = _rankToIndex(hand.rank1);
+
     if (hand.isSuited) {
-      final suit = suits[random.nextInt(suits.length)];
-      return [suit, suit];
+      // Suited → 두 카드 같은 수트, 랭크에 따라 수트 결정
+      final suitIdx = rankIndex % 4;
+      return [allSuits[suitIdx], allSuits[suitIdx]];
     } else {
-      // Pair or Offsuit (logic is same: two different suits)
-      final suit1 = suits[random.nextInt(suits.length)];
-      var suit2 = suits[random.nextInt(suits.length)];
-      while (suit1 == suit2) {
-        suit2 = suits[random.nextInt(suits.length)];
-      }
-      return [suit1, suit2];
+      // Offsuit / Pair → 두 카드 다른 수트, 고정 매핑
+      final suit1Idx = rankIndex % 4;
+      final suit2Idx = (rankIndex + 1) % 4;
+      return [allSuits[suit1Idx], allSuits[suit2Idx]];
     }
+  }
+
+  /// 랭크를 인덱스로 변환 (결정적 수트 매핑용)
+  int _rankToIndex(String rank) {
+    const ranks = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
+    final idx = ranks.indexOf(rank);
+    return idx >= 0 ? idx : 0;
   }
 }

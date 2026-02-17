@@ -1,10 +1,7 @@
 import 'dart:math' show pi;
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_text_styles.dart';
-import '../../../core/widgets/neon_text.dart';
 
+/// 스와이프 방향 피드백 오버레이 (Stitch V1 스타일)
 class SwipeFeedbackOverlay extends StatelessWidget {
   final double dragProgress; // -1.0 (full left) to +1.0 (full right), 0.0 = center
 
@@ -13,28 +10,27 @@ class SwipeFeedbackOverlay extends StatelessWidget {
     required this.dragProgress,
   });
 
+  static const _red = Color(0xFFEF4444);
+  static const _green = Color(0xFF22C55E);
+
   @override
   Widget build(BuildContext context) {
     final double progressAbs = dragProgress.abs();
     
-    // Dead zone - show nothing if drag is minimal
     if (progressAbs < 0.05) {
       return const SizedBox.shrink();
     }
 
-    // Determine direction and properties
     final bool isFold = dragProgress < 0;
     final double opacity = progressAbs.clamp(0.0, 1.0);
     final double scale = 0.8 + (0.2 * opacity);
     
-    final String text = isFold ? "FOLD" : "ALL-IN!";
-    final String emoji = isFold ? "💀" : "🚀";
-    final Color color = isFold ? AppColors.laserRed : AppColors.acidGreen;
-    // Rotate -15 deg for Fold, +15 deg for All-In
+    final String text = isFold ? 'FOLD' : 'ALL-IN!';
+    final String emoji = isFold ? '💀' : '🚀';
+    final Color color = isFold ? _red : _green;
     final double rotation = isFold ? -15 * (pi / 180) : 15 * (pi / 180);
     final Alignment alignment = isFold ? Alignment.centerLeft : Alignment.centerRight;
     
-    // Background gradient from edge to center
     final Gradient gradient = LinearGradient(
       begin: isFold ? Alignment.centerLeft : Alignment.centerRight,
       end: isFold ? Alignment.centerRight : Alignment.centerLeft,
@@ -42,7 +38,6 @@ class SwipeFeedbackOverlay extends StatelessWidget {
         color.withOpacity(0.4 * opacity),
         color.withOpacity(0.0),
       ],
-      stops: const [0.0, 1.0],
     );
 
     return IgnorePointer(
@@ -50,12 +45,10 @@ class SwipeFeedbackOverlay extends StatelessWidget {
         children: [
           // Background Tint
           Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(gradient: gradient),
-            ),
+            child: Container(decoration: BoxDecoration(gradient: gradient)),
           ),
 
-          // Edge Glow Effect
+          // Edge Glow
           Positioned(
             top: 0,
             bottom: 0,
@@ -65,7 +58,7 @@ class SwipeFeedbackOverlay extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 color: color,
-                boxShadow: AppColors.neonGlow(color, intensity: opacity * 0.6),
+                boxShadow: [BoxShadow(color: color.withOpacity(opacity * 0.6), blurRadius: 12, spreadRadius: 2)],
               ),
             ),
           ),
@@ -81,7 +74,30 @@ class SwipeFeedbackOverlay extends StatelessWidget {
                   opacity: opacity,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 40.0),
-                    child: _buildFeedbackContent(text, emoji, color, opacity),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [BoxShadow(color: color.withOpacity(opacity * 0.4), blurRadius: 16, spreadRadius: 4)],
+                          ),
+                          child: Text(emoji, style: const TextStyle(fontSize: 60)),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          text,
+                          style: TextStyle(
+                            color: color,
+                            fontSize: 56,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 2.0,
+                            shadows: [Shadow(color: color.withOpacity(opacity * 1.2), blurRadius: 20)],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -90,49 +106,5 @@ class SwipeFeedbackOverlay extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Widget _buildFeedbackContent(String text, String emoji, Color color, double opacity) {
-    Widget content = Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Emoji Icon with Glow Halo
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: AppColors.neonGlow(color, intensity: opacity * 0.4),
-          ),
-          child: Text(
-            emoji,
-            style: const TextStyle(fontSize: 60),
-          ),
-        ),
-        const SizedBox(height: 10),
-        // Neon Text replacement
-        NeonText(
-          text,
-          style: AppTextStyles.display().copyWith(height: 1.0, letterSpacing: 2.0),
-          color: color,
-          fontSize: 56,
-          strokeWidth: 4.0,
-          glowIntensity: opacity * 1.2,
-        ),
-      ],
-    );
-
-    // Pulse animation when opacity is high (strong feedback)
-    if (opacity > 0.7) {
-      content = content
-          .animate(onPlay: (controller) => controller.repeat(reverse: true))
-          .scale(
-            begin: const Offset(1.0, 1.0),
-            end: const Offset(1.1, 1.1),
-            duration: 500.ms,
-            curve: Curves.easeInOut,
-          );
-    }
-
-    return content;
   }
 }

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_shadows.dart';
-import '../../../core/widgets/neon_text.dart';
 
+/// 콤보 카운터 (Stitch V1 스타일)
 class ComboCounterWidget extends StatelessWidget {
   final int combo;
   final bool isFeverMode;
@@ -14,6 +11,10 @@ class ComboCounterWidget extends StatelessWidget {
     required this.isFeverMode,
   });
 
+  static const _gold = Color(0xFFFBBF24);
+  static const _pink = Color(0xFFEC4899);
+  static const _purple = Color(0xFF7C3AED);
+
   @override
   Widget build(BuildContext context) {
     if (combo == 0) return const SizedBox.shrink();
@@ -21,20 +22,15 @@ class ComboCounterWidget extends StatelessWidget {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
-      child: _buildComboContent(context),
+      child: _buildComboContent(),
     );
   }
 
-  Widget _buildComboContent(BuildContext context) {
-    if (isFeverMode) {
-      return _buildFeverBadge();
-    } else if (combo >= 10) {
-      return _buildHighComboBadge();
-    } else if (combo >= 5) {
-      return _buildMediumComboBadge();
-    } else {
-      return _buildSmallComboBadge();
-    }
+  Widget _buildComboContent() {
+    if (isFeverMode) return _buildFeverBadge();
+    if (combo >= 10) return _buildHighComboBadge();
+    if (combo >= 5) return _buildMediumComboBadge();
+    return _buildSmallComboBadge();
   }
 
   Widget _buildSmallComboBadge() {
@@ -42,19 +38,13 @@ class ComboCounterWidget extends StatelessWidget {
       key: const ValueKey('small'),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.darkGray,
+        color: Colors.white.withOpacity(0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.pureBlack, width: 2),
-        boxShadow: [
-          ...AppShadows.hardShadowTiny,
-          ...AppShadows.innerGlow(AppColors.acidYellow),
-        ],
+        border: Border.all(color: Colors.white.withOpacity(0.15)),
       ),
-      child: NeonText(
+      child: Text(
         '🔥 x$combo',
-        color: AppColors.pureWhite,
-        fontSize: 14,
-        glowIntensity: 0.4,
+        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -64,21 +54,16 @@ class ComboCounterWidget extends StatelessWidget {
       key: const ValueKey('medium'),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.darkGray,
+        color: _gold.withOpacity(0.15),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.acidYellow, width: 2),
-        boxShadow: [
-          ...AppShadows.neonHardShadow(AppColors.acidYellow),
-          ...AppColors.neonGlow(AppColors.acidYellow, intensity: 0.4),
-        ],
+        border: Border.all(color: _gold.withOpacity(0.4), width: 1.5),
+        boxShadow: [BoxShadow(color: _gold.withOpacity(0.3), blurRadius: 8)],
       ),
-      child: NeonText(
+      child: Text(
         '🔥 x$combo',
-        color: AppColors.acidYellow,
-        fontSize: 18,
-        glowIntensity: 0.8,
+        style: TextStyle(color: _gold, fontSize: 18, fontWeight: FontWeight.bold),
       ),
-    ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(begin: const Offset(1, 1), end: const Offset(1.05, 1.05), duration: 500.ms);
+    );
   }
 
   Widget _buildHighComboBadge() {
@@ -86,23 +71,16 @@ class ComboCounterWidget extends StatelessWidget {
       key: const ValueKey('high'),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.pureBlack,
+        color: _pink.withOpacity(0.15),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.neonPink, width: 3),
-        boxShadow: [
-          ...AppShadows.layeredShadow,
-          ...AppColors.neonGlow(AppColors.neonPink, intensity: 0.6),
-        ],
+        border: Border.all(color: _pink.withOpacity(0.4), width: 2),
+        boxShadow: [BoxShadow(color: _pink.withOpacity(0.4), blurRadius: 12)],
       ),
-      child: NeonText(
+      child: Text(
         '🔥 x$combo',
-        color: AppColors.neonPink,
-        fontSize: 22,
-        glowIntensity: 1.2,
-        strokeWidth: 1.5,
-        animated: true,
+        style: TextStyle(color: _pink, fontSize: 22, fontWeight: FontWeight.w900),
       ),
-    ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(begin: const Offset(1, 1), end: const Offset(1.1, 1.1), duration: 300.ms);
+    );
   }
 
   Widget _buildFeverBadge() {
@@ -110,49 +88,21 @@ class ComboCounterWidget extends StatelessWidget {
       key: const ValueKey('fever'),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: BoxDecoration(
-        gradient: AppColors.neonGradient(AppColors.neonPurple, AppColors.neonPink),
+        gradient: LinearGradient(colors: [_purple, _pink]),
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: AppColors.acidYellow, width: 3),
+        border: Border.all(color: _gold, width: 2),
         boxShadow: [
-          ...AppColors.neonGlow(AppColors.neonPurple, intensity: 0.6),
-          ...AppColors.neonGlow(AppColors.neonPink, intensity: 0.4),
+          BoxShadow(color: _purple.withOpacity(0.4), blurRadius: 12),
+          BoxShadow(color: _pink.withOpacity(0.3), blurRadius: 8),
         ],
       ),
-      child: Stack(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // CRT Overlay
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.crtOverlay,
-                borderRadius: BorderRadius.circular(27),
-              ),
-            ),
-          ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const NeonText(
-                '🎰 FEVER!',
-                color: AppColors.acidYellow,
-                fontSize: 20,
-                glowIntensity: 1.5,
-                strokeWidth: 2.0,
-              ),
-              NeonText(
-                'x$combo',
-                color: AppColors.pureWhite,
-                fontSize: 18,
-                glowIntensity: 1.0,
-              ),
-            ],
-          ),
+          Text('🎰 FEVER!', style: TextStyle(color: _gold, fontSize: 20, fontWeight: FontWeight.w900)),
+          Text('x$combo', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
         ],
       ),
-    )
-    .animate(onPlay: (c) => c.repeat())
-    .shimmer(duration: 800.ms, color: AppColors.acidYellow.withOpacity(0.4))
-    .animate(onPlay: (c) => c.repeat(reverse: true))
-    .scale(begin: const Offset(1, 1), end: const Offset(1.1, 1.1), duration: 200.ms);
+    );
   }
 }
