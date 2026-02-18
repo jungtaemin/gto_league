@@ -1,141 +1,441 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../data/services/supabase_service.dart';
+import '../../../../core/utils/responsive.dart';
+import '../../../../providers/user_stats_provider.dart';
 import 'stitch_colors.dart';
+import 'settings_dialog.dart';
 
-class GtoTopBar extends StatelessWidget {
+class GtoTopBar extends ConsumerWidget {
   const GtoTopBar({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // HTML Lines 115-146
-    // flex justify-between items-center px-4 pt-4 pb-2 w-full gap-2
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // 1. League Badge (Lines 116-124)
-          Container(
-            padding: const EdgeInsets.only(right: 12, top: 4, bottom: 4, left: 4),
-            decoration: BoxDecoration(
-              color: StitchColors.orange600.withOpacity(0.9),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: StitchColors.orange400),
-              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
-            ),
-            child: Row(
-              children: [
-                // Icon Circle
-                Container(
-                  width: 32, height: 32,
-                  margin: const EdgeInsets.only(right: 8),
-                  decoration: BoxDecoration(
-                    color: StitchColors.orange800,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: StitchColors.orange300, width: 2),
-                  ),
-                  child: const Icon(Icons.emoji_events_rounded, color: StitchColors.yellow200, size: 14),
-                ),
-                Column(
+  Widget build(BuildContext context, WidgetRef ref) {
+    return StreamBuilder<AuthState>(
+      stream: SupabaseService.authStateChanges,
+      builder: (context, snapshot) {
+        final isLoggedIn = SupabaseService.isLoggedIn;
+        final displayName = SupabaseService.displayName ?? 'Guest';
+        final avatarUrl = SupabaseService.avatarUrl;
+
+        return Padding(
+          // 모든 간격을 w() 기준으로 통일
+          padding: EdgeInsets.fromLTRB(context.w(16), context.w(12), context.w(16), context.w(6)),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // 1. LEFT SIDE: Profile + League Badge
+              Flexible(
+                flex: 3,
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text("리그", style: TextStyle(color: StitchColors.orange300, fontSize: 10, height: 1.0)),
-                    const Text("브론즈", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, height: 1.0)),
+                    _buildProfileBadge(context, isLoggedIn, displayName, avatarUrl),
+                    SizedBox(height: context.w(6)),
+                    _buildLeagueBadge(context, ref),
                   ],
                 ),
-              ],
-            ),
-          ),
-
-          const SizedBox(width: 8),
-
-          // 2. Chip Badge (Lines 125-136)
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.only(right: 4, top: 4, bottom: 4, left: 4),
-              decoration: BoxDecoration(
-                color: Colors.grey[900]!.withOpacity(0.8),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: StitchColors.slate600),
-                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
               ),
-              child: Row(
-                children: [
-                  // Icon Circle
-                  Container(
-                    width: 28, height: 28,
-                    margin: const EdgeInsets.only(right: 8),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 2)],
-                    ),
-                    child: const Icon(Icons.savings_rounded, color: StitchColors.yellow500, size: 16),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text("보유 칩", style: TextStyle(color: StitchColors.slate400, fontSize: 10, height: 1.0)),
-                        const Text("12,450", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, height: 1.0)),
-                      ],
-                    ),
-                  ),
-                  // Add Button
-                  Container(
-                    width: 24, height: 24,
-                    decoration: BoxDecoration(
-                      color: StitchColors.green500,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: StitchColors.green400),
-                      boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
-                    ),
-                    child: const Icon(Icons.add, color: Colors.white, size: 14),
-                  ),
-                ],
+
+              SizedBox(width: context.w(6)),
+
+              // 2. CENTER: Chip Badge
+              Flexible(
+                flex: 3,
+                child: _buildChipBadge(context, ref),
               ),
-            ),
+
+              SizedBox(width: context.w(6)),
+
+              // 3. RIGHT SIDE: Energy & Settings
+              Flexible(
+                flex: 2,
+                child: _buildRightSection(context, ref),
+              ),
+            ],
           ),
+        );
+      }
+    );
+  }
 
-          const SizedBox(width: 8),
+  Widget _buildLeagueBadge(BuildContext context, WidgetRef ref) {
+    final stats = ref.watch(userStatsProvider);
+    final tier = stats.tier;
 
-          // 3. Energy & Settings (Lines 137-145)
-          Row(
+    // 티어별 색상 매핑 (GtoLeagueBody와 유사하게)
+    Color tierColor;
+    Color borderColor;
+    switch (tier.name) {
+      case 'fish': tierColor = StitchColors.green500; borderColor = StitchColors.green400; break;
+      case 'donkey': tierColor = StitchColors.cyan600; borderColor = StitchColors.cyan400; break;
+      case 'callingStation': tierColor = StitchColors.blue600; borderColor = StitchColors.blue400; break;
+      case 'pubReg': tierColor = StitchColors.indigo600; borderColor = StitchColors.indigo400; break;
+      case 'grinder': tierColor = StitchColors.purple600; borderColor = StitchColors.purple400; break;
+      case 'shark': tierColor = StitchColors.red600; borderColor = StitchColors.red400; break;
+      case 'gtoMachine': tierColor = StitchColors.orange800; borderColor = StitchColors.orange400; break;
+      default: tierColor = StitchColors.slate600; borderColor = StitchColors.slate400;
+    }
+
+    return Container(
+      padding: EdgeInsets.only(right: context.w(10), top: context.w(3), bottom: context.w(3), left: context.w(3)),
+      decoration: BoxDecoration(
+        color: tierColor.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: borderColor),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: context.w(26), height: context.w(26),
+            margin: EdgeInsets.only(right: context.w(6)),
+            decoration: BoxDecoration(
+              color: Colors.black26,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white24, width: 1.5),
+            ),
+            child: Center(child: Text(tier.emoji, style: TextStyle(fontSize: context.w(14)))),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Energy Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: StitchColors.blue600.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: StitchColors.blue400),
-                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.bolt_rounded, color: StitchColors.yellow300, size: 14),
-                    const SizedBox(width: 4),
-                    const Text("5/5", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic)),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Settings Button
-              Container(
-                width: 36, height: 36,
-                decoration: BoxDecoration(
-                  color: StitchColors.slate700.withOpacity(0.8),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: StitchColors.slate500),
-                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
-                ),
-                child: const Icon(Icons.settings_rounded, color: Colors.white, size: 18),
-              ),
+              Text("리그", style: TextStyle(color: Colors.white70, fontSize: context.sp(9), height: 1.0)),
+              Text(tier.displayName, style: TextStyle(color: Colors.white, fontSize: context.sp(12), fontWeight: FontWeight.bold, height: 1.0)),
             ],
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildChipBadge(BuildContext context, WidgetRef ref) {
+    final stats = ref.watch(userStatsProvider);
+    final chipText = _formatNumber(stats.chips);
+    return Container(
+      padding: EdgeInsets.all(context.w(3)),
+      decoration: BoxDecoration(
+        color: Colors.grey[900]!.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: StitchColors.slate600),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: context.w(24), height: context.w(24),
+            margin: EdgeInsets.only(right: context.w(6)),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 2)],
+            ),
+            child: Icon(Icons.savings_rounded, color: StitchColors.yellow500, size: context.w(14)),
+          ),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("보유 칩", style: TextStyle(color: StitchColors.slate400, fontSize: context.sp(9), height: 1.0)),
+                Text(chipText, style: TextStyle(color: Colors.white, fontSize: context.sp(12), fontWeight: FontWeight.bold, height: 1.0)),
+              ],
+            ),
+          ),
+          SizedBox(width: context.w(4)),
+          Container(
+            width: context.w(20), height: context.w(20),
+            decoration: BoxDecoration(
+              color: StitchColors.green500,
+              shape: BoxShape.circle,
+              border: Border.all(color: StitchColors.green400),
+              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+            ),
+            child: Icon(Icons.add, color: Colors.white, size: context.w(12)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRightSection(BuildContext context, WidgetRef ref) {
+    final stats = ref.watch(userStatsProvider);
+    final currentEnergy = stats.calculatedEnergy;
+    final isFull = currentEnergy >= stats.maxEnergy;
+
+    // 디자인 테마: Blue 계열
+    final mainColor = isFull ? StitchColors.green400 : StitchColors.blue400;
+    
+    // 타이머 텍스트
+    String timerText = "";
+    if (!isFull) {
+      final remaining = stats.timeUntilNextRefill;
+      if (remaining != null) {
+        final min = remaining.inMinutes;
+        final sec = remaining.inSeconds % 60;
+        timerText = '$min:${sec.toString().padLeft(2, '0')}';
+      }
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Stack(
+          clipBehavior: Clip.none, // 말풍선이 영역 밖으로 나가도 보이게 함
+          alignment: Alignment.center,
+          children: [
+            // 1. 메인 에너지 바
+            Container(
+              height: context.w(30),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(context.r(15)),
+                border: Border.all(
+                  color: mainColor.withOpacity(0.6), 
+                  width: 1.5
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: mainColor.withOpacity(0.25),
+                    blurRadius: 10,
+                    spreadRadius: 1,
+                  )
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(context.r(15)),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: context.w(12)),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 아이콘
+                        Icon(
+                          Icons.bolt_rounded,
+                          color: isFull ? StitchColors.green400 : StitchColors.yellow300,
+                          size: context.w(16),
+                        )
+                        .animate(target: isFull ? 1 : 0)
+                        .shimmer(duration: 2.seconds, delay: 3.seconds)
+                        .then()
+                        .shake(hz: 4, offset: const Offset(2, 0), duration: 200.ms),
+
+                        SizedBox(width: context.w(6)),
+
+                        // 에너지 텍스트 (4 / 10)
+                        Text(
+                          isFull ? "MAX" : "$currentEnergy",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: context.sp(14),
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Roboto',
+                          ),
+                        ),
+                        if (!isFull) 
+                          Text(
+                            "/", 
+                            style: TextStyle(color: Colors.white38, fontSize: context.sp(12))
+                          ),
+                        Text(
+                          "${stats.maxEnergy}",
+                          style: TextStyle(
+                            color: Colors.white54,
+                            fontSize: context.sp(12),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // 2. 타이머 말풍선 (Tooltip) - 하단에 둥둥 떠있음
+            if (!isFull)
+              Positioned(
+                bottom: -context.w(22), // 바 아래로 배치
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 꼬리 (위쪽 화살표)
+                    Transform.translate(
+                      offset: const Offset(0, 5), // 바짝 붙이기
+                      child: Icon(Icons.arrow_drop_up_rounded, color: StitchColors.blue900, size: context.w(20)),
+                    ),
+                    // 말풍선 본체
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: context.w(6), vertical: context.w(2)),
+                      decoration: BoxDecoration(
+                        color: StitchColors.blue900, // 진한 파랑 배경
+                        borderRadius: BorderRadius.circular(6),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          )
+                        ],
+                        border: Border.all(color: StitchColors.blue500.withOpacity(0.3), width: 0.5),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.timer_outlined, color: StitchColors.blue200, size: context.w(10)),
+                          SizedBox(width: context.w(3)),
+                          Text(
+                            timerText,
+                            style: TextStyle(
+                              color: StitchColors.blue100, // 밝은 텍스트
+                              fontSize: context.sp(10),
+                              fontWeight: FontWeight.w600,
+                              fontFeatures: const [FontFeature.tabularFigures()],
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+                .animate(onPlay: (c) => c.repeat(reverse: true)) // 무한 반복
+                .moveY(begin: 0, end: -3, duration: 1.5.seconds, curve: Curves.easeInOut), // 둥둥 효과
+              ),
+          ],
+        ),
+
+      ],
+    );
+  }
+
+  Widget _buildProfileBadge(BuildContext context, bool isLoggedIn, String displayName, String? avatarUrl) {
+    return GestureDetector(
+      onTap: () {
+        if (!isLoggedIn) {
+          Navigator.pushNamed(context, '/login');
+        } else {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('로그아웃 하시겠습니까?'),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
+                TextButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    await SupabaseService.signOut();
+                  }, 
+                  child: const Text('로그아웃')
+                ),
+              ],
+            )
+          );
+        }
+      },
+      child: Container(
+        padding: EdgeInsets.only(right: context.w(10), top: context.w(3), bottom: context.w(3), left: context.w(3)),
+        decoration: BoxDecoration(
+          color: isLoggedIn 
+              ? StitchColors.blue900.withOpacity(0.9) 
+              : StitchColors.slate700.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(context.r(20)),
+          border: Border.all(
+            color: isLoggedIn ? StitchColors.blue400 : StitchColors.slate600,
+            width: 1.5
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isLoggedIn ? StitchColors.blue600.withOpacity(0.3) : Colors.black45,
+              blurRadius: 8,
+              offset: const Offset(0, 4)
+            )
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Avatar
+            Container(
+              width: context.w(28), height: context.w(28),
+              margin: EdgeInsets.only(right: context.w(6)),
+              decoration: BoxDecoration(
+                color: StitchColors.bgDark,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isLoggedIn ? StitchColors.blue300 : StitchColors.slate500, 
+                  width: 1.5
+                ),
+                image: (isLoggedIn && avatarUrl != null) 
+                    ? DecorationImage(image: NetworkImage(avatarUrl), fit: BoxFit.cover)
+                    : null,
+              ),
+              child: (isLoggedIn && avatarUrl != null) 
+                  ? null 
+                  : Icon(
+                      Icons.person_rounded, 
+                      color: isLoggedIn ? StitchColors.blue200 : StitchColors.slate400, 
+                      size: context.w(16)
+                    ),
+            ),
+            
+            // Text Info
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isLoggedIn)
+                    Text(
+                      "플레이어", 
+                      style: TextStyle(
+                        color: StitchColors.blue300, 
+                        fontSize: context.sp(9), 
+                        height: 1.1,
+                        fontWeight: FontWeight.w600,
+                      )
+                    ),
+                  Text(
+                    isLoggedIn ? displayName : "로그인", 
+                    style: TextStyle(
+                      color: isLoggedIn ? Colors.white : StitchColors.slate300, 
+                      fontSize: context.sp(12), 
+                      fontWeight: FontWeight.bold, 
+                      height: 1.1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    maxLines: 1,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 숫자를 1,000 단위 쉼표 포맷
+  String _formatNumber(int n) {
+    if (n < 1000) return '$n';
+    final s = n.toString();
+    final buf = StringBuffer();
+    for (var i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+      buf.write(s[i]);
+    }
+    return buf.toString();
   }
 }

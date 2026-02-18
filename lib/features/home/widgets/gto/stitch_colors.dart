@@ -11,6 +11,7 @@ class StitchColors {
   static const Color slate700 = Color(0xFF334155);
 
   // Tailwind Blue
+  static const Color blue100 = Color(0xFFDBEAFE);
   static const Color blue200 = Color(0xFFBFDBFE);
   static const Color blue300 = Color(0xFF93C5FD);
   static const Color blue400 = Color(0xFF60A5FA);
@@ -48,6 +49,17 @@ class StitchColors {
   static const Color green400 = Color(0xFF4ADE80);
   static const Color green500 = Color(0xFF22C55E);
 
+  // Tailwind Red
+  static const Color red400 = Color(0xFFF87171);
+  static const Color red600 = Color(0xFFDC2626);
+
+  // Tailwind Indigo
+  static const Color indigo400 = Color(0xFF818CF8);
+  static const Color indigo600 = Color(0xFF4F46E5);
+  
+  // Tailwind Cyan (추가)
+  static const Color cyan600 = Color(0xFF0891B2);
+
   // Custom Backgrounds
   static const Color bgDark = Color(0xFF0F1035); // background-dark
   static const Color bgLight = Color(0xFF1A1B4B); // background-light
@@ -63,4 +75,12 @@ class StitchColors {
   static const Color buttonGoldEnd = Color(0xFFE68A00);
   
   static const Color shadowGold = Color(0xFFD97706); // #d97706
+
+  // Battle V2 Colors
+  static const Color primary = Color(0xFFFFB800);
+  static const Color primaryDark = Color(0xFFD49500);
+  static const Color accentBlue = Color(0xFF4F46E5);
+  static const Color accentCyan = Color(0xFF06B6D4);
+  static const Color glowRed = Color(0xFFEF4444);
+  static const Color glowBlue = Color(0xFF3B82F6);
 }

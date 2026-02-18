@@ -26,7 +26,7 @@ class GameState {
   factory GameState.initial() {
     return const GameState(
       score: 0,
-      hearts: 5,
+      hearts: 3,
       combo: 0,
       currentStreak: 0,
       isFeverMode: false,

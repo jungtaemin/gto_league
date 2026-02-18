@@ -36,7 +36,7 @@ class GameStateNotifier extends _$GameStateNotifier {
   static const int _feverDurationSeconds = 5;
 
   /// Maximum heart count.
-  static const int _maxHearts = 5;
+  static const int _maxHearts = 3;
 
   /// Time-bank charges added per refill.
   static const int _timeBankRefillAmount = 3;

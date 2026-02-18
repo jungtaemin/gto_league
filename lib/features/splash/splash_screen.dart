@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_colors.dart';
+import '../../data/services/supabase_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -47,17 +48,19 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (!mounted) return;
 
-    // Force navigate to home for testing V2 UI
-    Navigator.of(context).pushReplacementNamed('/home');
-    /*
-    if (hasSeenOnboarding) {
+    // Auth 상태에 따라 분기
+    if (SupabaseService.isLoggedIn) {
+      // 로그인된 유저 → 홈으로
       Navigator.of(context).pushReplacementNamed('/home');
+    } else if (hasSeenOnboarding) {
+      // 온보딩 완료 + 비로그인 → 로그인 화면으로
+      Navigator.of(context).pushReplacementNamed('/login');
     } else {
+      // 첫 방문 → 온보딩
       await prefs.setBool(_onboardingKey, true);
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed('/onboarding');
     }
-    */
   }
 
   @override

@@ -70,4 +70,12 @@ enum Tier {
     if (score < 2000) return Tier.shark;
     return Tier.gtoMachine;
   }
+
+  /// Get tier from name string (DB에서 가져온 문자열 → enum 변환)
+  static Tier fromName(String name) {
+    return Tier.values.firstWhere(
+      (t) => t.name == name,
+      orElse: () => Tier.fish,
+    );
+  }
 }

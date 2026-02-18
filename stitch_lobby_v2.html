@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GTO League - Main Menu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&amp;family=Do+Hyeon&amp;family=Jua&amp;family=Noto+Sans+KR:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#FFB800", // Yellow gold for main actions
+                        secondary: "#5C6AFF", // Blue accent
+                        "background-light": "#1A1B4B", // Deep blue/purple for base
+                        "background-dark": "#0F1035", // Darker deep blue
+                        "card-bg": "rgba(255, 255, 255, 0.1)",
+                        "glass-border": "rgba(255, 255, 255, 0.2)",
+                    },
+                    fontFamily: {
+                        display: ["'Black Han Sans'", "sans-serif"],
+                        body: ["'Do Hyeon'", "sans-serif"],
+                        ui: ["'Noto Sans KR'", "sans-serif"],
+                    },
+                    boxShadow: {
+                        'glow': '0 0 20px rgba(92, 106, 255, 0.6)',
+                        'glow-gold': '0 0 25px rgba(255, 184, 0, 0.6)',
+                        'inner-light': 'inset 0 2px 4px rgba(255, 255, 255, 0.3)',
+                    },
+                    backgroundImage: {
+                        'main-gradient': 'linear-gradient(180deg, #2D3A8C 0%, #1A1B4B 100%)',
+                        'button-gold': 'linear-gradient(180deg, #FFE066 0%, #FFB800 50%, #E68A00 100%)',
+                        'button-blue': 'linear-gradient(180deg, #8CA0FF 0%, #5C6AFF 100%)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>body {
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .glossy-text {
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(180deg, #FFFFFF 30%, #B0C4FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gold-text-stroke {
+             background: linear-gradient(180deg, #FFEBA0 0%, #FFB000 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 0px rgba(100, 50, 0, 0.8));
+        }
+        .robot-container {
+            position: relative;
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(255, 184, 0, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 184, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 184, 0, 0); }
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .arc-progress {
+            background: conic-gradient(from 225deg at 50% 50%, #5C6AFF 0deg, #A0B4FF 180deg, transparent 180deg);
+            mask: radial-gradient(transparent 60%, black 61%);
+            -webkit-mask: radial-gradient(transparent 60%, black 61%);
+        }.stripes {
+            background-image: linear-gradient(45deg, rgba(0,0,0,0.05) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.05) 50%, rgba(0,0,0,0.05) 75%, transparent 75%, transparent);
+            background-size: 20px 20px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-main-gradient dark:bg-background-dark min-h-screen text-white overflow-hidden relative selection:bg-secondary selection:text-white">
+<div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+<div class="absolute top-[-10%] left-[-20%] w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[100px]"></div>
+<div class="absolute bottom-[-10%] right-[-20%] w-[400px] h-[400px] bg-purple-600/20 rounded-full blur-[80px]"></div>
+<div class="absolute top-[20%] left-[10%] opacity-40 rotate-[-15deg]">
+<span class="material-icons-round text-blue-300 text-6xl drop-shadow-[0_0_10px_rgba(100,150,255,0.5)]">style</span>
+</div>
+<div class="absolute top-[25%] right-[15%] opacity-40 rotate-[25deg]">
+<span class="material-icons-round text-pink-300 text-5xl drop-shadow-[0_0_10px_rgba(255,100,150,0.5)]">favorite</span>
+</div>
+<div class="absolute bottom-[30%] left-[5%] opacity-30 rotate-[45deg]">
+<span class="material-icons-round text-blue-200 text-7xl">view_agenda</span>
+</div>
+<div class="absolute bottom-[35%] right-[8%] opacity-30 rotate-[-10deg]">
+<span class="material-icons-round text-red-300 text-6xl">crop_portrait</span>
+</div>
+</div>
+<div class="relative z-10 flex flex-col h-screen max-w-md mx-auto">
+<div class="flex justify-between items-center px-4 pt-4 pb-2 w-full gap-2">
+<div class="flex items-center bg-orange-600/90 rounded-full px-1 py-1 pr-3 border border-orange-400 shadow-md">
+<div class="w-8 h-8 rounded-full bg-orange-800 flex items-center justify-center border-2 border-orange-300 mr-2">
+<span class="material-icons-round text-yellow-200 text-sm">emoji_events</span>
+</div>
+<div class="flex flex-col leading-none">
+<span class="text-[10px] text-orange-200 font-ui">리그</span>
+<span class="text-sm font-bold text-white font-body">브론즈</span>
+</div>
+</div>
+<div class="flex items-center bg-gray-900/80 backdrop-blur rounded-full px-1 py-1 pr-1 border border-gray-600 shadow-md flex-1 max-w-[140px]">
+<div class="w-7 h-7 rounded-full bg-white flex items-center justify-center mr-2 shadow-inner">
+<span class="material-icons-round text-yellow-500 text-base">savings</span>
+</div>
+<div class="flex flex-col leading-none flex-1">
+<span class="text-[10px] text-gray-400 font-ui">보유 칩</span>
+<span class="text-sm font-bold text-white font-ui">12,450</span>
+</div>
+<button class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white shadow-lg border border-green-300">
+<span class="material-icons-round text-sm font-bold">add</span>
+</button>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex items-center bg-blue-600/80 rounded-full px-3 py-1 border border-blue-400 shadow-md">
+<span class="material-icons-round text-yellow-300 text-sm mr-1">bolt</span>
+<span class="text-sm font-bold italic font-display mr-1">5/5</span>
+</div>
+<button class="w-9 h-9 rounded-full bg-slate-700/80 border border-slate-500 flex items-center justify-center shadow-md">
+<span class="material-icons-round text-white text-lg">settings</span>
+</button>
+</div>
+</div>
+<div class="flex flex-col items-center mt-2 mb-2 relative">
+<h1 class="text-5xl font-display text-transparent bg-clip-text bg-gradient-to-b from-blue-900 to-black drop-shadow-lg opacity-30 absolute top-1 left-1/2 transform -translate-x-1/2 select-none">GTO</h1>
+<h1 class="text-5xl font-display text-transparent bg-clip-text bg-gradient-to-b from-blue-400 to-blue-900 drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] z-10 select-none">GTO</h1>
+<h2 class="text-3xl font-display text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-orange-500 drop-shadow-[0_2px_0_rgba(100,50,0,1)] -mt-2 z-10 select-none">LEAGUE</h2>
+<div class="mt-3 bg-blue-900/60 backdrop-blur-sm px-4 py-1.5 rounded-full border border-blue-500/30">
+<span class="text-blue-100 font-body text-sm tracking-wide">홀덤 푸시폴드 배틀</span>
+</div>
+</div>
+<div class="flex-1 relative flex flex-col items-center justify-center -mt-8">
+<div class="relative w-[320px] h-[320px] flex items-center justify-center">
+<div class="absolute top-0 left-0 w-full h-full rounded-full border-[12px] border-white/5 border-t-white/10 border-l-white/10 rotate-45"></div>
+<div class="absolute top-[-10px] left-[10px] w-[300px] h-[300px] rounded-full border-t-[8px] border-l-[8px] border-blue-400 rotate-45 shadow-[0_0_15px_rgba(96,165,250,0.6)]"></div>
+<div class="absolute top-[60px] right-[20px] flex flex-col items-center animate-bounce duration-[3000ms]">
+<div class="w-10 h-10 bg-slate-300 rounded-full border-2 border-slate-100 shadow-lg flex items-center justify-center rotate-12">
+<span class="font-serif font-bold text-slate-600 text-lg">I</span>
+</div>
+<span class="text-xs text-white mt-1 font-body drop-shadow-md">실버 I</span>
+</div>
+<div class="absolute top-[80px] left-[-10px] glass-panel rounded-2xl p-2 w-[80px] shadow-lg border-l-4 border-l-purple-400">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[8px] font-bold text-purple-200">GTO</span>
+</div>
+<div class="grid grid-cols-3 gap-1">
+<div class="w-4 h-4 rounded bg-red-500 shadow-inner"></div>
+<div class="w-4 h-4 rounded bg-blue-500 shadow-inner"></div>
+<div class="w-4 h-4 rounded bg-green-500 shadow-inner"></div>
+<div class="w-4 h-4 rounded bg-yellow-500 shadow-inner"></div>
+<div class="w-4 h-4 rounded bg-purple-500 shadow-inner"></div>
+<div class="w-4 h-4 rounded bg-orange-500 shadow-inner"></div>
+</div>
+</div>
+<div class="absolute right-[-10px] top-[140px] flex flex-col gap-4">
+<button class="w-[60px] h-[60px] rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-blue-300 shadow-lg flex flex-col items-center justify-center group active:scale-95 transition-transform">
+<span class="material-icons-round text-white text-2xl group-hover:animate-pulse">emoji_events</span>
+<span class="text-[10px] text-white font-bold font-ui mt-0.5">업적</span>
+</button>
+<button class="w-[60px] h-[60px] rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 border-2 border-cyan-300 shadow-lg flex flex-col items-center justify-center group active:scale-95 transition-transform">
+<span class="material-icons-round text-white text-2xl">mail</span>
+<span class="text-[10px] text-white font-bold font-ui mt-0.5">우편함</span>
+</button>
+</div>
+<div class="robot-container relative z-10 w-[200px] flex flex-col items-center">
+<div class="w-[160px] h-[130px] bg-slate-200 rounded-[2.5rem] shadow-xl relative border-[6px] border-slate-300 flex items-center justify-center overflow-hidden">
+<div class="w-[130px] h-[100px] bg-[#0F1025] rounded-[1.8rem] shadow-inner relative overflow-hidden flex flex-col items-center justify-center">
+<div class="absolute inset-0 opacity-20 text-[6px] text-green-400 font-mono p-1 leading-tight overflow-hidden">
+                                const gto = (range) =&gt; { check(ev); raise(3bb); } ... fold &gt; call
+                                if (pot_odds &gt; 1.2) { call(); } else { fold(); }
+                            </div>
+<div class="flex gap-4 z-10 mt-2">
+<div class="w-8 h-5 bg-cyan-400 rounded-t-full shadow-[0_0_10px_#22d3ee]"></div>
+<div class="w-8 h-5 bg-cyan-400 rounded-t-full shadow-[0_0_10px_#22d3ee]"></div>
+</div>
+<div class="w-4 h-2 bg-cyan-400 rounded-b-full mt-1 shadow-[0_0_5px_#22d3ee]"></div>
+</div>
+<div class="absolute -top-1 w-8 h-2 bg-slate-400 rounded-full"></div>
+</div>
+<div class="w-[100px] h-[80px] bg-[#1a1b2e] rounded-[2rem] -mt-4 relative z-0 flex flex-col items-center shadow-lg border-2 border-slate-600">
+<div class="absolute top-4 flex items-center justify-center">
+<div class="w-3 h-3 bg-slate-200 rounded-full z-10 relative"></div>
+<div class="w-6 h-4 bg-slate-200 absolute -left-2 rounded-l-full"></div>
+<div class="w-6 h-4 bg-slate-200 absolute -right-2 rounded-r-full"></div>
+</div>
+<div class="w-full h-full relative overflow-hidden rounded-[2rem]">
+<div class="absolute top-6 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[15px] border-r-[15px] border-t-[30px] border-l-transparent border-r-transparent border-t-white"></div>
+<div class="absolute top-10 right-4 w-4 h-1 bg-white rotate-6"></div>
+</div>
+</div>
+<div class="flex gap-4 -mt-2">
+<div class="w-6 h-8 bg-[#1a1b2e] rounded-b-xl border-2 border-slate-600"></div>
+<div class="w-6 h-8 bg-[#1a1b2e] rounded-b-xl border-2 border-slate-600"></div>
+</div>
+<div class="absolute bottom-[-30px] w-[240px] h-[60px] bg-gradient-to-r from-blue-900 via-blue-700 to-blue-900 rounded-[100%] border-t-2 border-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.5)] opacity-80 z-[-1]"></div>
+<div class="absolute bottom-[-20px] bg-black/60 backdrop-blur px-4 py-1 rounded-full border border-blue-500/50">
+<span class="text-orange-300 font-bold text-sm font-ui">리그: 브론즈 III</span>
+</div>
+</div>
+</div>
+<div class="absolute bottom-[25%] right-[20px] z-20 animate-bounce" style="animation-duration: 2s;">
+<div class="bg-white text-black px-4 py-3 rounded-2xl rounded-tr-sm shadow-xl relative">
+<span class="font-extrabold text-sm whitespace-nowrap font-display">지금 바로 올인!</span>
+<div class="absolute -bottom-2 right-0 w-4 h-4 bg-white rotate-45 transform origin-top-left"></div>
+</div>
+</div>
+</div>
+<div class="px-6 pb-2 relative z-20">
+<button class="w-full h-[88px] relative group active:scale-95 transition-transform duration-100">
+<div class="absolute inset-0 bg-button-gold rounded-[2rem] shadow-[0_6px_0_#d97706,0_15px_20px_rgba(0,0,0,0.4)] overflow-hidden border-t border-yellow-200">
+<div class="absolute inset-0 stripes opacity-30"></div>
+</div>
+<div class="absolute inset-0 flex items-center justify-center gap-3">
+<div class="relative w-12 h-12">
+<span class="material-icons-round text-[#6D4C41] text-5xl absolute top-0 left-0 transform -rotate-12 group-hover:rotate-0 transition-transform">swords</span>
+</div>
+<span class="text-[32px] font-display text-[#5D4037] drop-shadow-sm tracking-wide mt-1">배틀 시작</span>
+<span class="material-icons-round text-[#8D6E63] text-4xl animate-pulse">navigate_next</span>
+</div>
+<div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/30 to-transparent rounded-t-[2rem] pointer-events-none"></div>
+</button>
+</div>
+<div class="mt-auto px-2 pb-2">
+<div class="bg-[#1e2348] rounded-[2rem] px-2 py-3 flex justify-between items-end h-[76px] relative shadow-lg mx-2 mb-2 border-t border-white/5">
+<button class="flex-1 flex flex-col items-center gap-1 opacity-70 hover:opacity-100 transition-opacity">
+<span class="material-icons-round text-slate-300 text-2xl">storefront</span>
+<span class="text-[10px] text-slate-400 font-medium font-ui">상점</span>
+</button>
+<button class="flex-1 flex flex-col items-center gap-1 opacity-70 hover:opacity-100 transition-opacity">
+<span class="material-icons-round text-slate-300 text-2xl">redeem</span>
+<span class="text-[10px] text-slate-400 font-medium font-ui">이벤트</span>
+</button>
+<div class="relative w-16 -top-8 flex flex-col items-center">
+<div class="w-16 h-16 bg-gradient-to-b from-blue-400 to-blue-700 rounded-full border-[4px] border-[#1e2348] shadow-[0_0_15px_rgba(59,130,246,0.6)] flex items-center justify-center relative z-10">
+<span class="material-icons-round text-yellow-100 text-3xl transform -rotate-45">swords</span>
+</div>
+<span class="text-[11px] text-yellow-400 font-bold font-ui mt-1 relative z-10 drop-shadow-md">배틀</span>
+<div class="absolute top-2 left-2 w-12 h-12 bg-blue-500 blur-xl opacity-60 z-0"></div>
+</div>
+<button class="flex-1 flex flex-col items-center gap-1 opacity-70 hover:opacity-100 transition-opacity">
+<span class="material-icons-round text-slate-300 text-2xl">school</span>
+<span class="text-[10px] text-slate-400 font-medium font-ui">훈련하기</span>
+</button>
+<button class="flex-1 flex flex-col items-center gap-1 opacity-70 hover:opacity-100 transition-opacity">
+<span class="material-icons-round text-slate-300 text-2xl">bar_chart</span>
+<span class="text-[10px] text-slate-400 font-medium font-ui">랭킹</span>
+</button>
+</div>
+</div>
+</div>
+<script>
+        // Simple interaction for the button press visual effect
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(btn => {
+            btn.addEventListener('touchstart', () => {
+                btn.style.transform = 'scale(0.95)';
+            });
+            btn.addEventListener('touchend', () => {
+                btn.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+
+</body></html>

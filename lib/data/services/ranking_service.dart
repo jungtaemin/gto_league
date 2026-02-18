@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../models/league_player.dart';
 import '../models/tier.dart';
+import 'supabase_service.dart';
 
 // ---------------------------------------------------------------------------
 // Ghost Name Pool (Korean poker nicknames)
@@ -151,11 +152,32 @@ class RankingService {
       isGhost: false,
     ));
 
-    // Generate 8 ghosts
-    const ghostCount = _leagueSize - 1;
-    final usedNames = <String>{nickname};
+    // 로그인된 경우: 실제 유저 데이터도 가져오기
+    List<LeaguePlayer> cloudGhosts = [];
+    if (SupabaseService.isLoggedIn) {
+      try {
+        cloudGhosts = await fetchCloudGhosts();
+        debugPrint('[RankingService] 클라우드에서 ${cloudGhosts.length}명 가져옴');
+      } catch (e) {
+        debugPrint('[RankingService] 클라우드 fetch 실패: $e');
+      }
+    }
 
-    for (var i = 0; i < ghostCount; i++) {
+    // 클라우드 유저 + Ghost로 리그 채우기
+    final usedNames = <String>{nickname};
+    
+    // 클라우드 유저 추가 (최대 4명)
+    final cloudToAdd = cloudGhosts.take(4).toList();
+    for (final cloudPlayer in cloudToAdd) {
+      if (!usedNames.contains(cloudPlayer.nickname)) {
+        usedNames.add(cloudPlayer.nickname);
+        players.add(cloudPlayer.copyWith(rank: 0));
+      }
+    }
+
+    // 나머지를 Ghost로 채우기
+    final ghostsNeeded = _leagueSize - players.length;
+    for (var i = 0; i < ghostsNeeded; i++) {
       final ghostScore = _generateGhostScore(playerScore, i);
       final ghostTier = Tier.fromScore(ghostScore);
       final ghostName = _pickUniqueName(usedNames);
@@ -197,16 +219,75 @@ class RankingService {
   /// });
   /// ```
   Future<void> syncScoreToCloud(int score) async {
-    // TODO: Enable when Supabase project is created
-    debugPrint('[RankingService] Cloud sync placeholder — score: $score');
+    if (!SupabaseService.isLoggedIn) {
+      debugPrint('[RankingService] 비로그인 상태 — 클라우드 동기화 건너뜀');
+      return;
+    }
+
+    try {
+      final userId = SupabaseService.currentUser!.id;
+      final tier = Tier.fromScore(score);
+
+      await SupabaseService.client.from('game_scores').insert({
+        'user_id': userId,
+        'score': score,
+        'tier': tier.name,
+      });
+
+      debugPrint('[RankingService] 클라우드 동기화 완료 — score: $score, tier: ${tier.name}');
+    } catch (e) {
+      debugPrint('[RankingService] 클라우드 동기화 실패: $e');
+    }
   }
 
-  /// Download ghost pool from Supabase for enriched matchmaking.
-  /// Returns empty list until Supabase is configured.
+  /// Supabase에서 실제 유저 점수를 가져와 리그에 추가.
+  /// 오늘 날짜 기준, 상위 50명의 최고 점수를 가져옴.
   Future<List<LeaguePlayer>> fetchCloudGhosts() async {
-    // TODO: Enable when Supabase project is created
-    debugPrint('[RankingService] Cloud ghost fetch placeholder');
-    return [];
+    if (!SupabaseService.isLoggedIn) return [];
+
+    try {
+      final today = _todayString();
+      final myId = SupabaseService.currentUser!.id;
+
+      // 오늘 등록된 점수 중 상위 50명 (본인 제외)
+      final response = await SupabaseService.client
+          .from('game_scores')
+          .select('user_id, score, tier, profiles!inner(username, avatar_url)')
+          .neq('user_id', myId)
+          .gte('created_at', '${today}T00:00:00')
+          .order('score', ascending: false)
+          .limit(50);
+
+      final List<dynamic> data = response as List<dynamic>;
+      final players = <LeaguePlayer>[];
+      final seenUsers = <String>{};
+
+      for (final row in data) {
+        final usrId = row['user_id'] as String;
+        if (seenUsers.contains(usrId)) continue; // 유저당 최고 점수만
+        seenUsers.add(usrId);
+
+        final profile = row['profiles'] as Map<String, dynamic>?;
+        final name = profile?['username'] ?? '플레이어';
+        final score = row['score'] as int;
+        final tierName = row['tier'] as String? ?? 'bronze';
+
+        players.add(LeaguePlayer(
+          id: usrId,
+          nickname: name,
+          score: score,
+          tier: Tier.fromName(tierName),
+          rank: 0,
+          isGhost: false, // 실제 유저!
+        ));
+      }
+
+      debugPrint('[RankingService] 클라우드에서 ${players.length}명 로드 완료');
+      return players;
+    } catch (e) {
+      debugPrint('[RankingService] 클라우드 ghost fetch 실패: $e');
+      return [];
+    }
   }
 
   // -------------------------------------------------------------------------

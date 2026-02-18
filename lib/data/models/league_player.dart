@@ -8,6 +8,7 @@ class LeaguePlayer {
   final Tier tier;
   final int rank;
   final bool isGhost;
+  final bool isEmptySlot;
 
   const LeaguePlayer({
     required this.id,
@@ -16,6 +17,7 @@ class LeaguePlayer {
     required this.tier,
     required this.rank,
     required this.isGhost,
+    this.isEmptySlot = false,
   });
 
   /// Create a copy of this player with optional field overrides
@@ -26,6 +28,7 @@ class LeaguePlayer {
     Tier? tier,
     int? rank,
     bool? isGhost,
+    bool? isEmptySlot,
   }) {
     return LeaguePlayer(
       id: id ?? this.id,
@@ -34,6 +37,7 @@ class LeaguePlayer {
       tier: tier ?? this.tier,
       rank: rank ?? this.rank,
       isGhost: isGhost ?? this.isGhost,
+      isEmptySlot: isEmptySlot ?? this.isEmptySlot,
     );
   }
 
@@ -47,7 +51,8 @@ class LeaguePlayer {
           score == other.score &&
           tier == other.tier &&
           rank == other.rank &&
-          isGhost == other.isGhost;
+          isGhost == other.isGhost &&
+          isEmptySlot == other.isEmptySlot;
 
   @override
   int get hashCode =>
@@ -56,7 +61,8 @@ class LeaguePlayer {
       score.hashCode ^
       tier.hashCode ^
       rank.hashCode ^
-      isGhost.hashCode;
+      isGhost.hashCode ^
+      isEmptySlot.hashCode;
 
   @override
   String toString() =>

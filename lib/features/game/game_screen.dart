@@ -1,4 +1,5 @@
 import 'dart:math' show min;
+import 'widgets/defense_alert_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,12 +22,20 @@ import '../../providers/game_providers.dart';
 // Utils
 import '../../core/utils/haptic_manager.dart';
 import '../../core/utils/sound_manager.dart';
+import '../../core/utils/responsive.dart'; // Import Responsive
 
 // Widgets
 import 'widgets/poker_card_widget.dart';
 import 'widgets/swipe_feedback_overlay.dart';
 import 'widgets/answer_result_overlay.dart';
 import 'widgets/fact_bomb_bottom_sheet.dart';
+import 'widgets/table_position_view.dart';
+
+// Stitch Battle UI
+import '../home/widgets/gto/gto_battle_background.dart';
+import '../home/widgets/gto/gto_battle_header.dart';
+import '../home/widgets/gto/gto_battle_timer_bar.dart';
+import '../home/widgets/gto/stitch_colors.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -78,7 +87,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       _cardShownTime = DateTime.now();
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) ref.read(timerProvider.notifier).start();
+      if (mounted) {
+        ref.read(timerProvider.notifier).start();
+        // Set defense mode for first card
+        if (deck.isNotEmpty) {
+          ref.read(gameStateNotifierProvider.notifier)
+              .setDefenseMode(deck.first.chartType == 'CALL');
+        }
+      }
     });
   }
 
@@ -242,359 +258,86 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     });
 
     if (_deck.isEmpty) {
-      return Scaffold(
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment(0, -0.3),
-              radius: 1.2,
-              colors: [Color(0xFF4338CA), Color(0xFF1E1B4B), Color(0xFF0B0A1A)],
-            ),
-          ),
-          child: const Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(color: Color(0xFF7C3AED), strokeWidth: 3),
-                SizedBox(height: 16),
-                Text('로딩 중...', style: TextStyle(color: Colors.white54, fontSize: 14)),
-              ],
-            ),
-          ),
-        ),
+      return const Scaffold(
+        body: GtoBattleBackground(), // Use new background for loading too
       );
     }
 
     // Current card for info display
     final cardIdx = _currentCardIndex.clamp(0, _deck.length - 1);
     final currentQ = _deck[cardIdx];
+    final maxDuration = ref.read(timerProvider.notifier).currentDuration;
+    final timerProgress = (timerState.seconds / maxDuration).clamp(0.0, 1.0);
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment(0, -0.3),
-            radius: 1.2,
-            colors: [Color(0xFF4338CA), Color(0xFF1E1B4B), Color(0xFF0B0A1A)],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              const SizedBox(height: 8),
-
-              // ── 1. Top Bar: Position + Hearts + Score ──
-              _buildTopBar(gameState, currentQ),
-              const SizedBox(height: 12),
-
-              // ── 2. Timer Bar ──
-              _buildTimerBar(timerState),
-              const SizedBox(height: 16),
-
-              // ── 3. Card Area ──
-              Expanded(
-                child: Stack(
-                  children: [
-                    CardSwiper(
-                      controller: _swiperController,
-                      cardsCount: _deck.length,
-                      numberOfCardsDisplayed: min(3, _deck.length),
-                      onSwipe: _onSwipe,
-                      onSwipeDirectionChange: _onSwipeDirectionChange,
-                      isDisabled: _isDisabled,
-                      allowedSwipeDirection: const AllowedSwipeDirection.symmetric(horizontal: true),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      cardBuilder: (context, index, horizontalOffsetPercentage, verticalOffsetPercentage) {
-                        return PokerCardWidget(question: _deck[index]);
-                      },
-                    ),
-                    
-                    SwipeFeedbackOverlay(dragProgress: _dragProgress),
-                    
-                    AnswerResultOverlay(
-                      isCorrect: _lastAnswerCorrect,
-                      isVisible: _showAnswerResult,
-                      onComplete: _onAnswerResultComplete,
-                    ),
-                    
-                    if (_showSnapBonus)
-                      _buildSnapBonusOverlay(),
-                  ],
-                ),
-              ),
-
-              // ── 4. Hand Info ──
-              _buildHandInfo(currentQ),
-              const SizedBox(height: 8),
-
-              // ── 5. Bottom Swipe Hints ──
-              _buildBottomBar(gameState),
-              const SizedBox(height: 8),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ═══════════════════════════════════════════════
-  // STITCH DESIGN: TOP BAR
-  // ═══════════════════════════════════════════════
-  Widget _buildTopBar(GameState state, CardQuestion q) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
+      body: Stack(
         children: [
-          // Position Badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF7C3AED), Color(0xFF6D28D9)],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [BoxShadow(color: _accentPurple.withOpacity(0.4), blurRadius: 10)],
-            ),
+          const GtoBattleBackground(),
+          
+          SafeArea(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               children: [
-                Text('현재 포지션', style: TextStyle(color: Colors.white60, fontSize: 9, fontWeight: FontWeight.w500)),
-                const SizedBox(height: 2),
-                Text(
-                  q.position,
-                  style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1),
+                // 1. Header (Glassmorphism)
+                GtoBattleHeader(gameState: gameState, question: currentQ),
+                
+                // 2. Timer Bar (Shimmer)
+                GtoBattleTimerBar(
+                  progress: timerProgress, 
+                  secondsLeft: timerState.seconds.toInt()
                 ),
+                
+                // Defense Mode Alert
+                if (gameState.isDefenseMode)
+                  DefenseAlertBanner(
+                    opponentPosition: currentQ.opponentPosition ?? 'UTG',
+                  ),
+
+                SizedBox(height: context.h(4)),
+
+                // 3. Pro Table Visualization
+                TablePositionView(
+                  heroPosition: currentQ.position,
+                  opponentPosition: currentQ.opponentPosition,
+                  isDefenseMode: gameState.isDefenseMode,
+                ),
+
+                // 4. Card Area (Swiper) - fills remaining space
+                Expanded(
+                  child: Stack(
+                    children: [
+                      CardSwiper(
+                        controller: _swiperController,
+                        cardsCount: _deck.length,
+                        numberOfCardsDisplayed: 1,
+                        onSwipe: _onSwipe,
+                        onSwipeDirectionChange: _onSwipeDirectionChange,
+                        isDisabled: _isDisabled,
+                        allowedSwipeDirection: const AllowedSwipeDirection.symmetric(horizontal: true),
+                        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                        cardBuilder: (context, index, horizontalOffsetPercentage, verticalOffsetPercentage) {
+                          return PokerCardWidget(question: _deck[index]);
+                        },
+                      ),
+                      
+                      SwipeFeedbackOverlay(dragProgress: _dragProgress),
+                      
+                      AnswerResultOverlay(
+                        isCorrect: _lastAnswerCorrect,
+                        isVisible: _showAnswerResult,
+                        onComplete: _onAnswerResultComplete,
+                      ),
+                      
+                      if (_showSnapBonus) _buildSnapBonusOverlay(),
+                    ],
+                  ),
+                ),
+
+                // 5. Footer (Original Buttons)
+                SizedBox(height: context.h(4)),
+                _buildBottomBar(context, gameState),
+                SizedBox(height: context.h(8)),
               ],
             ),
-          ),
-
-          const Spacer(),
-
-          // Hearts
-          Row(
-            children: List.generate(5, (index) {
-              final isActive = index < state.hearts;
-              return Padding(
-                padding: const EdgeInsets.only(right: 3),
-                child: Icon(
-                  isActive ? Icons.favorite : Icons.favorite_border,
-                  color: isActive ? _accentRed : Colors.white24,
-                  size: 20,
-                ),
-              );
-            }),
-          ),
-          const SizedBox(width: 12),
-
-          // Score
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.bolt, color: _accentGold, size: 16),
-                const SizedBox(width: 4),
-                Text(
-                  '${state.score}',
-                  style: TextStyle(color: _accentGold, fontSize: 16, fontWeight: FontWeight.w900),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ═══════════════════════════════════════════════
-  // STITCH DESIGN: TIMER BAR
-  // ═══════════════════════════════════════════════
-  Widget _buildTimerBar(TimerState timerState) {
-    final isCritical = timerState.phase == TimerPhase.critical;
-    final isExpired = timerState.phase == TimerPhase.expired;
-    final maxDuration = ref.read(timerProvider.notifier).currentDuration;
-    final progress = (timerState.seconds / maxDuration).clamp(0.0, 1.0);
-
-    Color barColor;
-    if (isExpired) {
-      barColor = _accentRed;
-    } else if (isCritical) {
-      barColor = _accentRed;
-    } else {
-      barColor = _accentCyan;
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('남은 시간', style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.w500)),
-              Text(
-                '${timerState.seconds.toStringAsFixed(0)}s',
-                style: TextStyle(
-                  color: isCritical ? _accentRed : Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Container(
-            height: 6,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(3),
-            ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: FractionallySizedBox(
-                widthFactor: progress,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: isCritical
-                          ? [_accentRed, _accentRed.withOpacity(0.7)]
-                          : [_accentCyan, const Color(0xFF818CF8)],
-                    ),
-                    borderRadius: BorderRadius.circular(3),
-                    boxShadow: [BoxShadow(color: barColor.withOpacity(0.5), blurRadius: 6)],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ═══════════════════════════════════════════════
-  // STITCH DESIGN: HAND INFO
-  // ═══════════════════════════════════════════════
-  Widget _buildHandInfo(CardQuestion q) {
-    final isDefense = q.chartType == 'CALL';
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.07),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            '현재 핸드: ${q.hand}',
-            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '유효 스택: ${q.stackBb.toStringAsFixed(0)}BB',
-            style: TextStyle(color: Colors.white54, fontSize: 12),
-          ),
-          if (isDefense && q.opponentPosition != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              '상대방: ${q.opponentPosition} Open',
-              style: TextStyle(color: _accentRed.withOpacity(0.8), fontSize: 12, fontWeight: FontWeight.w600),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  // ═══════════════════════════════════════════════
-  // STITCH DESIGN: BOTTOM BAR (FOLD/ALL-IN)
-  // ═══════════════════════════════════════════════
-  Widget _buildBottomBar(GameState state) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Fold button
-              Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _accentRed.withOpacity(0.15),
-                      border: Border.all(color: _accentRed.withOpacity(0.3)),
-                    ),
-                    child: const Center(
-                      child: Text('✕', style: TextStyle(color: Color(0xFFEF4444), fontSize: 20, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  const Text('폴드', style: TextStyle(color: Color(0xFFEF4444), fontSize: 18, fontWeight: FontWeight.w900)),
-                ],
-              ),
-
-              // Time bank
-              if (state.timeBankCount > 0)
-                GestureDetector(
-                  onTap: () {
-                    final success = ref.read(gameStateNotifierProvider.notifier).useTimeBank();
-                    if (success) {
-                      ref.read(timerProvider.notifier).addTime(30);
-                      HapticManager.swipe();
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: _accentGold.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: _accentGold.withOpacity(0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Text('🪙', style: TextStyle(fontSize: 16)),
-                        const SizedBox(width: 6),
-                        Text('×${state.timeBankCount}', style: TextStyle(color: _accentGold, fontSize: 14, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                ),
-
-              // All-in button
-              Row(
-                children: [
-                  const Text('올인', style: TextStyle(color: Color(0xFF22C55E), fontSize: 18, fontWeight: FontWeight.w900)),
-                  const SizedBox(width: 10),
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _accentGreen.withOpacity(0.15),
-                      border: Border.all(color: _accentGreen.withOpacity(0.3)),
-                    ),
-                    child: const Center(
-                      child: Text('→', style: TextStyle(color: Color(0xFF22C55E), fontSize: 20, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '← 스와이프하여 결정하세요 →',
-            style: TextStyle(color: Colors.white24, fontSize: 11),
           ),
         ],
       ),
@@ -612,18 +355,110 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       child: IgnorePointer(
         child: Center(
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            padding: EdgeInsets.symmetric(horizontal: context.w(24), vertical: context.h(12)),
             decoration: BoxDecoration(
               color: _accentGold.withOpacity(0.9),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: _accentGold.withOpacity(0.6), blurRadius: 20)],
+              borderRadius: BorderRadius.circular(context.r(16)),
+              boxShadow: [BoxShadow(color: _accentGold.withOpacity(0.6), blurRadius: context.r(20))],
             ),
-            child: const Text(
+            child: Text(
               '⚡ SNAP BONUS! ⚡',
-              style: TextStyle(color: Colors.black, fontSize: 22, fontWeight: FontWeight.w900),
+              style: TextStyle(color: Colors.black, fontSize: context.sp(22), fontWeight: FontWeight.w900),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  // Restored Footer
+  Widget _buildBottomBar(BuildContext context, GameState state) {
+    final isDefense = state.isDefenseMode;
+    final rightLabel = isDefense ? '콜' : '올인';
+    final rightColor = isDefense ? const Color(0xFF3B82F6) : _accentGreen;
+    final rightIcon = isDefense ? '✓' : '→';
+    
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: context.w(24)),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Fold button
+              Row(
+                children: [
+                  Container(
+                    width: context.w(48),
+                    height: context.w(48),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _accentRed.withOpacity(0.15),
+                      border: Border.all(color: _accentRed.withOpacity(0.3)),
+                    ),
+                    child: Center(
+                      child: Text('✕', style: TextStyle(color: const Color(0xFFEF4444), fontSize: context.sp(20), fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  SizedBox(width: context.w(10)),
+                  Text('폴드', style: TextStyle(color: const Color(0xFFEF4444), fontSize: context.sp(18), fontWeight: FontWeight.w900)),
+                ],
+              ),
+
+              // Time bank
+              if (state.timeBankCount > 0)
+                GestureDetector(
+                  onTap: () {
+                    final success = ref.read(gameStateNotifierProvider.notifier).useTimeBank();
+                    if (success) {
+                      ref.read(timerProvider.notifier).addTime(30);
+                      HapticManager.swipe();
+                    }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: context.w(14), vertical: context.h(8)),
+                    decoration: BoxDecoration(
+                      color: _accentGold.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(context.r(20)),
+                      border: Border.all(color: _accentGold.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        Text('🪙', style: TextStyle(fontSize: context.sp(16))),
+                        SizedBox(width: context.w(6)),
+                        Text('×${state.timeBankCount}', style: TextStyle(color: _accentGold, fontSize: context.sp(14), fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // All-in / Call button
+              Row(
+                children: [
+                  Text(rightLabel, style: TextStyle(color: rightColor, fontSize: context.sp(18), fontWeight: FontWeight.w900)),
+                  SizedBox(width: context.w(10)),
+                  Container(
+                    width: context.w(48),
+                    height: context.w(48),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: rightColor.withOpacity(0.15),
+                      border: Border.all(color: rightColor.withOpacity(0.3)),
+                    ),
+                    child: Center(
+                      child: Text(rightIcon, style: TextStyle(color: rightColor, fontSize: context.sp(20), fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: context.h(8)),
+          Text(
+            isDefense ? '← 폴드 | 콜 →' : '← 스와이프하여 결정하세요 →',
+            style: TextStyle(color: Colors.white24, fontSize: context.sp(11)),
+          ),
+        ],
       ),
     );
   }

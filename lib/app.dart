@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'features/splash/splash_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
+import 'features/auth/login_screen.dart';
 import 'features/home/gto_home_screen.dart';
 import 'features/game/game_screen.dart';
 import 'features/ranking/ranking_screen.dart';
@@ -20,6 +21,7 @@ class App extends StatelessWidget {
       routes: {
         '/': (context) => const SplashScreen(),
         '/onboarding': (context) => const OnboardingScreen(),
+        '/login': (context) => const LoginScreen(),
         '/home': (context) => const GtoHomeScreen(),
         '/game': (context) => const GameScreen(),
         '/ranking': (context) => const RankingScreen(),

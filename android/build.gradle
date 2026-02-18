@@ -26,6 +26,20 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// Fix appcompat / material resource linking errors for compileSdk 35
+subprojects {
+    configurations.configureEach {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'androidx.appcompat') {
+                details.useVersion '1.7.0'
+            }
+            if (details.requested.group == 'com.google.android.material') {
+                details.useVersion '1.12.0'
+            }
+        }
+    }
+}
+
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }

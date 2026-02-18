@@ -93,7 +93,7 @@ class _JuicyBattleButtonState extends State<JuicyBattleButton> with SingleTicker
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.bolt_rounded, color: Color(0xFF5D2E00), size: 32), // Custom icon if available
+                  const Icon(Icons.bolt_rounded, color: Color(0xFF5D2E00), size: 32), // Custom icon if available
                   const SizedBox(width: 12),
                   Text(
                     "BATTLE",

@@ -15,45 +15,43 @@ enum SoundType {
 }
 
 /// Manages sound effects for the game using audioplayers package.
-/// Preloads all sounds at app start and maintains a single AudioPlayer per sound type.
+/// Uses a simple play-per-call approach for maximum reliability.
 class SoundManager {
-  static final Map<SoundType, AudioPlayer> _players = {};
+  static final AudioPlayer _player = AudioPlayer();
+  static bool _initialized = false;
 
-  /// Preloads all sound effects into memory.
+  /// Initialize the sound manager.
   /// Call this once at app initialization.
   static Future<void> preloadAll() async {
-    for (var type in SoundType.values) {
-      _players[type] = AudioPlayer();
-      try {
-        await _players[type]!
-            .setSource(AssetSource('sounds/${type.name}.wav'));
-        await _players[type]!.setReleaseMode(ReleaseMode.stop);
-      } catch (e) {
-        debugPrint('Error preloading sound ${type.name}: $e');
-      }
+    try {
+      // Set player mode to low latency for sound effects
+      await _player.setPlayerMode(PlayerMode.lowLatency);
+      _initialized = true;
+      debugPrint('🔊 SoundManager initialized successfully');
+    } catch (e) {
+      debugPrint('🔇 SoundManager init error: $e');
     }
   }
 
   /// Plays a sound effect by type.
-  /// Uses resume() to play from the beginning.
+  /// Creates a fresh play call each time for reliability.
   static Future<void> play(SoundType type) async {
+    if (!_initialized) {
+      debugPrint('🔇 SoundManager not initialized, skipping ${type.name}');
+      return;
+    }
     try {
-      final player = _players[type];
-      if (player != null) {
-        await player.seek(Duration.zero);
-        await player.resume();
-      }
+      debugPrint('🔊 Playing sound: ${type.name}');
+      await _player.stop();
+      await _player.play(AssetSource('sounds/${type.name}.wav'));
     } catch (e) {
-      debugPrint('Error playing sound ${type.name}: $e');
+      debugPrint('🔇 Error playing sound ${type.name}: $e');
     }
   }
 
   /// Disposes all audio players and cleans up resources.
-  /// Call this when the app is shutting down.
   static void dispose() {
-    for (var player in _players.values) {
-      player.dispose();
-    }
-    _players.clear();
+    _player.dispose();
+    _initialized = false;
   }
 }

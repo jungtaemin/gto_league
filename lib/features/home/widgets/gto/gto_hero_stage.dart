@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/utils/responsive.dart';
 import 'stitch_colors.dart';
 
 class GtoHeroStage extends StatefulWidget {
@@ -39,45 +40,46 @@ class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderSt
         clipBehavior: Clip.none,
         children: [
           // 1. Background Rings (HTML Lines 144-145)
-          _buildRings(),
+          _buildRings(context),
 
           // 2. Silver I Badge (HTML Lines 146-151)
           // absolute top-[60px] right-[20px] -> In Flutter 360x360 box context?
           // Let's use Positioned relative to center offset or top/right of stack
           Positioned(
-            top: 20, right: 40,
-            child: _buildSilverBadge(),
+            top: context.w(20), right: context.w(40),
+            child: _buildSilverBadge(context),
           ),
 
           // 3. GTO Chip Badge (HTML Lines 152-164)
           // absolute top-[80px] left-[-10px]
           Positioned(
-            top: 40, left: 20,
-            child: _buildGtoChipBadge(),
+            top: context.w(40), left: context.w(20),
+            child: _buildGtoChipBadge(context),
           ),
 
           // 4. Robot Container (HTML Lines 174-206)
           // robot-container relative z-10 w-[200px]
           // Animation: float 4s ease-in-out infinite
           Positioned(
-            top: 60, // Adjust to center it visually
-            child: _buildHtmlRobot(),
+            top: context.w(50), // Adjust to center it visually
+            child: _buildHtmlRobot(context),
           ),
           
           // 5. Speech Bubble (HTML Lines 208-213)
           // absolute bottom-[25%] right-[20px]
           Positioned(
-            bottom: 60, right: 30, // Adjusted coordinates
-            child: _buildSpeechBubble(),
+            bottom: context.w(40), right: context.w(30), // Adjusted coordinates
+            child: _buildSpeechBubble(context),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildRings() {
+  Widget _buildRings(BuildContext context) {
+    final size = context.w(320); // Maintain square aspect ratio
     return SizedBox(
-      width: 320, height: 320,
+      width: size, height: size,
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -89,28 +91,28 @@ class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderSt
               children: [
                 // Base faint ring
                 Container(
-                  width: 320, height: 320,
+                  width: size, height: size,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withOpacity(0.05), width: 12),
+                    border: Border.all(color: Colors.white.withOpacity(0.05), width: context.w(12)),
                   ),
                 ),
                 // Top-Left highlighted segment
                 CustomPaint(
-                  size: const Size(320, 320),
-                  painter: _ArcPainter(color: Colors.white.withOpacity(0.1), width: 12),
+                  size: Size(size, size),
+                  painter: _ArcPainter(color: Colors.white.withOpacity(0.1), width: context.w(12)),
                 ),
               ],
             ),
           ),
           // 2. Active Blue Arc (Top-Left 90 degrees + rotation)
           Positioned(
-            top: 0, left: 10,
+            top: 0, left: context.w(10),
             child: Transform.rotate(
               angle: 45 * math.pi / 180,
               child: CustomPaint(
-                size: const Size(300, 300),
-                painter: _ArcPainter(color: StitchColors.blue400, width: 8, shadow: true),
+                size: Size(context.w(300), context.w(300)),
+                painter: _ArcPainter(color: StitchColors.blue400, width: context.w(8), shadow: true),
               ),
             ),
           ),
@@ -119,7 +121,7 @@ class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildHtmlRobot() {
+  Widget _buildHtmlRobot(BuildContext context) {
     // HTML: float animation
     return AnimatedBuilder(
       animation: _controller,
@@ -127,12 +129,12 @@ class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderSt
         // 0% -> 0, 50% -> -10, 100% -> 0
         final offset = -10.0 * math.sin(_controller.value * math.pi); // Simple sine for EaseInOut approx
         return Transform.translate(
-          offset: Offset(0, offset),
+          offset: Offset(0, context.h(offset)), // Scale animation offset
           child: child,
         );
       },
       child: SizedBox( // robot-container
-        width: 200, height: 260, // Estimated total height including shadow
+        width: context.w(200), height: context.w(260), // Estimated total height including shadow, scaled by width
         child: Stack(
           alignment: Alignment.topCenter,
           clipBehavior: Clip.none,
@@ -142,24 +144,24 @@ class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderSt
             Positioned(
               bottom: 0,
               child: Container(
-                width: 240, height: 60,
+                width: context.w(240), height: context.w(60),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(100),
+                  borderRadius: BorderRadius.circular(context.w(100)),
                   gradient: const LinearGradient(
                     colors: [Color(0xFF1E3A8A), Color(0xFF1D4ED8), Color(0xFF1E3A8A)], // blue-900 via blue-700
                   ),
                   // border: const Border(top: BorderSide(color: StitchColors.blue400, width: 2)), // Removed
                   boxShadow: [
-                    BoxShadow(color: StitchColors.blue500.withOpacity(0.5), blurRadius: 30),
+                    BoxShadow(color: StitchColors.blue500.withOpacity(0.5), blurRadius: context.w(30)),
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(100),
+                  borderRadius: BorderRadius.circular(context.w(100)),
                   child: Stack(
                     children: [
                        Positioned(
                          top: 0, left: 0, right: 0,
-                         child: Container(height: 2, color: StitchColors.blue400),
+                         child: Container(height: context.h(2), color: StitchColors.blue400),
                        )
                     ],
                   ),
@@ -170,16 +172,16 @@ class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderSt
             // League Tag (HTML Line 203)
             // absolute bottom-[-20px]
             Positioned(
-              bottom: 15,
+              bottom: context.h(15),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: context.w(16), vertical: context.h(4)),
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.6), // black/60
                   borderRadius: BorderRadius.circular(99),
                   border: Border.all(color: StitchColors.blue500.withOpacity(0.5)),
                 ),
-                child: const Text("리그: 브론즈 III", style: TextStyle(
-                  color: StitchColors.orange300, fontWeight: FontWeight.bold, fontSize: 14,
+                child: Text("리그: 브론즈 III", style: TextStyle(
+                  color: StitchColors.orange300, fontWeight: FontWeight.bold, fontSize: context.sp(14),
                   fontFamily: 'Noto Sans KR',
                 )),
               ),
@@ -188,11 +190,11 @@ class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderSt
             // Legs (HTML Line 198)
             // flex gap-4 -mt-2
             Positioned(
-              bottom: 40,
+              bottom: context.h(40),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _leg(), const SizedBox(width: 16), _leg(),
+                  _leg(context), SizedBox(width: context.w(16)), _leg(context),
                 ],
               ),
             ),
@@ -201,22 +203,22 @@ class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderSt
             // Lower Body (HTML Line 189)
             // w-[100px] h-[80px] bg-[#1a1b2e] rounded-[2rem] -mt-4 z-0
             Positioned(
-              top: 110,
+              top: context.h(110),
               child: Container(
-                width: 100, height: 80,
+                width: context.w(100), height: context.w(80),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1A1B2E),
-                  borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: StitchColors.slate600, width: 2),
+                  borderRadius: BorderRadius.circular(context.w(32)),
+                  border: Border.all(color: StitchColors.slate600, width: context.w(2)),
                   boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
                 ),
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
                     // Neck Details (top-4 flex ...)
-                    const Positioned(
-                      top: 16, left: 0, right: 0,
-                      child: Row(
+                    Positioned(
+                      top: context.h(16), left: 0, right: 0,
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                            // Not implementing tiny details for pixel perfect unless asked, keeping it clean
@@ -227,19 +229,19 @@ class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderSt
                     // White Triangle Tie (border-l-[15px] ...)
                     Center(
                       child: Padding(
-                        padding: const EdgeInsets.only(top: 24),
+                        padding: EdgeInsets.only(top: context.h(24)),
                         child: CustomPaint(
-                          size: const Size(30, 30),
+                          size: Size(context.w(30), context.w(30)),
                           painter: _TiePainter(),
                         ),
                       ),
                     ),
                     // Little white dash (rotate-6)
                     Positioned(
-                      top: 40, right: 16,
+                      top: context.h(40), right: context.w(16),
                       child: Transform.rotate(
                         angle: 6 * math.pi / 180,
-                        child: Container(width: 16, height: 4, color: Colors.white),
+                        child: Container(width: context.w(16), height: context.h(4), color: Colors.white),
                       ),
                     ),
                   ],
@@ -252,11 +254,11 @@ class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderSt
             Positioned(
               top: 0,
               child: Container(
-                width: 160, height: 130,
+                width: context.w(160), height: context.w(130),
                 decoration: BoxDecoration(
                   color: StitchColors.slate200,
-                  borderRadius: BorderRadius.circular(40), // 2.5rem
-                  border: Border.all(color: StitchColors.slate300, width: 6),
+                  borderRadius: BorderRadius.circular(context.w(40)), // 2.5rem
+                  border: Border.all(color: StitchColors.slate300, width: context.w(6)),
                   boxShadow: const [BoxShadow(blurRadius: 20, color: Colors.black26)],
                 ),
                 child: Stack(
@@ -265,9 +267,9 @@ class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderSt
                   children: [
                     // Antenna (absolute -top-1)
                     Positioned(
-                      top: -10, // -top-1 relative to container content box
+                      top: -context.h(10), // -top-1 relative to container content box
                       child: Container(
-                        width: 32, height: 8,
+                        width: context.w(32), height: context.h(8),
                         decoration: BoxDecoration(
                           color: StitchColors.slate400,
                           borderRadius: BorderRadius.circular(99),
@@ -278,10 +280,10 @@ class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderSt
                     // Screen Face (HTML Line 176)
                     // w-[130px] h-[100px] bg-[#0F1025] rounded-[1.8rem]
                     Container(
-                      width: 130, height: 100,
+                      width: context.w(130), height: context.w(100),
                       decoration: BoxDecoration(
                         color: const Color(0xFF0F1025),
-                        borderRadius: BorderRadius.circular(28.8), // 1.8rem
+                        borderRadius: BorderRadius.circular(context.w(28.8)), // 1.8rem
                         boxShadow: const [BoxShadow(color: Colors.black, blurRadius: 4, spreadRadius: 0, offset: Offset(0,2) )], // Inner shadow sim
                       ),
                       child: Stack(
@@ -289,13 +291,13 @@ class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderSt
                           // Code Text (opacity-20 text-[6px] green-400 font-mono)
                           Positioned.fill(
                             child: Padding(
-                              padding: const EdgeInsets.all(4.0),
+                              padding: EdgeInsets.all(context.w(4)),
                               child: Opacity(
                                 opacity: 0.2,
                                 child: Text(
                                   "const gto = (range) => { check(ev); raise(3bb); } ... fold > call\nif (pot_odds > 1.2) { call(); } else { fold(); }",
-                                  style: const TextStyle(
-                                    color: Colors.green, fontSize: 8, fontFamily: 'monospace', height: 1.2
+                                  style: TextStyle(
+                                    color: Colors.green, fontSize: context.sp(8), fontFamily: 'monospace', height: 1.2
                                   ),
                                 ),
                               ),
@@ -309,19 +311,19 @@ class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderSt
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    _htmlEye(),
-                                    const SizedBox(width: 16),
-                                    _htmlEye(),
+                                    _htmlEye(context),
+                                    SizedBox(width: context.w(16)),
+                                    _htmlEye(context),
                                   ],
                                 ),
-                                const SizedBox(height: 8), // mt-2
+                                SizedBox(height: context.h(8)), // mt-2
                                 // Mouth (arc down)
                                 Container(
-                                  width: 16, height: 8,
-                                  decoration: const BoxDecoration(
+                                  width: context.w(16), height: context.h(8),
+                                  decoration: BoxDecoration(
                                     color: StitchColors.cyan400,
-                                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(8)),
-                                    boxShadow: [BoxShadow(color: StitchColors.cyan400, blurRadius: 5)],
+                                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(context.w(8))),
+                                    boxShadow: const [BoxShadow(color: StitchColors.cyan400, blurRadius: 5)],
                                   ),
                                 ),
                               ],
@@ -340,97 +342,97 @@ class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderSt
     );
   }
 
-  Widget _htmlEye() {
+  Widget _htmlEye(BuildContext context) {
     // w-8 h-5 (32x20) bg-cyan-400 rounded-t-full shadow...
     return Container(
-      width: 32, height: 20,
-      decoration: const BoxDecoration(
+      width: context.w(32), height: context.w(20),
+      decoration: BoxDecoration(
         color: StitchColors.cyan400,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        boxShadow: [BoxShadow(color: StitchColors.cyan400, blurRadius: 10)],
+        borderRadius: BorderRadius.vertical(top: Radius.circular(context.w(20))),
+        boxShadow: const [BoxShadow(color: StitchColors.cyan400, blurRadius: 10)],
       ),
     );
   }
 
-  Widget _leg() {
+  Widget _leg(BuildContext context) {
     // w-6 h-8 bg-[#1a1b2e] rounded-b-xl border-2 border-slate-600
     return Container(
-      width: 24, height: 32,
+      width: context.w(24), height: context.w(32),
       decoration: BoxDecoration(
         color: const Color(0xFF1A1B2E),
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
-        border: Border.all(color: StitchColors.slate600, width: 2),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(context.w(12))),
+        border: Border.all(color: StitchColors.slate600, width: context.w(2)),
       ),
     );
   }
 
-  Widget _buildSilverBadge() {
+  Widget _buildSilverBadge(BuildContext context) {
     // animate-bounce duration-[3000ms]
     return Column(
       children: [
         Transform.rotate(
           angle: 12 * math.pi / 180, // rotate-12
           child: Container(
-            width: 40, height: 40,
+            width: context.w(40), height: context.w(40),
             decoration: BoxDecoration(
               color: StitchColors.slate300,
               shape: BoxShape.circle,
-              border: Border.all(color: StitchColors.slate100, width: 2),
+              border: Border.all(color: StitchColors.slate100, width: context.w(2)),
               boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
             ),
-            child: const Center(
+            child: Center(
               child: Text("I", style: TextStyle(
-                fontFamily: 'serif', fontWeight: FontWeight.bold, fontSize: 18, color: StitchColors.slate600
+                fontFamily: 'serif', fontWeight: FontWeight.bold, fontSize: context.sp(18), color: StitchColors.slate600
               )),
             ),
           ),
         ),
-        const SizedBox(height: 4),
-        const Text("실버 I", style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+        SizedBox(height: context.h(4)),
+        Text("실버 I", style: TextStyle(color: Colors.white, fontSize: context.sp(12), fontWeight: FontWeight.bold)),
       ],
     )
     .animate(onPlay: (c) => c.repeat(reverse: true))
     .moveY(begin: 0, end: -6, duration: 3.seconds);
   }
 
-  Widget _buildGtoChipBadge() {
+  Widget _buildGtoChipBadge(BuildContext context) {
     // glass-panel rounded-2xl p-2 w-[80px] shadow-lg border-l-4 border-l-purple-400
     // Fix: Cannot use borderRadius with non-uniform Border. 
     // Solution: Uniform border for box, and a separate bar for the left accent.
     return Container(
-      width: 80,
+      width: context.w(80),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(context.w(16)),
         border: Border.all(color: Colors.white.withOpacity(0.15)), // Uniform border
         boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(context.w(16)),
         child: Stack(
           children: [
             // Left Accent Bar (The thick border simulation)
             Positioned(
               left: 0, top: 0, bottom: 0,
-              child: Container(width: 4, color: StitchColors.purple400),
+              child: Container(width: context.w(4), color: StitchColors.purple400),
             ),
             // Content with padding
             Padding(
-              padding: const EdgeInsets.only(left: 12.0, top: 8.0, right: 8.0, bottom: 8.0), // increased left padding
+              padding: EdgeInsets.only(left: context.w(12), top: context.h(8), right: context.w(8), bottom: context.h(8)), // increased left padding
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("GTO", style: TextStyle(color: StitchColors.purple200, fontSize: 10, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
+                  Text("GTO", style: TextStyle(color: StitchColors.purple200, fontSize: context.sp(10), fontWeight: FontWeight.bold)),
+                  SizedBox(height: context.h(4)),
                   GridView.count(
                     crossAxisCount: 3,
                     shrinkWrap: true,
-                    mainAxisSpacing: 4,
-                    crossAxisSpacing: 4,
+                    mainAxisSpacing: context.w(4),
+                    crossAxisSpacing: context.w(4),
                     padding: EdgeInsets.zero,
                     children: [
-                      _colorDot(Colors.red), _colorDot(Colors.blue), _colorDot(Colors.green),
-                      _colorDot(Colors.yellow), _colorDot(Colors.purple), _colorDot(Colors.orange),
+                      _colorDot(Colors.red, context), _colorDot(Colors.blue, context), _colorDot(Colors.green, context),
+                      _colorDot(Colors.yellow, context), _colorDot(Colors.purple, context), _colorDot(Colors.orange, context),
                     ],
                   ),
                 ],
@@ -442,28 +444,28 @@ class _GtoHeroStageState extends State<GtoHeroStage> with SingleTickerProviderSt
     );
   }
 
-  Widget _colorDot(Color c) => Container(decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(4)));
+  Widget _colorDot(Color c, BuildContext context) => Container(decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(context.w(4))));
 
-  Widget _buildSpeechBubble() {
+  Widget _buildSpeechBubble(BuildContext context) {
     // absolute bottom-[25%] right-[20px] z-20 animate-bounce
     // bg-white text-black px-4 py-3 rounded-2xl rounded-tr-sm
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: context.w(16), vertical: context.h(12)),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(16),
-          bottomLeft: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-          topRight: Radius.circular(2), // rounded-tr-sm
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(context.w(16)),
+          bottomLeft: Radius.circular(context.w(16)),
+          bottomRight: Radius.circular(context.w(16)),
+          topRight: Radius.circular(context.w(2)), // rounded-tr-sm
         ),
         boxShadow: const [BoxShadow(blurRadius: 10, color: Colors.black26)],
       ),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-           const Text("지금 바로 올인!", style: TextStyle(
-             color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14, fontFamily: 'Black Han Sans'
+           Text("지금 바로 올인!", style: TextStyle(
+             color: Colors.black, fontWeight: FontWeight.bold, fontSize: context.sp(14), fontFamily: 'Black Han Sans'
            )),
            // The little tail in HTML: absolute -bottom-2 right-0 w-4 h-4 bg-white rotate-45
            // Actually in Flutter we can just rely on the shape or add a positioned box.

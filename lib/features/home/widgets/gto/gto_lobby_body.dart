@@ -1,227 +1,240 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/utils/responsive.dart';
+import '../../../../providers/user_stats_provider.dart';
+import 'gto_bottom_nav.dart';
 import 'gto_top_bar.dart';
 import 'gto_hero_stage.dart';
 import 'stitch_colors.dart';
 import 'dart:ui';
+import 'settings_dialog.dart'; // 추가됨
 
 /// Stitch V2 Lobby Body
-/// Matches stitch_15bb.html layout exactly.
-class GtoLobbyBody extends StatelessWidget {
+/// 반응형: 모든 크기를 context.w() 기반으로 통일
+class GtoLobbyBody extends ConsumerWidget {
   const GtoLobbyBody({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // HTML Layout Structure:
-    // 1. Top Bar
-    // 2. Logo (Center Top)
-    // 3. Robot (Flex Expanded)
-    // 4. Battle Button (Bottom)
-    // 5. Right Side Menu (Absolute Top-Right)
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 배틀 버튼이 네비바에 가리지 않도록 충분한 간격 확보
+    final navBottomPadding = context.w(GtoBottomNav.designHeight) + context.bottomSafePadding + context.w(20);
 
-    return Stack(
-      children: [
-        // Main Flow
-        Column(
-          children: [
-            // 1. Top Bar
-            const Padding(
-              padding: EdgeInsets.only(top: 8.0),
-              child: GtoTopBar(),
-            ),
-
-            const SizedBox(height: 10),
-
-            // 2. Logo Section (Moved to Top)
-            _buildLogoSection(),
-
-            // 3. Hero Stage (Robot)
-            const Expanded(
-              child: GtoHeroStage(),
-            ),
-
-            // 4. Battle Button
-            Padding(
-              padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 100.0), // 100px for Nav
-              child: _buildBattleButton(context),
-            ),
-          ],
-        ),
-
-        // 5. Right Side Menu (Absolute Position from HTML: top-[140px] right-[-10px])
-        Positioned(
-          top: 140,
-          right: 0,
-          child: _buildRightSideMenu(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLogoSection() {
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(
-          height: 140, // Increased to prevent GTO/LEAGUE overlap
-          child: Stack(
-            alignment: Alignment.center,
-            clipBehavior: Clip.none,
-            children: [
-              // --- GTO LAYER ---
-              // 1. Deep Shadow (The "Ground" shadow)
-              Positioned(
-                top: 5,
-                child: Text("GTO", style: TextStyle(
-                  fontFamily: 'Black Han Sans', fontSize: 72, 
-                  color: Colors.black.withOpacity(0.3),
-                  letterSpacing: 2.0,
-                  shadows: const [Shadow(color: Colors.black45, offset: Offset(0, 10), blurRadius: 12)],
-                )),
-              ),
-              // 2. Extrusion (Dark Blue Sides)
-              Positioned(
-                top: 4,
-                child: Text("GTO", style: TextStyle(
-                  fontFamily: 'Black Han Sans', fontSize: 72,
-                  color: const Color(0xFF1E3A8A), // Deep Blue
-                  letterSpacing: 2.0,
-                )),
-              ),
-              // 3. Main Face (Gradient Blue)
-              Positioned(
-                top: 0,
-                child: ShaderMask(
-                  shaderCallback: (bounds) => const LinearGradient(
-                    colors: [Color(0xFF93C5FD), Color(0xFF3B82F6)], // Light Blue to Blue
-                    begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                    stops: [0.2, 1.0],
-                  ).createShader(bounds),
-                  child: const Text("GTO", style: TextStyle(
-                    fontFamily: 'Black Han Sans', fontSize: 72, color: Colors.white,
-                    letterSpacing: 2.0,
-                  )),
-                ),
-              ),
-
-              // --- LEAGUE LAYER ---
-              // 1. Deep Shadow
-              Positioned(
-                bottom: 0,
-                child: Text("LEAGUE", style: TextStyle(
-                  fontFamily: 'Black Han Sans', fontSize: 40,
-                  color: Colors.black.withOpacity(0.5),
-                  letterSpacing: 1.0,
-                  shadows: const [Shadow(color: Colors.black45, offset: Offset(0, 8), blurRadius: 8)],
-                )),
-              ),
-              // 2. Extrusion (Dark Orange/Brown)
-              Positioned(
-                bottom: 2,
-                child: Text("LEAGUE", style: TextStyle(
-                  fontFamily: 'Black Han Sans', fontSize: 40,
-                  color: const Color(0xFF7C2D12), // Dark Brown
-                  letterSpacing: 1.0,
-                  shadows: const [
-                    Shadow(color: Color(0xFF7C2D12), offset: Offset(0, 2)),
-                    Shadow(color: Color(0xFF7C2D12), offset: Offset(2, 2)),
-                    Shadow(color: Color(0xFF7C2D12), offset: Offset(-2, 2)),
-                  ], // Fake stroke/bulk
-                )),
-              ),
-              // 3. Main Face (Gradient Yellow-Orange)
-              Positioned(
-                bottom: 4,
-                child: ShaderMask(
-                  shaderCallback: (bounds) => const LinearGradient(
-                    colors: [Color(0xFFFDE047), Color(0xFFF97316)], // Yellow to Orange
-                    begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                  ).createShader(bounds),
-                  child: const Text("LEAGUE", style: TextStyle(
-                    fontFamily: 'Black Han Sans', fontSize: 40, color: Colors.white,
-                    letterSpacing: 1.0,
-                  )),
-                ),
-              ),
-            ],
-          ),
+        // 1. Top Bar
+        Padding(
+          padding: EdgeInsets.only(top: context.w(2)),
+          child: const GtoTopBar(),
         ),
-        
-        // Chip Tag
-        Container(
-          margin: const EdgeInsets.only(top: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            color: const Color(0xFF172554).withOpacity(0.8), // blue-950
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: StitchColors.blue500.withOpacity(0.5), width: 1),
-            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
-          ),
-          child: const Text("홀덤 푸시폴드 배틀", style: TextStyle(
-            color: StitchColors.blue200, fontSize: 13, fontWeight: FontWeight.normal, letterSpacing: 0.5
-          )),
+
+        SizedBox(height: context.w(2)),
+
+        // 2. Logo (화면 전체 너비 기준 중앙) + Side Menu (우측 오버레이)
+        _buildLogoWithSideMenu(context),
+
+        // 3. Hero Stage (Robot) → 남은 공간 자동 차지
+        const Expanded(
+          child: GtoHeroStage(),
+        ),
+
+        // 4. Battle Button
+        Padding(
+          padding: EdgeInsets.only(left: context.w(24), right: context.w(24), bottom: navBottomPadding),
+          child: _buildBattleButton(context, ref),
         ),
       ],
     );
   }
 
-  Widget _buildBattleButton(BuildContext context) {
-    // HTML: w-full h-[88px] relative group active:scale-95
+  /// 로고는 화면 전체 너비 기준 정중앙, 사이드 메뉴는 우측에 오버레이
+  Widget _buildLogoWithSideMenu(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // 로고: 전체 너비 사용, 중앙 정렬
+        _buildLogoSection(context),
+        // 사이드 메뉴: 우측 상단에 오버레이
+        Positioned(
+          right: context.w(2),
+          top: context.w(6),
+          child: _buildRightSideMenu(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLogoSection(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // GTO 텍스트 - Column으로 배치하여 LEAGUE와 절대 겹치지 않음
+          ShaderMask(
+            shaderCallback: (bounds) => const LinearGradient(
+              colors: [Color(0xFF93C5FD), Color(0xFF3B82F6)],
+              begin: Alignment.topCenter, end: Alignment.bottomCenter,
+              stops: [0.2, 1.0],
+            ).createShader(bounds),
+            child: Text("GTO", style: TextStyle(
+              fontFamily: 'Black Han Sans',
+              fontSize: context.w(64),
+              color: Colors.white,
+              letterSpacing: 2.0,
+              height: 1.0,
+              shadows: [
+                Shadow(color: const Color(0xFF1E3A8A), offset: const Offset(0, 3), blurRadius: 0),
+                Shadow(color: Colors.black.withOpacity(0.5), offset: const Offset(0, 6), blurRadius: 10),
+              ],
+            )),
+          ),
+
+          // LEAGUE 텍스트 - GTO 바로 아래에 자연스럽게 배치
+          Transform.translate(
+            offset: Offset(0, -context.w(8)), // 살짝 위로 당겨서 로고처럼 밀착
+            child: ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: [Color(0xFFFDE047), Color(0xFFF97316)],
+                begin: Alignment.topCenter, end: Alignment.bottomCenter,
+              ).createShader(bounds),
+              child: Text("LEAGUE", style: TextStyle(
+                fontFamily: 'Black Han Sans',
+                fontSize: context.w(36),
+                color: Colors.white,
+                letterSpacing: 1.0,
+                height: 1.0,
+                shadows: [
+                  Shadow(color: const Color(0xFF7C2D12), offset: const Offset(0, 2), blurRadius: 0),
+                  Shadow(color: const Color(0xFF7C2D12), offset: const Offset(2, 2), blurRadius: 0),
+                  Shadow(color: const Color(0xFF7C2D12), offset: const Offset(-2, 2), blurRadius: 0),
+                  Shadow(color: Colors.black.withOpacity(0.5), offset: const Offset(0, 5), blurRadius: 8),
+                ],
+              )),
+            ),
+          ),
+
+          // Chip Tag
+          Transform.translate(
+            offset: Offset(0, -context.w(4)),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: context.w(10), vertical: context.w(4)),
+              decoration: BoxDecoration(
+                color: const Color(0xFF172554).withOpacity(0.8),
+                borderRadius: BorderRadius.circular(context.r(20)),
+                border: Border.all(color: StitchColors.blue500.withOpacity(0.5), width: 1),
+                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
+              ),
+              child: Text("홀덤 푸시폴드 배틀", style: TextStyle(
+                color: StitchColors.blue200, fontSize: context.sp(11), fontWeight: FontWeight.normal, letterSpacing: 0.5
+              )),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBattleButton(BuildContext context, WidgetRef ref) {
+    final buttonHeight = context.w(70).clamp(55.0, 90.0);
+    final fontSize = context.sp(24);
+    final iconSize = context.w(34);
+    
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, '/game'),
+      onTap: () async {
+        final notifier = ref.read(userStatsProvider.notifier);
+        final success = await notifier.consumeEnergy();
+        
+        if (!success) {
+          if (!context.mounted) return;
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: const Color(0xFF1A1A2E),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: Row(
+                children: [
+                  Icon(Icons.bolt_rounded, color: Colors.amber, size: 28),
+                  const SizedBox(width: 8),
+                  const Text('에너지 부족!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              content: const Text(
+                '에너지가 부족합니다!\n상점에서 충전할까요?',
+                style: TextStyle(color: Colors.white70, fontSize: 15),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('나중에', style: TextStyle(color: Colors.white54)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.amber[700]),
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    // TODO: 상점 화면으로 이동
+                  },
+                  child: const Text('충전하기', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          );
+          return;
+        }
+        if (context.mounted) Navigator.pushNamed(context, '/game');
+      },
       child: SizedBox(
-        height: 88,
+        height: buttonHeight,
         width: double.infinity,
         child: Stack(
           children: [
-            // Button Body
             Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(32), // rounded-[2rem]
+                borderRadius: BorderRadius.circular(context.r(28)),
                 gradient: const LinearGradient(
                   begin: Alignment.topCenter, end: Alignment.bottomCenter,
                   colors: [StitchColors.buttonGoldStart, StitchColors.buttonGoldMid, StitchColors.buttonGoldEnd],
                 ),
                 boxShadow: [
-                  const BoxShadow(color: StitchColors.shadowGold, offset: Offset(0, 6), blurRadius: 0), // 3D bevel
-                  BoxShadow(color: Colors.black.withOpacity(0.4), offset: const Offset(0, 15), blurRadius: 20),
+                  const BoxShadow(color: StitchColors.shadowGold, offset: Offset(0, 5), blurRadius: 0),
+                  BoxShadow(color: Colors.black.withOpacity(0.4), offset: const Offset(0, 12), blurRadius: 16),
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(32),
+                borderRadius: BorderRadius.circular(context.r(28)),
                 child: Stack(
                   children: [
-                    // Top Border Simulation (border-t border-yellow-200)
                     Positioned(top: 0, left: 0, right: 0, height: 1, child: Container(color: StitchColors.yellow200)),
                     
-                    // Content
                     Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                           // Icon Container
-                           Transform.rotate(
-                             angle: -12 * 3.14159 / 180,
-                             child: const Icon(Icons.sports_mma, size: 48, color: Color(0xFF6D4C41)),
-                           ),
-                           const SizedBox(width: 12),
-                           // Text
-                           const Text("배틀 시작", style: TextStyle(
-                             fontFamily: 'Black Han Sans', fontSize: 32, 
-                             color: Color(0xFF5D4037), letterSpacing: 1.0,
-                             height: 1.2,
-                             shadows: [Shadow(color: Colors.white24, offset: Offset(0, 1), blurRadius: 0)],
-                           )),
-                           const SizedBox(width: 8),
-                           // Arrow
-                           const Icon(Icons.navigate_next_rounded, size: 40, color: Color(0xFF8D6E63)),
-                        ],
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: context.w(16)),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Transform.rotate(
+                                angle: -12 * 3.14159 / 180,
+                                child: Icon(Icons.sports_mma, size: iconSize, color: const Color(0xFF6D4C41)),
+                              ),
+                              SizedBox(width: context.w(10)),
+                              Text("배틀 시작", style: TextStyle(
+                                fontFamily: 'Black Han Sans', fontSize: fontSize, 
+                                color: const Color(0xFF5D4037), letterSpacing: 1.0,
+                                height: 1.2,
+                                shadows: const [Shadow(color: Colors.white24, offset: Offset(0, 1), blurRadius: 0)],
+                              )),
+                              SizedBox(width: context.w(6)),
+                              Icon(Icons.navigate_next_rounded, size: iconSize * 0.83, color: const Color(0xFF8D6E63)),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                     
-                    // Shine Effect
                     Positioned(
-                      top: 0, left: 0, right: 0, height: 44,
+                      top: 0, left: 0, right: 0, height: buttonHeight * 0.5,
                       child: Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
@@ -241,55 +254,53 @@ class GtoLobbyBody extends StatelessWidget {
     );
   }
 
-  Widget _buildRightSideMenu() {
+  Widget _buildRightSideMenu(BuildContext context) {
     return Column(
       children: [
-        _buildSideButton(Icons.emoji_events_rounded, "업적", StitchColors.blue400),
-        const SizedBox(height: 16),
-        _buildSideButton(Icons.mail_rounded, "우편함", StitchColors.cyan400),
+        _buildSideButton(context, Icons.settings_rounded, "설정", StitchColors.slate400, onTap: () {
+          showDialog(context: context, builder: (context) => const SettingsDialog());
+        }),
+        SizedBox(height: context.w(10)),
+        _buildSideButton(context, Icons.emoji_events_rounded, "업적", StitchColors.blue400),
+        SizedBox(height: context.w(10)),
+        _buildSideButton(context, Icons.mail_rounded, "우편함", StitchColors.cyan400),
       ],
     );
   }
 
-  Widget _buildSideButton(IconData icon, String label, Color color) {
-    // w-[50px] h-[50px] bg-white/10 rounded-l-2xl border-l-3 ...
-    // Fix: Cannot use borderRadius with non-uniform Border.
-    return Container(
-      width: 50, height: 50,
-      margin: const EdgeInsets.only(right: 0),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
-        // border: Border(left: BorderSide(color: color, width: 3)), // Removed
-        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8)],
-      ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
-        child: Stack(
-          children: [
-            // Left Accent Border
-            Positioned(
-              left: 0, top: 0, bottom: 0,
-              child: Container(width: 3, color: color),
-            ),
-            // Content
-            Center(
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  Icon(icon, color: StitchColors.blue300, size: 28),
-                  Positioned(
-                    bottom: -18,
-                    child: Text(label, style: const TextStyle(
-                      color: StitchColors.blue300, fontSize: 10, fontWeight: FontWeight.bold,
-                      shadows: [Shadow(color: Colors.black, blurRadius: 2)],
-                    )),
-                  ),
-                ],
+  Widget _buildSideButton(BuildContext context, IconData icon, String label, Color color, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: context.w(42), height: context.w(42),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          borderRadius: BorderRadius.horizontal(left: Radius.circular(context.r(12))),
+          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8)],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.horizontal(left: Radius.circular(context.r(12))),
+          child: Stack(
+            children: [
+              Positioned(
+                left: 0, top: 0, bottom: 0,
+                child: Container(width: 3, color: color),
               ),
-            ),
-          ],
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(icon, color: StitchColors.blue300, size: context.w(18)),
+                    const SizedBox(height: 1),
+                    Text(label, style: TextStyle(
+                      color: StitchColors.blue300, fontSize: context.sp(7), fontWeight: FontWeight.bold,
+                      shadows: const [Shadow(color: Colors.black, blurRadius: 2)],
+                    )),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     ).animate().fadeIn(duration: 600.ms).slideX(begin: 1, end: 0, curve: Curves.easeOutBack);
