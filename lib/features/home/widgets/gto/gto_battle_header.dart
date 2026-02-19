@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../data/models/card_question.dart';
 import '../../../../data/models/game_state.dart';
 import 'stitch_colors.dart';
@@ -6,91 +7,122 @@ import 'stitch_colors.dart';
 class GtoBattleHeader extends StatelessWidget {
   final GameState gameState;
   final CardQuestion question;
+  final String tierName; // e.g. "Silver 1"
+  final int currentScore;
+  final int rank; // e.g. 4203
 
   const GtoBattleHeader({
     super.key,
     required this.gameState,
     required this.question,
+    required this.tierName,
+    required this.currentScore,
+    required this.rank,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Mock Ghost Score: Just a bit higher than current to motivate
+    final ghostScore = currentScore + 150; 
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Position Badge (Glassmorphism)
+          // 1. League Rank & Ghost Score Section
           Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: StitchColors.blue400.withOpacity(0.3)),
-                boxShadow: [
-                  BoxShadow(
-                    color: StitchColors.blue500.withOpacity(0.6),
-                    blurRadius: 15,
-                    spreadRadius: 0,
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  // Position Icon
-                  Container(
-                    width: 32, height: 32,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[800],
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.grey[600]!),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Ghost (Next Target)
+                Row(
+                  children: [
+                    Icon(Icons.arrow_upward_rounded, color: Colors.white.withOpacity(0.3), size: 14),
+                    const SizedBox(width: 4),
+                    Text(
+                      "$ghostScore PT",
+                      style: TextStyle(
+                        fontFamily: 'Black Han Sans',
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.3),
+                      ),
                     ),
-                    child: Stack(
-                      children: [
-                        // Table representation
-                        Center(
-                          child: Container(
-                            width: 20, height: 12,
-                            decoration: BoxDecoration(
-                              color: StitchColors.green500, // green-700
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: StitchColors.green400),
-                            ),
-                          ),
-                        ),
-                        // Seat indicator (Top Right)
-                        Positioned(
-                          top: 0, right: 4,
-                          child: Container(
-                            width: 6, height: 6,
-                            decoration: const BoxDecoration(
-                              color: StitchColors.yellow400,
-                              shape: BoxShape.circle,
-                              boxShadow: [BoxShadow(color: StitchColors.yellow400, blurRadius: 5)],
-                            ),
-                          ),
-                        ),
-                      ],
+                    const SizedBox(width: 6),
+                    Text(
+                      "Next Rank",
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.white.withOpacity(0.3),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Text
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text("현재 포지션", style: TextStyle(
-                        color: StitchColors.blue200, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5
-                      )),
-                      Text(question.position, style: const TextStyle(
-                        fontFamily: 'Black Han Sans', fontSize: 20, color: Colors.white,
-                        shadows: [Shadow(color: Colors.black, blurRadius: 4, offset: Offset(0, 2))],
-                      )),
+                  ],
+                ).animate(onPlay: (c) => c.repeat(reverse: true)).fade(begin: 0.3, end: 0.6, duration: 2.seconds),
+
+                const SizedBox(height: 4),
+
+                // Current Score & Rank
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: StitchColors.blue500.withOpacity(0.5)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: StitchColors.blue500.withOpacity(0.2),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                      ),
                     ],
                   ),
-                ],
-              ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Rank Icon/Text
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: StitchColors.blue600,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          tierName,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Score
+                      Text(
+                        "$currentScore PT",
+                        style: const TextStyle(
+                          fontFamily: 'Black Han Sans',
+                          fontSize: 22,
+                          color: Colors.white,
+                          shadows: [Shadow(color: StitchColors.blue500, blurRadius: 8)],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // Rank Text
+                Padding(
+                  padding: const EdgeInsets.only(left: 4, top: 4),
+                  child: Text(
+                    "현재 순위 #$rank",
+                    style: TextStyle(
+                      color: StitchColors.blue200.withOpacity(0.7),
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           

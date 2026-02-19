@@ -46,10 +46,10 @@ class GtoBottomNav extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildNavItem(context, 0, Icons.storefront_rounded, "상점"),
-                    _buildNavItem(context, 1, Icons.style_rounded, "덱"),
+                    _buildNavItem(context, 1, Icons.palette_rounded, "꾸미기"),
                     _buildHomeButton(context),
                     _buildNavItem(context, 3, Icons.bar_chart_rounded, "리그"),
-                    _buildNavItem(context, 4, Icons.account_circle_rounded, "프로필"),
+                    _buildNavItem(context, 4, Icons.school_rounded, "훈련하기"),
                   ],
                 ),
               ),

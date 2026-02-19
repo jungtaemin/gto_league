@@ -34,7 +34,7 @@ class AppTheme {
       ),
       
       // Card theme - Premium Arcade Cabinet feel
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.darkGray,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -111,7 +111,7 @@ class AppTheme {
       ),
 
       // Dialog Theme - Fact Bomb Modal style
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: AppColors.darkGray,
         elevation: 0,
         shape: RoundedRectangleBorder(

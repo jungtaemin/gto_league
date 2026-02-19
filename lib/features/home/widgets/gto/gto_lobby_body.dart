@@ -7,7 +7,6 @@ import 'gto_bottom_nav.dart';
 import 'gto_top_bar.dart';
 import 'gto_hero_stage.dart';
 import 'stitch_colors.dart';
-import 'dart:ui';
 import 'settings_dialog.dart'; // 추가됨
 
 /// Stitch V2 Lobby Body
@@ -84,7 +83,7 @@ class GtoLobbyBody extends ConsumerWidget {
               letterSpacing: 2.0,
               height: 1.0,
               shadows: [
-                Shadow(color: const Color(0xFF1E3A8A), offset: const Offset(0, 3), blurRadius: 0),
+                const Shadow(color: Color(0xFF1E3A8A), offset: Offset(0, 3), blurRadius: 0),
                 Shadow(color: Colors.black.withOpacity(0.5), offset: const Offset(0, 6), blurRadius: 10),
               ],
             )),
@@ -105,9 +104,9 @@ class GtoLobbyBody extends ConsumerWidget {
                 letterSpacing: 1.0,
                 height: 1.0,
                 shadows: [
-                  Shadow(color: const Color(0xFF7C2D12), offset: const Offset(0, 2), blurRadius: 0),
-                  Shadow(color: const Color(0xFF7C2D12), offset: const Offset(2, 2), blurRadius: 0),
-                  Shadow(color: const Color(0xFF7C2D12), offset: const Offset(-2, 2), blurRadius: 0),
+                  const Shadow(color: Color(0xFF7C2D12), offset: Offset(0, 2), blurRadius: 0),
+                  const Shadow(color: Color(0xFF7C2D12), offset: Offset(2, 2), blurRadius: 0),
+                  const Shadow(color: Color(0xFF7C2D12), offset: Offset(-2, 2), blurRadius: 0),
                   Shadow(color: Colors.black.withOpacity(0.5), offset: const Offset(0, 5), blurRadius: 8),
                 ],
               )),
@@ -140,7 +139,16 @@ class GtoLobbyBody extends ConsumerWidget {
     final fontSize = context.sp(24);
     final iconSize = context.w(34);
     
-    return GestureDetector(
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.topCenter,
+      children: [
+        // Floating cost indicator
+        Positioned(
+          top: -context.w(20),
+          child: const FloatingEnergyCost(),
+        ),
+        GestureDetector(
       onTap: () async {
         final notifier = ref.read(userStatsProvider.notifier);
         final success = await notifier.consumeEnergy();
@@ -152,11 +160,11 @@ class GtoLobbyBody extends ConsumerWidget {
             builder: (ctx) => AlertDialog(
               backgroundColor: const Color(0xFF1A1A2E),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              title: Row(
+              title: const Row(
                 children: [
                   Icon(Icons.bolt_rounded, color: Colors.amber, size: 28),
-                  const SizedBox(width: 8),
-                  const Text('에너지 부족!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  SizedBox(width: 8),
+                  Text('에너지 부족!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ],
               ),
               content: const Text(
@@ -251,6 +259,8 @@ class GtoLobbyBody extends ConsumerWidget {
           ],
         ),
       ),
+    ),
+      ],
     );
   }
 
@@ -304,5 +314,38 @@ class GtoLobbyBody extends ConsumerWidget {
         ),
       ),
     ).animate().fadeIn(duration: 600.ms).slideX(begin: 1, end: 0, curve: Curves.easeOutBack);
+  }
+}
+
+class FloatingEnergyCost extends StatelessWidget {
+  const FloatingEnergyCost({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: context.w(8), vertical: context.w(2)),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: StitchColors.yellow400.withOpacity(0.5)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.bolt, color: StitchColors.yellow400, size: context.w(12)),
+          SizedBox(width: context.w(2)),
+          Text(
+            "-1",
+            style: TextStyle(
+              color: StitchColors.yellow400,
+              fontSize: context.sp(10),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    )
+    .animate(onPlay: (controller) => controller.repeat(reverse: true))
+    .moveY(begin: 0, end: -5, duration: 1200.ms, curve: Curves.easeInOut);
   }
 }

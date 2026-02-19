@@ -71,7 +71,7 @@ class _GtoLeagueBodyState extends ConsumerState<GtoLeagueBody> {
     }
     
     // 비로그인 → 로컬 고스트 리그 (체험판)
-    final score = ref.read(gameStateNotifierProvider).score;
+    final score = ref.read(gameStateProvider).score;
     final players = await leagueService.generateLocalLeague(score);
     if (mounted) {
       setState(() {
@@ -679,7 +679,7 @@ class _GtoLeagueBodyState extends ConsumerState<GtoLeagueBody> {
           SizedBox(width: context.w(8)),
             Container(
               width: context.w(32), height: context.w(32),
-              decoration: BoxDecoration(color: Colors.white10, shape: BoxShape.circle),
+              decoration: const BoxDecoration(color: Colors.white10, shape: BoxShape.circle),
               child: Icon(Icons.person_outline, color: Colors.white24, size: context.w(16)),
             ),
           SizedBox(width: context.w(12)),

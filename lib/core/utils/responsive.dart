@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 
 /// 반응형 UI 유틸리티
 /// 기기 화면 크기에 따라 UI 요소의 크기를 자동으로 조절합니다.

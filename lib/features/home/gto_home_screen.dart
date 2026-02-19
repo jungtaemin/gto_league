@@ -3,6 +3,7 @@ import 'widgets/gto/gto_background.dart';
 import 'widgets/gto/gto_bottom_nav.dart';
 import 'widgets/gto/gto_lobby_body.dart';
 import 'widgets/gto/gto_league_body.dart';
+import '../decorate/decorate_page.dart';
 
 /// GTO League Home Screen – Stitch V1 layout
 class GtoHomeScreen extends StatefulWidget {
@@ -30,12 +31,12 @@ class _GtoHomeScreenState extends State<GtoHomeScreen> {
               bottom: false,
               child: IndexedStack(
                 index: _navIndex,
-                children: [
-                  const Center(child: Text("Shop (Wait)", style: TextStyle(color: Colors.white))), // 0
-                  const Center(child: Text("Deck (Wait)", style: TextStyle(color: Colors.white))), // 1
-                  const GtoLobbyBody(), // 2: Home
-                  const GtoLeagueBody(), // 3: Ranking
-                  const Center(child: Text("Profile (Wait)", style: TextStyle(color: Colors.white))), // 4
+                children: const [
+                  Center(child: Text("Shop (Wait)", style: TextStyle(color: Colors.white))), // 0
+                  DecoratePage(), // 1: Decorate
+                  GtoLobbyBody(), // 2: Home
+                  GtoLeagueBody(), // 3: Ranking
+                  Center(child: Text("Train (Wait)", style: TextStyle(color: Colors.white))), // 4
                 ],
               ),
             ),

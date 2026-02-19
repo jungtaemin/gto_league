@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../../core/utils/haptic_manager.dart';
 import 'stitch_colors.dart';
 
 class GtoBattleActionSlider extends StatefulWidget {

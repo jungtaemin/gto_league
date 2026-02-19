@@ -36,7 +36,7 @@ class GameOverScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final gameState = ref.read(gameStateNotifierProvider);
+    final gameState = ref.read(gameStateProvider);
     final tierColor = _getTierColor(gameState.currentTier);
 
     // ── 리그 배정 + 점수 업데이트 (1회만 실행) ──
@@ -137,7 +137,7 @@ class GameOverScreen extends ConsumerWidget {
                     color: AppColors.acidYellow,
                     textColor: AppColors.pureBlack,
                     onPressed: () {
-                      ref.read(gameStateNotifierProvider.notifier).reset();
+                      ref.read(gameStateProvider.notifier).reset();
                       Navigator.of(context).pushReplacementNamed('/game');
                     },
                   ).animate(delay: 500.ms).slideY(begin: 0.5, end: 0, duration: 400.ms, curve: Curves.easeOutBack).fadeIn(),
@@ -153,7 +153,7 @@ class GameOverScreen extends ConsumerWidget {
                       adService.showRewardedAd(
                         rewardType: AdRewardType.heartRefill,
                         onRewardEarned: () {
-                          ref.read(gameStateNotifierProvider.notifier).refillHearts();
+                          ref.read(gameStateProvider.notifier).refillHearts();
                           if (context.mounted) {
                             Navigator.of(context).pushReplacementNamed('/game');
                           }
@@ -179,7 +179,7 @@ class GameOverScreen extends ConsumerWidget {
 
                   TextButton(
                     onPressed: () {
-                      ref.read(gameStateNotifierProvider.notifier).reset();
+                      ref.read(gameStateProvider.notifier).reset();
                       Navigator.of(context).pushReplacementNamed('/home');
                     },
                     child: Text(

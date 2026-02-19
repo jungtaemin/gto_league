@@ -40,7 +40,7 @@ class _RankingScreenState extends ConsumerState<RankingScreen>
   Future<void> _loadLeague() async {
     setState(() => _isLoading = true);
     final rankingService = ref.read(rankingServiceProvider);
-    final playerScore = ref.read(gameStateNotifierProvider).score;
+    final playerScore = ref.read(gameStateProvider).score;
     final league = await rankingService.generateLeague(playerScore);
     if (mounted) {
       setState(() {

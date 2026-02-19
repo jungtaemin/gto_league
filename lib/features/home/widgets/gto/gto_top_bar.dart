@@ -7,7 +7,6 @@ import '../../../../data/services/supabase_service.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../providers/user_stats_provider.dart';
 import 'stitch_colors.dart';
-import 'settings_dialog.dart';
 
 class GtoTopBar extends ConsumerWidget {
   const GtoTopBar({super.key});
@@ -28,7 +27,7 @@ class GtoTopBar extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // 1. LEFT SIDE: Profile + League Badge
+              // 1. LEFT SIDE: Profile
               Flexible(
                 flex: 3,
                 child: Column(
@@ -36,8 +35,6 @@ class GtoTopBar extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildProfileBadge(context, isLoggedIn, displayName, avatarUrl),
-                    SizedBox(height: context.w(6)),
-                    _buildLeagueBadge(context, ref),
                   ],
                 ),
               ),
@@ -64,57 +61,6 @@ class GtoTopBar extends ConsumerWidget {
     );
   }
 
-  Widget _buildLeagueBadge(BuildContext context, WidgetRef ref) {
-    final stats = ref.watch(userStatsProvider);
-    final tier = stats.tier;
-
-    // 티어별 색상 매핑 (GtoLeagueBody와 유사하게)
-    Color tierColor;
-    Color borderColor;
-    switch (tier.name) {
-      case 'fish': tierColor = StitchColors.green500; borderColor = StitchColors.green400; break;
-      case 'donkey': tierColor = StitchColors.cyan600; borderColor = StitchColors.cyan400; break;
-      case 'callingStation': tierColor = StitchColors.blue600; borderColor = StitchColors.blue400; break;
-      case 'pubReg': tierColor = StitchColors.indigo600; borderColor = StitchColors.indigo400; break;
-      case 'grinder': tierColor = StitchColors.purple600; borderColor = StitchColors.purple400; break;
-      case 'shark': tierColor = StitchColors.red600; borderColor = StitchColors.red400; break;
-      case 'gtoMachine': tierColor = StitchColors.orange800; borderColor = StitchColors.orange400; break;
-      default: tierColor = StitchColors.slate600; borderColor = StitchColors.slate400;
-    }
-
-    return Container(
-      padding: EdgeInsets.only(right: context.w(10), top: context.w(3), bottom: context.w(3), left: context.w(3)),
-      decoration: BoxDecoration(
-        color: tierColor.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: borderColor),
-        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: context.w(26), height: context.w(26),
-            margin: EdgeInsets.only(right: context.w(6)),
-            decoration: BoxDecoration(
-              color: Colors.black26,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white24, width: 1.5),
-            ),
-            child: Center(child: Text(tier.emoji, style: TextStyle(fontSize: context.w(14)))),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text("리그", style: TextStyle(color: Colors.white70, fontSize: context.sp(9), height: 1.0)),
-              Text(tier.displayName, style: TextStyle(color: Colors.white, fontSize: context.sp(12), fontWeight: FontWeight.bold, height: 1.0)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildChipBadge(BuildContext context, WidgetRef ref) {
     final stats = ref.watch(userStatsProvider);

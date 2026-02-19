@@ -1,4 +1,3 @@
-import 'dart:math' show min;
 import 'widgets/defense_alert_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
@@ -18,6 +17,7 @@ import '../../data/repositories/gto_repository.dart';
 // Providers
 import '../../providers/game_state_notifier.dart';
 import '../../providers/game_providers.dart';
+import '../../providers/user_stats_provider.dart';
 
 // Utils
 import '../../core/utils/haptic_manager.dart';
@@ -35,7 +35,6 @@ import 'widgets/table_position_view.dart';
 import '../home/widgets/gto/gto_battle_background.dart';
 import '../home/widgets/gto/gto_battle_header.dart';
 import '../home/widgets/gto/gto_battle_timer_bar.dart';
-import '../home/widgets/gto/stitch_colors.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -91,7 +90,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         ref.read(timerProvider.notifier).start();
         // Set defense mode for first card
         if (deck.isNotEmpty) {
-          ref.read(gameStateNotifierProvider.notifier)
+          ref.read(gameStateProvider.notifier)
               .setDefenseMode(deck.first.chartType == 'CALL');
         }
       }
@@ -132,7 +131,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       factBombMessage: isCorrect ? null : _generateFactBomb(question),
     );
     
-    ref.read(gameStateNotifierProvider.notifier).processAnswer(result);
+    ref.read(gameStateProvider.notifier).processAnswer(result);
     
     setState(() {
       _showAnswerResult = true;
@@ -166,7 +165,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     
     if (currentIndex != null && currentIndex < _deck.length) {
       final nextQuestion = _deck[currentIndex];
-      ref.read(gameStateNotifierProvider.notifier)
+      ref.read(gameStateProvider.notifier)
           .setDefenseMode(nextQuestion.chartType == 'CALL');
     }
 
@@ -200,13 +199,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   void _onFactBombDismissed() {
     _restartTimerForNextCard();
-    if (ref.read(gameStateNotifierProvider).hearts <= 0) {
+    if (ref.read(gameStateProvider).hearts <= 0) {
       _navigateToGameOver();
     }
   }
 
   void _navigateToGameOver() {
-    final score = ref.read(gameStateNotifierProvider).score;
+    final score = ref.read(gameStateProvider).score;
     ref.read(rankingServiceProvider).submitScore(score);
     ref.read(timerProvider.notifier).stop();
     SoundManager.play(SoundType.gameOver);
@@ -219,7 +218,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   void _restartTimerForNextCard() {
     _cardShownTime = DateTime.now();
-    final combo = ref.read(gameStateNotifierProvider).combo;
+    final combo = ref.read(gameStateProvider).combo;
     ref.read(timerProvider.notifier).startWithCombo(combo);
   }
 
@@ -248,8 +247,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final gameState = ref.watch(gameStateNotifierProvider);
+    final gameState = ref.watch(gameStateProvider);
     final timerState = ref.watch(timerProvider);
+    final userStats = ref.watch(userStatsProvider); // Fetch user stats
 
     ref.listen(timerProvider, (previous, next) {
       if (next.phase == TimerPhase.expired && previous?.phase != TimerPhase.expired) {
@@ -278,7 +278,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             child: Column(
               children: [
                 // 1. Header (Glassmorphism)
-                GtoBattleHeader(gameState: gameState, question: currentQ),
+                GtoBattleHeader(
+                  gameState: gameState, 
+                  question: currentQ,
+                  tierName: userStats.tier.displayName,
+                  currentScore: gameState.score, // Use GameState score for real-time game progress
+                  rank: 4203, // Mock rank for now as requested (or use userStats.rank if available)
+                ),
                 
                 // 2. Timer Bar (Shimmer)
                 GtoBattleTimerBar(
@@ -409,7 +415,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               if (state.timeBankCount > 0)
                 GestureDetector(
                   onTap: () {
-                    final success = ref.read(gameStateNotifierProvider.notifier).useTimeBank();
+                    final success = ref.read(gameStateProvider.notifier).useTimeBank();
                     if (success) {
                       ref.read(timerProvider.notifier).addTime(30);
                       HapticManager.swipe();

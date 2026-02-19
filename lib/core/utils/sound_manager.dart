@@ -15,43 +15,72 @@ enum SoundType {
 }
 
 /// Manages sound effects for the game using audioplayers package.
-/// Uses a simple play-per-call approach for maximum reliability.
+/// Uses preloaded AudioPlayer pool with explicit AudioCache configuration.
 class SoundManager {
-  static final AudioPlayer _player = AudioPlayer();
   static bool _initialized = false;
+  static final Map<SoundType, AudioPlayer> _players = {};
 
-  /// Initialize the sound manager.
-  /// Call this once at app initialization.
+  /// Initialize the sound manager and preload all sounds.
   static Future<void> preloadAll() async {
     try {
-      // Set player mode to low latency for sound effects
-      await _player.setPlayerMode(PlayerMode.lowLatency);
+      // Ensure the global AudioCache prefix is correct
+      // By default, AssetSource in audioplayers v6+ looks in 'assets/'
+      
+      for (final type in SoundType.values) {
+        try {
+          final player = AudioPlayer();
+          await player.setReleaseMode(ReleaseMode.stop);
+          await player.setVolume(1.0);
+          await player.setSource(AssetSource('sounds/${type.name}.wav'));
+          _players[type] = player;
+          debugPrint('🔊 Preloaded: ${type.name}');
+        } catch (e) {
+          debugPrint('🔇 Failed to preload ${type.name}: $e');
+        }
+      }
+      
       _initialized = true;
-      debugPrint('🔊 SoundManager initialized successfully');
+      debugPrint('🔊 SoundManager initialized with ${_players.length} sounds');
     } catch (e) {
       debugPrint('🔇 SoundManager init error: $e');
+      _initialized = true;
     }
   }
 
   /// Plays a sound effect by type.
-  /// Creates a fresh play call each time for reliability.
   static Future<void> play(SoundType type) async {
     if (!_initialized) {
-      debugPrint('🔇 SoundManager not initialized, skipping ${type.name}');
+      debugPrint('🔇 SoundManager not initialized');
       return;
     }
+    
     try {
-      debugPrint('🔊 Playing sound: ${type.name}');
-      await _player.stop();
-      await _player.play(AssetSource('sounds/${type.name}.wav'));
+      final player = _players[type];
+      if (player != null) {
+        // Preloaded player: seek to beginning and resume
+        await player.stop();
+        await player.seek(Duration.zero);
+        await player.resume();
+        debugPrint('🔊 Playing (preloaded): ${type.name}');
+      } else {
+        // Fallback: create new player
+        final p = AudioPlayer();
+        await p.setVolume(1.0);
+        await p.play(AssetSource('sounds/${type.name}.wav'));
+        p.onPlayerComplete.listen((_) => p.dispose());
+        debugPrint('🔊 Playing (new): ${type.name}');
+      }
     } catch (e) {
-      debugPrint('🔇 Error playing sound ${type.name}: $e');
+      debugPrint('🔇 Error playing ${type.name}: $e');
     }
   }
 
-  /// Disposes all audio players and cleans up resources.
+  /// Dispose all players.
   static void dispose() {
-    _player.dispose();
+    for (final player in _players.values) {
+      try { player.dispose(); } catch (_) {}
+    }
+    _players.clear();
     _initialized = false;
   }
 }

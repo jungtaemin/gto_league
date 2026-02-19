@@ -61,7 +61,7 @@ class ComboCounterWidget extends StatelessWidget {
       ),
       child: Text(
         '🔥 x$combo',
-        style: TextStyle(color: _gold, fontSize: 18, fontWeight: FontWeight.bold),
+        style: const TextStyle(color: _gold, fontSize: 18, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -78,7 +78,7 @@ class ComboCounterWidget extends StatelessWidget {
       ),
       child: Text(
         '🔥 x$combo',
-        style: TextStyle(color: _pink, fontSize: 22, fontWeight: FontWeight.w900),
+        style: const TextStyle(color: _pink, fontSize: 22, fontWeight: FontWeight.w900),
       ),
     );
   }
@@ -88,7 +88,7 @@ class ComboCounterWidget extends StatelessWidget {
       key: const ValueKey('fever'),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [_purple, _pink]),
+        gradient: const LinearGradient(colors: [_purple, _pink]),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: _gold, width: 2),
         boxShadow: [
@@ -99,7 +99,7 @@ class ComboCounterWidget extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('🎰 FEVER!', style: TextStyle(color: _gold, fontSize: 20, fontWeight: FontWeight.w900)),
+          const Text('🎰 FEVER!', style: TextStyle(color: _gold, fontSize: 20, fontWeight: FontWeight.w900)),
           Text('x$combo', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
         ],
       ),

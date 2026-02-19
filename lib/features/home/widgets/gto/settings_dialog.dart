@@ -23,7 +23,7 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> with TickerProv
   bool _vibration = true;
   bool _pushNoti = true;
   int _graphicQuality = 1; // 0: Low, 1: Medium, 2: High
-  String _couponCode = "";
+  final String _couponCode = "";
   final TextEditingController _couponController = TextEditingController();
 
   @override
@@ -344,13 +344,13 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> with TickerProv
           ],
         ),
         SliderTheme(
-          data: SliderThemeData(
+          data: const SliderThemeData(
             activeTrackColor: StitchColors.blue500,
             inactiveTrackColor: Colors.white10,
             thumbColor: Colors.white,
             trackHeight: 4,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-            overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8),
+            overlayShape: RoundSliderOverlayShape(overlayRadius: 16),
           ),
           child: Slider(value: value, onChanged: onChanged),
         ),
@@ -369,10 +369,10 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> with TickerProv
           Text(title, style: TextStyle(color: Colors.white70, fontSize: context.sp(13))),
           Switch(
             value: value, onChanged: onChanged,
-            activeColor: StitchColors.green400,
+            activeThumbColor: StitchColors.green400,
             activeTrackColor: StitchColors.green400.withOpacity(0.3),
             inactiveThumbColor: Colors.white54,
-            trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
+            trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
           ),
         ],
       ),

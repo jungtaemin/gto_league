@@ -195,7 +195,7 @@ class _CrossSwordsPainter extends CustomPainter {
     canvas.drawPath(path, paint);
 
     // 2. Guard (Rectangular bar)
-    final guardRect = Rect.fromCenter(center: Offset(0, 0), width: guardW, height: bladeW * 0.6);
+    final guardRect = Rect.fromCenter(center: const Offset(0, 0), width: guardW, height: bladeW * 0.6);
     canvas.drawRect(guardRect, paint);
 
     // 3. Handle (Rect)

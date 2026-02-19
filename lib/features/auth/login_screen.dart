@@ -74,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 12),
               
               // 서브타이틀
-              Text(
+              const Text(
                 'GTO를 마스터하고 랭킹에 도전하세요',
                 style: TextStyle(
                   color: StitchColors.slate400,
@@ -111,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const Spacer(flex: 1),
               
               // ─── 하단 안내 ──────────────────────────
-              Text(
+              const Text(
                 '로그인하면 글로벌 랭킹에 참여할 수 있습니다',
                 style: TextStyle(
                   color: StitchColors.slate500,
@@ -192,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
         
         const SizedBox(height: 4),
         
-        Text(
+        const Text(
           'ALL-IN OR FOLD',
           style: TextStyle(
             fontSize: 14,
@@ -272,13 +272,13 @@ class _LoginScreenState extends State<LoginScreen> {
         onPressed: _playAsGuest,
         style: OutlinedButton.styleFrom(
           foregroundColor: StitchColors.slate300,
-          side: BorderSide(color: StitchColors.slate600, width: 1.5),
+          side: const BorderSide(color: StitchColors.slate600, width: 1.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24),
         ),
-        child: Row(
+        child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
@@ -286,7 +286,7 @@ class _LoginScreenState extends State<LoginScreen> {
               color: StitchColors.slate400,
               size: 22,
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Text(
               '게스트로 플레이',
               style: TextStyle(

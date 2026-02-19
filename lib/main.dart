@@ -10,6 +10,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.initialize();
   await SoundManager.preloadAll();
+  // Test: play a sound 2 seconds after launch to verify audio works
+  Future.delayed(const Duration(seconds: 2), () {
+    SoundManager.play(SoundType.correct);
+  });
   await DatabaseHelper.instance.initDatabase();
   await SupabaseService.initialize(); // Initialize Supabase
 

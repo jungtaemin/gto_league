@@ -23,7 +23,7 @@ class GtoBattleTimerBar extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("남은 시간", style: TextStyle(color: StitchColors.blue200, fontSize: 12, fontWeight: FontWeight.bold)),
+              const Text("남은 시간", style: TextStyle(color: StitchColors.blue200, fontSize: 12, fontWeight: FontWeight.bold)),
               Text("${secondsLeft}s", style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
             ],
           ),

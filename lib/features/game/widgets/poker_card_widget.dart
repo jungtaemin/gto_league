@@ -40,6 +40,10 @@ class PokerCardWidget extends StatelessWidget {
           alignment: Alignment.center,
           clipBehavior: Clip.none,
           children: [
+            // Hit-test용 투명 배경 (두 카드 사이 빈 공간에서도 스와이프 가능하게)
+            const Positioned.fill(
+              child: ColoredBox(color: Colors.transparent),
+            ),
             // Left Card (Rotated -6 deg)
             Positioned(
               left: cardOffset,
@@ -67,7 +71,7 @@ class PokerCardWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(context.r(30)),
                   border: Border.all(color: Colors.white.withOpacity(0.2)),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 10, offset: Offset(0, 4)),
+                    BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4)),
                   ],
                 ),
                 child: Row(
@@ -75,7 +79,7 @@ class PokerCardWidget extends StatelessWidget {
                   children: [
                     Text("현재 핸드:", style: TextStyle(color: StitchColors.slate300, fontSize: context.sp(11), fontWeight: FontWeight.bold)),
                     SizedBox(width: context.w(6)),
-                    Text("${question.hand}", style: TextStyle(
+                    Text(question.hand, style: TextStyle(
                       fontFamily: 'Black Han Sans', color: Colors.white, fontSize: context.sp(16), letterSpacing: 1.0,
                     )),
                   ],

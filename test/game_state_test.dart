@@ -29,7 +29,7 @@ void main() {
     });
 
     test('Correct answer increases score and combo', () {
-      final result = SwipeResult(
+      const result = SwipeResult(
         isCorrect: true,
         isSnap: false,
         pointsEarned: 0,
@@ -61,7 +61,7 @@ void main() {
     });
 
     test('Snap bonus applies 1.5x multiplier', () {
-      final snapResult = SwipeResult(
+      const snapResult = SwipeResult(
         isCorrect: true,
         isSnap: true,
         pointsEarned: 0,
@@ -82,7 +82,7 @@ void main() {
       expect(container.read(gameStateNotifierProvider).combo, 2);
 
       // Then get wrong answer
-      final wrongResult = SwipeResult(
+      const wrongResult = SwipeResult(
         isCorrect: false,
         isSnap: false,
         pointsEarned: 0,
@@ -110,7 +110,7 @@ void main() {
     });
 
     test('Game over when hearts reach 0', () {
-      final wrongResult = SwipeResult(
+      const wrongResult = SwipeResult(
         isCorrect: false,
         isSnap: false,
         pointsEarned: 0,
