@@ -1,19 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:playing_cards/playing_cards.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../game/utils/card_style_manager.dart';
 import '../models/decorate_item_model.dart';
+import 'character_display_widget.dart';
 
 class DecoratePreviewArea extends ConsumerWidget {
   final UserEquipped? equipped;
   final List<DecorateItem> allItems;
   final String activeTab; // 'character', 'frame', 'card_skin', 'title'
+  final DecorateItem? previewItem;
+  final List<String> ownedIds;
+  final Function(DecorateItem) onBuy;
+  final Function(DecorateItem) onEquip;
 
   const DecoratePreviewArea({
     super.key,
     required this.equipped,
     required this.allItems,
     required this.activeTab,
+    this.previewItem,
+    required this.ownedIds,
+    required this.onBuy,
+    required this.onEquip,
   });
 
   DecorateItem? _getItem(String? id) {
@@ -27,12 +38,26 @@ class DecoratePreviewArea extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final character = _getItem(equipped?.characterId);
-    final frame = _getItem(equipped?.frameId);
-    final title = _getItem(equipped?.titleId);
+    // Logic: If activeTab matches type, use previewItem if available, else equipped
+    final character = (activeTab == 'character' && previewItem != null)
+        ? previewItem
+        : _getItem(equipped?.characterId);
+    
+    final frame = (activeTab == 'frame' && previewItem != null)
+        ? previewItem
+        : _getItem(equipped?.frameId);
+        
+    final title = (activeTab == 'title' && previewItem != null)
+        ? previewItem
+        : _getItem(equipped?.titleId);
+
+    // Card skin is handled separately in rendering, but logically same
+    final cardSkin = (activeTab == 'card_skin' && previewItem != null)
+        ? previewItem
+        : _getItem(equipped?.cardSkinId);
 
     return Container(
-      height: 280,
+      height: 320, // Increased height for button
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -59,95 +84,12 @@ class DecoratePreviewArea extends ConsumerWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Background Radial Glow based on tab
-          if (activeTab == 'character')
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment.center,
-                    radius: 0.8,
-                    colors: [
-                      AppColors.neonPink.withOpacity(0.15),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              )
-                  .animate(onPlay: (c) => c.repeat(reverse: true))
-                  .scale(
-                    begin: const Offset(0.9, 0.9),
-                    end: const Offset(1.1, 1.1),
-                    duration: 2000.ms,
-                  ),
-            ),
-          if (activeTab == 'frame')
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment.center,
-                    radius: 0.8,
-                    colors: [
-                      AppColors.neonCyan.withOpacity(0.15),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              )
-                  .animate(onPlay: (c) => c.repeat(reverse: true))
-                  .scale(
-                    begin: const Offset(0.9, 0.9),
-                    end: const Offset(1.1, 1.1),
-                    duration: 2500.ms,
-                  ),
-            ),
-          if (activeTab == 'card_skin')
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment.center,
-                    radius: 0.8,
-                    colors: [
-                      AppColors.electricBlue.withOpacity(0.15),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              )
-                  .animate(onPlay: (c) => c.repeat(reverse: true))
-                  .scale(
-                    begin: const Offset(0.9, 0.9),
-                    end: const Offset(1.1, 1.1),
-                    duration: 2200.ms,
-                  ),
-            ),
-          if (activeTab == 'title')
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment.center,
-                    radius: 0.8,
-                    colors: [
-                      AppColors.acidYellow.withOpacity(0.15),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              )
-                  .animate(onPlay: (c) => c.repeat(reverse: true))
-                  .scale(
-                    begin: const Offset(0.9, 0.9),
-                    end: const Offset(1.1, 1.1),
-                    duration: 1800.ms,
-                  ),
-            ),
+          // Background Radial Glow based on active tab
+          _buildBackgroundGlow(),
 
           // Character Silhouette
           Positioned(
-            bottom: 20,
+            bottom: 60, // Moved up for button
             child: _buildCharacter(character),
           ),
 
@@ -156,14 +98,9 @@ class DecoratePreviewArea extends ConsumerWidget {
             Positioned(
               top: 50,
               child: _buildTitle(title)
-                  .animate()
+                  .animate(key: ValueKey(title.id)) // Animate on change
                   .fadeIn(duration: 500.ms)
-                  .slideY(
-                    begin: -0.5,
-                    end: 0,
-                    duration: 500.ms,
-                    curve: Curves.easeOutBack,
-                  ),
+                  .slideY(begin: -0.5, end: 0, curve: Curves.easeOutBack),
             ),
 
           // Frame Avatar (top-left)
@@ -173,29 +110,12 @@ class DecoratePreviewArea extends ConsumerWidget {
             child: _buildFrameAvatar(frame, character),
           ),
 
-          // Card Skin Mini Preview (bottom-right)
-          if (activeTab == 'card_skin')
-            Positioned(
+          // Card Skin Preview (Center-Right or Center)
+          if (activeTab == 'card_skin' && cardSkin != null)
+             Positioned(
               right: 20,
-              bottom: 40,
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: AppColors.neonCyan.withOpacity(0.5)),
-                ),
-                child: const Column(
-                  children: [
-                    Icon(Icons.style, color: AppColors.neonCyan, size: 32),
-                    SizedBox(height: 4),
-                    Text("카드 스킨",
-                        style:
-                            TextStyle(color: Colors.white, fontSize: 10)),
-                  ],
-                ),
-              ).animate().shake(duration: 500.ms),
+              bottom: 80,
+              child: _buildCardPreview(cardSkin),
             ),
 
           // Active Tab Label
@@ -203,42 +123,168 @@ class DecoratePreviewArea extends ConsumerWidget {
             top: 10,
             right: 16,
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.black45,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                    color: AppColors.acidYellow.withOpacity(0.3)),
+                border: Border.all(color: _getTabColor(activeTab).withOpacity(0.5)),
               ),
               child: Text(
                 _tabLabel(activeTab),
-                style: const TextStyle(
-                  color: AppColors.acidYellow,
+                style: TextStyle(
+                  color: _getTabColor(activeTab),
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           ),
+
+          // ACTION BUTTON AREA
+          if (previewItem != null)
+            Positioned(
+              bottom: 20,
+              child: _buildActionButton(context, previewItem!),
+            ),
         ],
       ),
     );
   }
 
+  Widget _buildBackgroundGlow() {
+    Color glowColor = _getTabColor(activeTab);
+    return Positioned.fill(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.center,
+            radius: 0.8,
+            colors: [
+              glowColor.withOpacity(0.15),
+              Colors.transparent,
+            ],
+          ),
+        ),
+      )
+      .animate(onPlay: (c) => c.repeat(reverse: true))
+      .scale(begin: const Offset(0.9, 0.9), end: const Offset(1.1, 1.1), duration: 2000.ms),
+    );
+  }
+
+  Color _getTabColor(String tab) {
+    switch (tab) {
+      case 'character': return AppColors.neonPink;
+      case 'frame': return AppColors.neonCyan;
+      case 'card_skin': return AppColors.electricBlue;
+      case 'title': return AppColors.acidYellow;
+      default: return Colors.white;
+    }
+  }
+
   String _tabLabel(String tab) {
     switch (tab) {
-      case 'character':
-        return '캐릭터 미리보기';
-      case 'frame':
-        return '프레임 미리보기';
-      case 'card_skin':
-        return '카드 스킨 미리보기';
-      case 'title':
-        return '칭호 미리보기';
-      default:
-        return '';
+      case 'character': return '캐릭터 미리보기';
+      case 'frame': return '프레임 미리보기';
+      case 'card_skin': return '카드 스킨 미리보기';
+      case 'title': return '칭호 미리보기';
+      default: return '';
     }
+  }
+
+  Widget _buildActionButton(BuildContext context, DecorateItem item) {
+    bool isOwned = ownedIds.contains(item.id);
+    // bool isEquipped... (handled by DecoratePage logic, we just show buttons)
+    
+    // Check if already equipped? 
+    // We can check against equipped IDs but easier to just show "Equipped" state if matched.
+    bool isEquipped = false;
+    if (activeTab == 'character' && equipped?.characterId == item.id) isEquipped = true;
+    if (activeTab == 'frame' && equipped?.frameId == item.id) isEquipped = true;
+    if (activeTab == 'title' && equipped?.titleId == item.id) isEquipped = true;
+    if (activeTab == 'card_skin' && equipped?.cardSkinId == item.id) isEquipped = true;
+
+    if (isEquipped) {
+       return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.black54,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: AppColors.acidGreen),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check_circle, color: AppColors.acidGreen),
+            SizedBox(width: 8),
+            Text("장착 중", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ],
+        ),
+      );
+    }
+
+    if (isOwned) {
+      return GestureDetector(
+        onTap: () => onEquip(item),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.acidGreen,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(color: AppColors.acidGreen.withOpacity(0.5), blurRadius: 15),
+            ],
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("장착하기", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
+            ],
+          ),
+        ).animate(onPlay: (c) => c.repeat(reverse: true)).shimmer(duration: 2.seconds, delay: 1.seconds),
+      );
+    } else {
+      // Purchase Button
+      return GestureDetector(
+        onTap: () => onBuy(item),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.acidYellow,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(color: AppColors.acidYellow.withOpacity(0.5), blurRadius: 15),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.lock_open, color: Colors.black, size: 20),
+              const SizedBox(width: 8),
+              Text("해금하기 (${item.price} 칩)", 
+                  style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
+            ],
+          ),
+        ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(duration: 2.seconds, begin: const Offset(0.95, 0.95), end: const Offset(1.0, 1.0)),
+      );
+    }
+  }
+
+  Widget _buildCardPreview(DecorateItem item) {
+    return Container(
+      width: 120, // 2.5 * 48
+      decoration: BoxDecoration(
+        boxShadow: [BoxShadow(color: AppColors.electricBlue.withOpacity(0.3), blurRadius: 20)],
+      ),
+      child: AspectRatio(
+        aspectRatio: 2.5 / 3.5,
+        child: PlayingCardView(
+            card: PlayingCard(Suit.spades, CardValue.ace),
+            style: const PlayingCardViewStyle(),
+            showBack: false,
+            elevation: 10,
+          ),
+      ),
+    ).animate(key: ValueKey(item.id)).scale(duration: 300.ms, curve: Curves.easeOutBack);
   }
 
   Widget _buildCharacter(DecorateItem? item) {
@@ -257,57 +303,24 @@ class DecoratePreviewArea extends ConsumerWidget {
       );
     }
 
-    // Use a colored icon placeholder with name
     final color = _parseColor(item.metadata['color'] as String?);
-    return Column(
-      children: [
-        Container(
-          width: 120,
-          height: 160,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            color: (color ?? AppColors.neonPink).withOpacity(0.2),
-            border: Border.all(
-                color: (color ?? AppColors.neonPink).withOpacity(0.5),
-                width: 2),
-            boxShadow: [
-              BoxShadow(
-                  color: (color ?? AppColors.neonPink).withOpacity(0.3),
-                  blurRadius: 20),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.person, size: 80, color: color ?? AppColors.neonPink),
-              const SizedBox(height: 8),
-              Text(
-                item.name,
-                style: TextStyle(
-                  color: color ?? Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ],
-    )
-        .animate()
-        .fadeIn()
-        .scale(duration: 400.ms, curve: Curves.easeOutBack);
+    
+    // If it's Space Marine or known large assets, use CharacterDisplayWidget
+    return CharacterDisplayWidget(
+      characterId: item.id,
+      size: 200, // Large preview
+      isLocked: false, // We show full preview even if locked
+    ).animate(key: ValueKey(item.id)).fadeIn().scale(duration: 400.ms, curve: Curves.easeOutBack);
   }
 
   Widget _buildTitle(DecorateItem item) {
     final color = _parseColor(item.metadata['color'] as String?);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.black.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(30),
         border: Border.all(
           color: color ?? AppColors.acidYellow,
           width: 2,
@@ -315,7 +328,7 @@ class DecoratePreviewArea extends ConsumerWidget {
         boxShadow: [
           BoxShadow(
               color: (color ?? AppColors.acidYellow).withOpacity(0.5),
-              blurRadius: 10),
+              blurRadius: 15),
         ],
       ),
       child: Text(
@@ -323,10 +336,10 @@ class DecoratePreviewArea extends ConsumerWidget {
         style: TextStyle(
           color: color ?? AppColors.acidYellow,
           fontWeight: FontWeight.bold,
-          fontSize: 18,
+          fontSize: 22,
           shadows: [
             Shadow(
-                color: color ?? AppColors.acidYellow, blurRadius: 4),
+                color: color ?? AppColors.acidYellow, blurRadius: 8),
           ],
         ),
       ),
@@ -335,17 +348,16 @@ class DecoratePreviewArea extends ConsumerWidget {
 
   Widget _buildFrameAvatar(
       DecorateItem? frame, DecorateItem? character) {
-    final charColor =
-        _parseColor(character?.metadata['color'] as String?);
-
+    // Similar to previous implementation but scaled
+    // ...
+    final charColor = _parseColor(character?.metadata['color'] as String?);
     return SizedBox(
       width: 80,
       height: 80,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Inner Avatar
-          Container(
+             Container(
             width: 60,
             height: 60,
             decoration: BoxDecoration(
@@ -355,15 +367,9 @@ class DecoratePreviewArea extends ConsumerWidget {
                   color: (charColor ?? Colors.white24), width: 2),
             ),
             child: ClipOval(
-              child: character != null
-                  ? Icon(Icons.person,
-                      color: charColor ?? AppColors.neonPink, size: 36)
-                  : const Icon(Icons.person,
-                      color: Colors.white54, size: 36),
+              child: CharacterDisplayWidget(characterId: character?.id ?? 'char_robot', size: 60),
             ),
           ),
-
-          // Frame Overlay
           if (frame != null)
             Container(
               width: 80,
@@ -371,21 +377,14 @@ class DecoratePreviewArea extends ConsumerWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.acidYellow, width: 3),
-                boxShadow: [
-                  BoxShadow(
-                      color: AppColors.acidYellow.withOpacity(0.4),
-                      blurRadius: 8),
+                 boxShadow: [
+                  BoxShadow(color: AppColors.acidYellow.withOpacity(0.4), blurRadius: 8),
                 ],
               ),
             ),
         ],
       ),
-    )
-        .animate(target: activeTab == 'frame' ? 1 : 0)
-        .scale(
-            end: const Offset(1.2, 1.2),
-            duration: 300.ms,
-            curve: Curves.easeOut);
+    ).animate(target: activeTab == 'frame' ? 1 : 0).scale(end: const Offset(1.2, 1.2));
   }
 
   Color? _parseColor(String? hexStr) {

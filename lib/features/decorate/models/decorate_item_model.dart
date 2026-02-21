@@ -25,6 +25,7 @@ class DecorateItem {
       metadata: json['metadata'] as Map<String, dynamic>? ?? {},
     );
   }
+  int get price => (metadata['price'] as int?) ?? 0;
 }
 
 class UserEquipped {

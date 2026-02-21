@@ -283,34 +283,32 @@ class GtoLobbyBody extends ConsumerWidget {
       onTap: onTap,
       child: Container(
         width: context.w(42), height: context.w(42),
+        clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.1),
           borderRadius: BorderRadius.horizontal(left: Radius.circular(context.r(12))),
           boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8)],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.horizontal(left: Radius.circular(context.r(12))),
-          child: Stack(
-            children: [
-              Positioned(
-                left: 0, top: 0, bottom: 0,
-                child: Container(width: 3, color: color),
+        child: Stack(
+          children: [
+            Positioned(
+              left: 0, top: 0, bottom: 0,
+              child: Container(width: 3, color: color),
+            ),
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, color: StitchColors.blue300, size: context.w(14)),
+                  Text(label, style: TextStyle(
+                    color: StitchColors.blue300, fontSize: context.sp(6), fontWeight: FontWeight.bold,
+                    height: 1.2,
+                    shadows: const [Shadow(color: Colors.black, blurRadius: 2)],
+                  )),
+                ],
               ),
-              Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(icon, color: StitchColors.blue300, size: context.w(18)),
-                    const SizedBox(height: 1),
-                    Text(label, style: TextStyle(
-                      color: StitchColors.blue300, fontSize: context.sp(7), fontWeight: FontWeight.bold,
-                      shadows: const [Shadow(color: Colors.black, blurRadius: 2)],
-                    )),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     ).animate().fadeIn(duration: 600.ms).slideX(begin: 1, end: 0, curve: Curves.easeOutBack);

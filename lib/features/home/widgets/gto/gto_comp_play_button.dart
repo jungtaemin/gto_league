@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/widgets/bouncing_button.dart';
 import 'dart:math' as math;
 
 /// Stitch V1 Battle Button: gold gradient, diagonal stripes, gloss overlay, speech bubble
@@ -17,8 +18,9 @@ class GtoCompPlayButton extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           // Main Button
-          GestureDetector(
+          BouncingButton(
             onTap: onPressed,
+            scaleDown: 0.8, // 가장 확실한 눌림 체감을 위해 0.8까지 축소
             child: Container(
               width: double.infinity,
               height: 80,
@@ -88,9 +90,7 @@ class GtoCompPlayButton extends StatelessWidget {
                 ),
               ),
             ),
-          )
-          .animate(onPlay: (c) => c.repeat(reverse: true))
-          .scale(begin: const Offset(1,1), end: const Offset(1.015, 1.015), duration: 1200.ms),
+          ),
 
           // Speech bubble (floats above the button)
           Positioned(

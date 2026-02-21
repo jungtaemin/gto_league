@@ -22,6 +22,7 @@ import '../../providers/user_stats_provider.dart';
 // Utils
 import '../../core/utils/haptic_manager.dart';
 import '../../core/utils/sound_manager.dart';
+import '../../core/utils/music_manager.dart';
 import '../../core/utils/responsive.dart'; // Import Responsive
 
 // Widgets
@@ -67,6 +68,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void initState() {
     super.initState();
     _swiperController = CardSwiperController();
+    MusicManager.play(MusicType.game);
     _initGame();
   }
 
@@ -74,6 +76,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void dispose() {
     ref.read(timerProvider.notifier).stop();
     _swiperController.dispose();
+    MusicManager.play(MusicType.lobby);
     super.dispose();
   }
 

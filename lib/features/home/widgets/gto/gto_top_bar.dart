@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../data/services/supabase_service.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../providers/user_stats_provider.dart';
+import '../../../../core/widgets/bouncing_button.dart';
 import 'stitch_colors.dart';
 
 class GtoTopBar extends ConsumerWidget {
@@ -163,46 +164,50 @@ class GtoTopBar extends ConsumerWidget {
                   filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: context.w(12)),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // 아이콘
-                        Icon(
-                          Icons.bolt_rounded,
-                          color: isFull ? StitchColors.green400 : StitchColors.yellow300,
-                          size: context.w(16),
-                        )
-                        .animate(target: isFull ? 1 : 0)
-                        .shimmer(duration: 2.seconds, delay: 3.seconds)
-                        .then()
-                        .shake(hz: 4, offset: const Offset(2, 0), duration: 200.ms),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // 아이콘
+                          Icon(
+                            Icons.bolt_rounded,
+                            color: isFull ? StitchColors.green400 : StitchColors.yellow300,
+                            size: context.w(16),
+                          )
+                          .animate(target: isFull ? 1 : 0)
+                          .shimmer(duration: 2.seconds, delay: 3.seconds)
+                          .then()
+                          .shake(hz: 4, offset: const Offset(2, 0), duration: 200.ms),
 
-                        SizedBox(width: context.w(6)),
+                          SizedBox(width: context.w(6)),
 
-                        // 에너지 텍스트 (4 / 10)
-                        Text(
-                          isFull ? "MAX" : "$currentEnergy",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: context.sp(14),
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Roboto',
-                          ),
-                        ),
-                        if (!isFull) 
+                          // 에너지 텍스트 (4 / 10)
                           Text(
-                            "/", 
-                            style: TextStyle(color: Colors.white38, fontSize: context.sp(12))
+                            isFull ? "MAX" : "$currentEnergy",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: context.sp(14),
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Roboto',
+                            ),
                           ),
-                        Text(
-                          "${stats.maxEnergy}",
-                          style: TextStyle(
-                            color: Colors.white54,
-                            fontSize: context.sp(12),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                          if (!isFull) ...[
+                            Text(
+                              "/", 
+                              style: TextStyle(color: Colors.white38, fontSize: context.sp(12))
+                            ),
+                            Text(
+                              "${stats.maxEnergy}",
+                              style: TextStyle(
+                                color: Colors.white54,
+                                fontSize: context.sp(12),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -267,7 +272,7 @@ class GtoTopBar extends ConsumerWidget {
   }
 
   Widget _buildProfileBadge(BuildContext context, bool isLoggedIn, String displayName, String? avatarUrl) {
-    return GestureDetector(
+    return BouncingButton(
       onTap: () {
         if (!isLoggedIn) {
           Navigator.pushNamed(context, '/login');

@@ -1,37 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:playing_cards/playing_cards.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../data/models/card_question.dart';
 import '../../../data/models/poker_hand.dart';
+import '../../../providers/card_skin_provider.dart';
+import '../utils/card_style_manager.dart';
 import '../../home/widgets/gto/stitch_colors.dart';
 
-/// Stitch V1 스타일 포커 카드 위젯
+/// Stitch V1 스타일 포커 카드 위젯 (Refactored to use playing_cards)
 /// 반응형: 화면 크기에 따라 카드 사이즈 자동 조정
-class PokerCardWidget extends StatelessWidget {
+class PokerCardWidget extends ConsumerWidget {
   final CardQuestion question;
 
   const PokerCardWidget({super.key, required this.question});
 
-  // ─── 수트별 고정 색상 ──────
-  static const _redSuit = Color(0xFFDC2626);   // ♥♦ 빨간색
-  static const _blackSuit = Color(0xFF1F2937); // ♠♣ 진한 검정
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final pokerHand = PokerHand.fromNotation(question.hand);
-    final suits = _generateSuits(pokerHand);
     
-    // 반응형 사이즈 계산 (context.w 기반)
-    // 기존 400px 기준 로직을 responsive.dart (375px 기준) 로 변환
-    // 카드 크기 비율 유지
+    // Watch equipped skin from new CardSkinSystem
+    final skinState = ref.watch(cardSkinProvider);
+    final currentSkin = skinState.equippedSkin;
+    final cardStyle = CardStyleManager.getStyleFromSkin(currentSkin);
+
+    // 반응형 사이즈 계산
     final cardWidth = context.w(130);
     final cardHeight = context.w(195); // 1.5 aspect ratio approx
     final stackHeight = context.w(280).clamp(200.0, 350.0);
     final cardOffset = context.w(35);
-    
-    // 폰트 스케일링
-    final rankSize = context.sp(28);
-    final suitSize = context.sp(20);
-    final bigSuitSize = context.sp(70);
 
     return Center(
       child: SizedBox(
@@ -40,49 +38,35 @@ class PokerCardWidget extends StatelessWidget {
           alignment: Alignment.center,
           clipBehavior: Clip.none,
           children: [
-            // Hit-test용 투명 배경 (두 카드 사이 빈 공간에서도 스와이프 가능하게)
+            // Hit-test용 투명 배경
             const Positioned.fill(
               child: ColoredBox(color: Colors.transparent),
             ),
-            // Left Card (Rotated -6 deg)
+            // Left Card
             Positioned(
               left: cardOffset,
               child: Transform.rotate(
                 angle: -0.1,
-                child: _buildLargeCard(context, pokerHand.rank1, suits[0], cardWidth, cardHeight, rankSize, suitSize, bigSuitSize),
+                child: _buildDecoratedCard(
+                  _parseCard(pokerHand.rank1, _getSuitChar(pokerHand, 0)),
+                  cardStyle,
+                  currentSkin,
+                  cardWidth,
+                  cardHeight,
+                ),
               ),
             ),
-            // Right Card (Rotated +6 deg)
+            // Right Card
             Positioned(
               right: cardOffset,
               child: Transform.rotate(
                 angle: 0.1,
-                child: _buildLargeCard(context, pokerHand.rank2, suits[1], cardWidth, cardHeight, rankSize, suitSize, bigSuitSize),
-              ),
-            ),
-
-            // Hand Info Badge (Floating below)
-            Positioned(
-              bottom: -context.h(30),
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: context.w(20), vertical: context.h(6)),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(context.r(30)),
-                  border: Border.all(color: Colors.white.withOpacity(0.2)),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4)),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text("현재 핸드:", style: TextStyle(color: StitchColors.slate300, fontSize: context.sp(11), fontWeight: FontWeight.bold)),
-                    SizedBox(width: context.w(6)),
-                    Text(question.hand, style: TextStyle(
-                      fontFamily: 'Black Han Sans', color: Colors.white, fontSize: context.sp(16), letterSpacing: 1.0,
-                    )),
-                  ],
+                child: _buildDecoratedCard(
+                  _parseCard(pokerHand.rank2, _getSuitChar(pokerHand, 1)),
+                  cardStyle,
+                  currentSkin,
+                  cardWidth,
+                  cardHeight,
                 ),
               ),
             ),
@@ -92,103 +76,125 @@ class PokerCardWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildLargeCard(BuildContext context, String rank, String suit, double cardWidth, double cardHeight, double rankSize, double suitSize, double bigSuitSize) {
-    final isRed = suit == '♥' || suit == '♦';
-    final suitColor = isRed ? _redSuit : _blackSuit;
-    
+  Widget _buildDecoratedCard(
+    PlayingCard card,
+    PlayingCardViewStyle style,
+    dynamic skin,
+    double width,
+    double height,
+  ) {
     return Container(
-      width: cardWidth,
-      height: cardHeight,
+      width: width,
+      height: height,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(context.r(14)),
+        borderRadius: BorderRadius.circular(width * 0.08),
         boxShadow: [
-          const BoxShadow(color: Colors.black26, blurRadius: 15, offset: Offset(0, 10)),
-          BoxShadow(color: Colors.white.withOpacity(0.5), blurRadius: 0, spreadRadius: 0, offset: const Offset(0, 0)),
+          // 스킨 전용 기본 아우라
+          BoxShadow(
+            color: skin.primaryColor.withOpacity(0.6),
+            blurRadius: 20,
+            spreadRadius: 2,
+            offset: const Offset(0, 5),
+          ),
+          // 은은한 후광
+          BoxShadow(
+            color: skin.secondaryColor.withOpacity(0.3),
+            blurRadius: 10,
+            spreadRadius: -2,
+            offset: const Offset(0, -3),
+          ),
         ],
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withOpacity(0.95),
-            Colors.white.withOpacity(0.8),
-            Colors.white.withOpacity(0.9),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(width * 0.08),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // 카드 기본 바탕색 (투명 카드의 베이스 컬러)
+            Container(color: Colors.white),
+
+            // 커스텀 뒷배경(워터마크) - 투명도 1.0으로 글씨 아래에 배치
+            if (skin.cardFrontImagePath != null && skin.cardFrontImagePath!.isNotEmpty)
+              Image.asset(
+                skin.cardFrontImagePath!,
+                fit: BoxFit.cover,
+                cacheWidth: 300,
+              ),
+
+            // 틴트 효과 및 카드 내용(투명 배경)
+            ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                skin.frontBgColor.withOpacity(0.15),
+                BlendMode.multiply,
+              ),
+              child: PlayingCardView(
+                card: card,
+                style: style,
+                elevation: 0,
+              ),
+            ),
           ],
         ),
       ),
-      child: Stack(
-        children: [
-          // Gloss Shine
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(context.r(14)),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.white.withOpacity(0.8),
-                    Colors.transparent,
-                    Colors.white.withOpacity(0.2),
-                  ],
-                  stops: const [0.0, 0.4, 1.0],
-                ),
-              ),
-            ),
-          ),
-          
-          // Top Left
-          Positioned(
-            top: context.h(10), left: context.w(10),
-            child: Column(
-              children: [
-                Text(rank, style: TextStyle(color: suitColor, fontSize: rankSize, fontFamily: 'Black Han Sans', height: 1.0)),
-                Text(suit, style: TextStyle(color: suitColor, fontSize: suitSize)),
-              ],
-            ),
-          ),
-          
-          // Center Big Suit
-          Center(
-            child: Text(suit, style: TextStyle(color: suitColor.withOpacity(0.9), fontSize: bigSuitSize)),
-          ),
-          
-          // Bottom Right (Inverted)
-          Positioned(
-            bottom: context.h(10), right: context.w(10),
-            child: Transform.rotate(
-              angle: 3.14159,
-              child: Column(
-                children: [
-                  Text(rank, style: TextStyle(color: suitColor, fontSize: rankSize, fontFamily: 'Black Han Sans', height: 1.0)),
-                  Text(suit, style: TextStyle(color: suitColor, fontSize: suitSize)),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    ).animate(onPlay: (c) => c.repeat(reverse: true))
+     .moveY(begin: -3, end: 3, duration: 2.seconds, curve: Curves.easeInOutSine);
   }
 
-  /// 핸드 표기법에 따라 고정 수트 매핑
-  List<String> _generateSuits(PokerHand hand) {
-    final allSuits = ['♠', '♥', '♦', '♣'];
-    final rankIndex = _rankToIndex(hand.rank1);
 
-    if (hand.isSuited) {
-      final suitIdx = rankIndex % 4;
-      return [allSuits[suitIdx], allSuits[suitIdx]];
-    } else {
-      final suit1Idx = rankIndex % 4;
-      final suit2Idx = (rankIndex + 1) % 4;
-      return [allSuits[suit1Idx], allSuits[suit2Idx]];
-    }
+
+  String _getSuitChar(PokerHand hand, int index) {
+     final allSuits = ['♠', '♥', '♦', '♣'];
+     final rankIndex = _rankToIndex(hand.rank1); 
+     
+     int suitIdx;
+     if (hand.isSuited) {
+       suitIdx = rankIndex % 4;
+     } else {
+       if (index == 0) {
+         suitIdx = rankIndex % 4;
+       } else {
+         suitIdx = (rankIndex + 1) % 4;
+       }
+     }
+     return allSuits[suitIdx];
   }
 
   int _rankToIndex(String rank) {
     const ranks = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
     final idx = ranks.indexOf(rank);
     return idx >= 0 ? idx : 0;
+  }
+
+  PlayingCard _parseCard(String rankStr, String suitStr) {
+    return PlayingCard(_parseSuit(suitStr), _parseRank(rankStr));
+  }
+
+  Suit _parseSuit(String suitStr) {
+    switch (suitStr) {
+      case '♠': return Suit.spades;
+      case '♥': return Suit.hearts;
+      case '♦': return Suit.diamonds;
+      case '♣': return Suit.clubs;
+      default: return Suit.spades;
+    }
+  }
+
+  CardValue _parseRank(String rankStr) {
+    switch (rankStr) {
+      case 'A': return CardValue.ace;
+      case 'K': return CardValue.king;
+      case 'Q': return CardValue.queen;
+      case 'J': return CardValue.jack;
+      case 'T': return CardValue.ten;
+      case '9': return CardValue.nine;
+      case '8': return CardValue.eight;
+      case '7': return CardValue.seven;
+      case '6': return CardValue.six;
+      case '5': return CardValue.five;
+      case '4': return CardValue.four;
+      case '3': return CardValue.three;
+      case '2': return CardValue.two;
+      default: return CardValue.two;
+    }
   }
 }

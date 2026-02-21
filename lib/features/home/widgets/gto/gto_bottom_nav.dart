@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/bouncing_button.dart';
 import '../../../../core/utils/responsive.dart';
 
 /// Stitch V2 Bottom Nav: Glassmorphism, 5 tabs, Center Home with Glow
@@ -64,9 +65,9 @@ class GtoBottomNav extends StatelessWidget {
     final isSelected = selectedIndex == index;
     final color = isSelected ? Colors.white : Colors.white.withOpacity(0.4);
 
-    return GestureDetector(
+    return BouncingButton(
       onTap: () => onTap(index),
-      behavior: HitTestBehavior.opaque,
+      scaleDown: 0.9,
       child: SizedBox(
         width: context.w(56),
         child: Column(
@@ -87,8 +88,9 @@ class GtoBottomNav extends StatelessWidget {
   }
 
   Widget _buildHomeButton(BuildContext context) {
-    return GestureDetector(
+    return BouncingButton(
       onTap: () => onTap(2),
+      scaleDown: 0.85,
       child: SizedBox(
         width: context.w(64),
         child: Column(

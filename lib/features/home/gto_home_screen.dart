@@ -4,6 +4,7 @@ import 'widgets/gto/gto_bottom_nav.dart';
 import 'widgets/gto/gto_lobby_body.dart';
 import 'widgets/gto/gto_league_body.dart';
 import '../decorate/decorate_page.dart';
+import '../../core/utils/music_manager.dart';
 
 /// GTO League Home Screen – Stitch V1 layout
 class GtoHomeScreen extends StatefulWidget {
@@ -15,6 +16,12 @@ class GtoHomeScreen extends StatefulWidget {
 
 class _GtoHomeScreenState extends State<GtoHomeScreen> {
   int _navIndex = 2; // default to battle tab (Lobby)
+
+  @override
+  void initState() {
+    super.initState();
+    MusicManager.play(MusicType.lobby);
+  }
 
   @override
   Widget build(BuildContext context) {

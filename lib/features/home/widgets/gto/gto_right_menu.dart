@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/bouncing_button.dart';
 
 /// Stitch V2 Right Menu: Blue/Cyan Gradient Buttons (Achievements + Mail)
 class GtoRightMenu extends StatelessWidget {
@@ -42,8 +43,9 @@ class GtoRightMenu extends StatelessWidget {
     required Color borderColor,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
+    return BouncingButton(
       onTap: onTap,
+      scaleDown: 0.9,
       child: Container(
         width: 60, height: 60, // Stitch V2 size
         decoration: BoxDecoration(

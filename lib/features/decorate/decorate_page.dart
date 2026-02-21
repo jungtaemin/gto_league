@@ -5,6 +5,9 @@ import 'models/decorate_item_model.dart';
 import 'providers/decorate_provider.dart';
 import 'widgets/decorate_preview_area.dart';
 import 'widgets/decorate_item_grid.dart';
+import '../../providers/user_stats_provider.dart';
+import 'widgets/card_skin_decorate_tab.dart';
+import '../../data/models/card_skin.dart';
 
 class DecoratePage extends ConsumerStatefulWidget {
   const DecoratePage({super.key});
@@ -16,6 +19,8 @@ class DecoratePage extends ConsumerStatefulWidget {
 class _DecoratePageState extends ConsumerState<DecoratePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  DecorateItem? _previewItem;
+  CardSkin? _previewCardSkin;
 
   @override
   void initState() {
@@ -23,7 +28,11 @@ class _DecoratePageState extends ConsumerState<DecoratePage>
     _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
-        setState(() {});
+        // Reset preview when changing tabs
+        setState(() {
+          _previewItem = null;
+          _previewCardSkin = null;
+        });
       }
     });
 
@@ -37,6 +46,74 @@ class _DecoratePageState extends ConsumerState<DecoratePage>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _onSelect(DecorateItem item) {
+    setState(() {
+      _previewItem = item;
+    });
+  }
+
+  Future<void> _onBuy(DecorateItem item) async {
+    // Show confirmation dialog standard mobile game style
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.stitchDeepBlue,
+        title: Text("구매 확인", style: const TextStyle(color: Colors.white)),
+        content: Text("${item.name}을(를) ${item.price} 칩에 구매하시겠습니까?", 
+          style: const TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("취소", style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.acidYellow),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("구매", style: TextStyle(color: Colors.black)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final statsNotifier = ref.read(userStatsProvider.notifier);
+      final decorateNotifier = ref.read(decorateProvider.notifier);
+      
+      final success = await decorateNotifier.purchaseItem(item, statsNotifier);
+      
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("${item.name} 구매 완료!"),
+              backgroundColor: AppColors.acidGreen,
+            ),
+          );
+          // Auto equip? Or just let user equip.
+          // Mobile game standard: often stays in preview, user clicks equip.
+        } else {
+           ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("칩이 부족합니다!"),
+              backgroundColor: AppColors.laserRed,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  void _onEquip(DecorateItem item) {
+    ref.read(decorateProvider.notifier).equipItem(item.type, item.id);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("${item.name} 장착!", style: const TextStyle(color: Colors.black)),
+        backgroundColor: AppColors.acidYellow,
+        duration: const Duration(milliseconds: 1000),
+      ),
+    );
   }
 
   @override
@@ -60,15 +137,22 @@ class _DecoratePageState extends ConsumerState<DecoratePage>
     final currentCategory = categories[_tabController.index];
 
     return Scaffold(
-      backgroundColor: AppColors.stitchDarkBG,
+      backgroundColor: Colors.black54, // Semi-transparent to see background but read text
       body: Column(
         children: [
           // 1. Top Preview Area
-          DecoratePreviewArea(
-            equipped: equipped,
-            allItems: allItems,
-            activeTab: currentCategory,
-          ),
+          if (currentCategory == 'card_skin')
+            CardSkinPreviewArea(previewSkin: _previewCardSkin)
+          else
+            DecoratePreviewArea(
+              equipped: equipped,
+              allItems: allItems,
+              activeTab: currentCategory,
+              previewItem: _previewItem,
+              ownedIds: ownedIds,
+              onBuy: _onBuy,
+              onEquip: _onEquip,
+            ),
 
           // 2. Tab Bar
           Container(
@@ -99,8 +183,14 @@ class _DecoratePageState extends ConsumerState<DecoratePage>
                     ownedIds, equipped?.characterId),
                 _buildGridForCategory(ref, 'frame', allItems, ownedIds,
                     equipped?.frameId),
-                _buildGridForCategory(ref, 'card_skin', allItems,
-                    ownedIds, equipped?.cardSkinId),
+                CardSkinGridArea(
+                  previewSkin: _previewCardSkin,
+                  onSelect: (skin) {
+                    setState(() {
+                      _previewCardSkin = skin;
+                    });
+                  },
+                ),
                 _buildGridForCategory(ref, 'title', allItems, ownedIds,
                     equipped?.titleId),
               ],
@@ -131,9 +221,8 @@ class _DecoratePageState extends ConsumerState<DecoratePage>
       items: filteredItems,
       ownedIds: ownedIds,
       equippedId: equippedId,
-      onEquip: (itemId) {
-        ref.read(decorateProvider.notifier).equipItem(category, itemId);
-      },
+      selectedId: _previewItem?.type == category ? _previewItem?.id : null,
+      onSelect: _onSelect,
     );
   }
 }

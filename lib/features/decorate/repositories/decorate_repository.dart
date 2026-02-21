@@ -9,24 +9,98 @@ class DecorateRepository {
 
   /// Fetch all available decorate items
   Future<List<DecorateItem>> getDecorateItems() async {
-    final response = await _client
-        .from('decorate_items')
-        .select()
-        .order('created_at', ascending: false);
-    
-    final data = response as List<dynamic>;
-    return data.map((e) => DecorateItem.fromJson(e)).toList();
+    List<DecorateItem> items = [];
+    try {
+      final response = await _client
+          .from('decorate_items')
+          .select()
+          .order('created_at', ascending: false);
+      final data = response as List<dynamic>;
+      items = data.map((e) => DecorateItem.fromJson(e)).toList();
+    } catch (e) {
+      developer.log('Supabase fetch failed, using mock data: $e');
+    }
+
+    // Inject Mock Data
+    final mockItems = [
+      DecorateItem(
+        id: 'char_robot',
+        type: 'character',
+        name: 'GTO Robot',
+        assetUrl: 'assets/images/gto_robot.png',
+        rarity: 'common',
+        metadata: {'price': 0, 'desc': 'Standard Issue GTO Droid'},
+      ),
+      DecorateItem(
+        id: 'char_ninja',
+        type: 'character',
+        name: 'Ninja Girl',
+        assetUrl: 'assets/images/ninja_girl.png',
+        rarity: 'epic',
+        metadata: {'price': 10000, 'desc': 'Silent but deadly.'},
+      ),
+      DecorateItem(
+        id: 'char_spacemarine',
+        type: 'character',
+        name: 'Space Marine',
+        assetUrl: 'assets/images/space_marine.png',
+        rarity: 'legendary',
+        metadata: {'price': 5000, 'color': '#00FFFF', 'desc': 'Elite soldier of the galaxy.'},
+      ),
+      // Card Skins
+      DecorateItem(
+        id: 'skin_card_default',
+        type: 'card_skin',
+        name: 'Classic White',
+        assetUrl: '',
+        rarity: 'common',
+        metadata: {'price': 0, 'desc': 'Standard casino deck.'},
+      ),
+      DecorateItem(
+        id: 'skin_card_modern',
+        type: 'card_skin',
+        name: 'Midnight Black',
+        assetUrl: '',
+        rarity: 'rare',
+        metadata: {'price': 1000, 'desc': 'Sleek dark mode cards.'},
+      ),
+      DecorateItem(
+        id: 'skin_card_neon',
+        type: 'card_skin',
+        name: 'Cyber Neon',
+        assetUrl: '',
+        rarity: 'epic',
+        metadata: {'price': 1000, 'desc': 'Glowing futuristic deck.'},
+      ),
+    ];
+
+    // Merge: Put mock items first or verify duplicates
+    // For now, just add them if not present
+    for (var mock in mockItems) {
+      if (!items.any((i) => i.id == mock.id)) {
+        items.insert(0, mock);
+      }
+    }
+    return items;
   }
 
   /// Fetch user owned items (returns list of item IDs)
   Future<List<String>> getUserItemIds(String userId) async {
-    final response = await _client
-        .from('user_items')
-        .select('item_id')
-        .eq('user_id', userId);
+    List<String> owned = [];
+    try {
+      final response = await _client
+          .from('user_items')
+          .select('item_id')
+          .eq('user_id', userId);
+      final data = response as List<dynamic>;
+      owned = data.map((e) => e['item_id'] as String).toList();
+    } catch (_) {}
+
+    // Default items always owned
+    if (!owned.contains('char_robot')) owned.add('char_robot');
+    if (!owned.contains('skin_card_default')) owned.add('skin_card_default');
     
-    final data = response as List<dynamic>;
-    return data.map((e) => e['item_id'] as String).toList();
+    return owned;
   }
 
   /// Fetch user's currently equipped items
@@ -36,15 +110,17 @@ class DecorateRepository {
           .from('user_equipped')
           .select()
           .eq('user_id', userId)
-          .maybeSingle(); // Returns null if not found
+          .maybeSingle(); 
       
-      if (response == null) return null;
-      return UserEquipped.fromJson(response);
-    } catch (e) {
-      // Handle error or return null
-      developer.log('Error fetching user equipped: $e', name: 'DecorateRepo');
-      return null;
-    }
+      if (response != null) return UserEquipped.fromJson(response);
+    } catch (_) {}
+
+    // Default equipped
+    return UserEquipped(
+        userId: userId, 
+        characterId: 'char_robot',
+        cardSkinId: 'skin_card_default',
+    );
   }
 
   /// Equip an item
@@ -83,6 +159,18 @@ class DecorateRepository {
         'user_id': userId,
         columnName: itemId,
       });
+    }
+  }
+
+  Future<void> purchaseItem(String userId, String itemId) async {
+    // Implement purchase persistence
+    try {
+      await _client.from('user_items').insert({
+        'user_id': userId,
+        'item_id': itemId,
+      });
+    } catch (_) {
+      // Mock or error
     }
   }
 }

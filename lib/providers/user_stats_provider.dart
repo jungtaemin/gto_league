@@ -184,7 +184,22 @@ class UserStatsNotifier extends StateNotifier<UserStats> {
   Future<void> addChips(int amount) async {
     final newChips = state.chips + amount;
     state = state.copyWith(chips: newChips);
+    _syncChips(newChips);
+  }
 
+  /// 칩 소모 (상점 구매 등)
+  /// 성공 시 true, 칩 부족 시 false 반환
+  Future<bool> consumeChips(int amount) async {
+    if (state.chips < amount) {
+      return false;
+    }
+    final newChips = state.chips - amount;
+    state = state.copyWith(chips: newChips);
+    await _syncChips(newChips);
+    return true;
+  }
+
+  Future<void> _syncChips(int newChips) async {
     if (SupabaseService.isLoggedIn) {
       try {
         await SupabaseService.client
@@ -196,6 +211,7 @@ class UserStatsNotifier extends StateNotifier<UserStats> {
       }
     }
   }
+
 
   /// 행동력 리필 (광고 시청 보상 등)
   Future<void> refillEnergy() async {
