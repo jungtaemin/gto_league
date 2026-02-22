@@ -104,8 +104,8 @@ class DeckGenerator {
   }
 
   Position _randomAggressorPosition() {
-    // Defense mode: opponent can be SB, BTN, CO, or UTG
-    const aggressors = [Position.sb, Position.btn, Position.co, Position.utg];
+    // Defense mode: opponent can be SB, BU, CO, or UTG
+    final aggressors = [Position.sb, Position.bu, Position.co, Position.utg];
     return aggressors[_random.nextInt(aggressors.length)];
   }
 
@@ -115,7 +115,7 @@ class DeckGenerator {
     
     switch (position) {
       case Position.sb:
-      case Position.btn:
+      case Position.bu:
         // Wide range
         handList.addAll([
           'AA', 'KK', 'QQ', 'JJ', 'TT', '99', '88', '77',

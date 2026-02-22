@@ -113,6 +113,17 @@ class GameStateNotifier extends _$GameStateNotifier {
     state = state.copyWith(isDefenseMode: isDefense);
   }
 
+  /// Update league mode flag (true when playing in League mode).
+  void setLeagueMode(bool isLeague) {
+    if (state.isLeague == isLeague) return;
+    state = state.copyWith(isLeague: isLeague);
+  }
+
+  /// Set hearts to a specific value (e.g., 1 for League mode).
+  void setHearts(int hearts) {
+    state = state.copyWith(hearts: hearts);
+  }
+
   /// Reset the entire game state to initial values.
   void reset() {
     _feverTimer?.cancel();

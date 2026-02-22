@@ -303,13 +303,11 @@ class DecoratePreviewArea extends ConsumerWidget {
       );
     }
 
-    final color = _parseColor(item.metadata['color'] as String?);
-    
-    // If it's Space Marine or known large assets, use CharacterDisplayWidget
     return CharacterDisplayWidget(
       characterId: item.id,
-      size: 200, // Large preview
-      isLocked: false, // We show full preview even if locked
+      assetUrl: item.assetUrl,
+      size: 260, // Much larger preview since we now have full 2D assets
+      isLocked: false, 
     ).animate(key: ValueKey(item.id)).fadeIn().scale(duration: 400.ms, curve: Curves.easeOutBack);
   }
 
@@ -348,9 +346,6 @@ class DecoratePreviewArea extends ConsumerWidget {
 
   Widget _buildFrameAvatar(
       DecorateItem? frame, DecorateItem? character) {
-    // Similar to previous implementation but scaled
-    // ...
-    final charColor = _parseColor(character?.metadata['color'] as String?);
     return SizedBox(
       width: 80,
       height: 80,
@@ -364,10 +359,14 @@ class DecoratePreviewArea extends ConsumerWidget {
               shape: BoxShape.circle,
               color: Colors.black,
               border: Border.all(
-                  color: (charColor ?? Colors.white24), width: 2),
+                  color: Colors.white24, width: 2),
             ),
             child: ClipOval(
-              child: CharacterDisplayWidget(characterId: character?.id ?? 'char_robot', size: 60),
+              child: CharacterDisplayWidget(
+                characterId: character?.id ?? 'char_f1', 
+                assetUrl: character?.assetUrl,
+                size: 60
+              ),
             ),
           ),
           if (frame != null)

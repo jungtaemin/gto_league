@@ -8,7 +8,10 @@ import 'gto_top_bar.dart';
 import 'gto_hero_stage.dart';
 import 'stitch_colors.dart';
 import 'settings_dialog.dart'; // 추가됨
-
+import '../../../../data/models/league_player.dart';
+import '../../../../data/models/tier.dart';
+import '../../../../data/services/league_service.dart';
+import '../../../../data/services/supabase_service.dart';
 /// Stitch V2 Lobby Body
 /// 반응형: 모든 크기를 context.w() 기반으로 통일
 class GtoLobbyBody extends ConsumerWidget {
@@ -129,6 +132,11 @@ class GtoLobbyBody extends ConsumerWidget {
               )),
             ),
           ),
+          
+          SizedBox(height: context.w(12)),
+          
+          // League Rank Brief Panel
+          const _LeagueBriefPanel(),
         ],
       ),
     );
@@ -189,7 +197,7 @@ class GtoLobbyBody extends ConsumerWidget {
           );
           return;
         }
-        if (context.mounted) Navigator.pushNamed(context, '/game');
+        if (context.mounted) Navigator.pushNamed(context, '/league');
       },
       child: SizedBox(
         height: buttonHeight,
@@ -227,7 +235,7 @@ class GtoLobbyBody extends ConsumerWidget {
                                 child: Icon(Icons.sports_mma, size: iconSize, color: const Color(0xFF6D4C41)),
                               ),
                               SizedBox(width: context.w(10)),
-                              Text("배틀 시작", style: TextStyle(
+                              Text("리그 참가", style: TextStyle(
                                 fontFamily: 'Black Han Sans', fontSize: fontSize, 
                                 color: const Color(0xFF5D4037), letterSpacing: 1.0,
                                 height: 1.2,
@@ -315,35 +323,157 @@ class GtoLobbyBody extends ConsumerWidget {
   }
 }
 
-class FloatingEnergyCost extends StatelessWidget {
+class FloatingEnergyCost extends ConsumerWidget {
   const FloatingEnergyCost({super.key});
 
   @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stats = ref.watch(userStatsProvider);
+    final tier = stats.tier;
+    
+    // 임시 티어별 입장료 산정 (기획)
+    int chipCost = 0;
+    if (tier.minScore >= Tier.shark.minScore) {
+      chipCost = 1000;
+    } else if (tier.minScore >= Tier.pubReg.minScore) {
+      chipCost = 100;
+    }
+
+    return Animate(
+      key: const ValueKey('FloatingEnergyCost_Anim'),
+      onPlay: (controller) => controller.repeat(reverse: true),
+      effects: [
+        MoveEffect(begin: const Offset(0, 0), end: const Offset(0, -5), duration: 1200.ms, curve: Curves.easeInOut),
+      ],
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: context.w(12), vertical: context.w(4)),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.6),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: StitchColors.yellow400.withOpacity(0.5)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.bolt, color: StitchColors.yellow400, size: context.w(14)),
+            SizedBox(width: context.w(2)),
+            Text(
+              "-1",
+              style: TextStyle(color: StitchColors.yellow400, fontSize: context.sp(12), fontWeight: FontWeight.bold),
+            ),
+            if (chipCost > 0) ...[
+              SizedBox(width: context.w(8)),
+              Icon(Icons.diamond, color: Colors.amber, size: context.w(12)),
+              SizedBox(width: context.w(2)),
+              Text(
+                "-$chipCost",
+                style: TextStyle(color: Colors.amber, fontSize: context.sp(12), fontWeight: FontWeight.bold),
+              ),
+            ]
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 메인 화면 랭킹 브리핑 패널
+class _LeagueBriefPanel extends StatefulWidget {
+  const _LeagueBriefPanel();
+
+  @override
+  State<_LeagueBriefPanel> createState() => _LeagueBriefPanelState();
+}
+
+class _LeagueBriefPanelState extends State<_LeagueBriefPanel> {
+  bool _isLoading = true;
+  int? _myRank;
+  Tier? _myTier;
+  int? _totalCount;
+  bool _isAssigned = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMyRank();
+  }
+
+  Future<void> _loadMyRank() async {
+    if (!SupabaseService.isLoggedIn) {
+      setState(() => _isLoading = false);
+      return;
+    }
+    try {
+      final groupId = await LeagueService().getCurrentGroupId();
+      if (groupId != null) {
+        final players = await LeagueService().fetchLeagueRanking(groupId);
+        final me = players.firstWhere(
+          (p) => p.id == SupabaseService.currentUser!.id,
+          orElse: () => const LeaguePlayer(id: '', nickname: '', score: 0, tier: Tier.fish, rank: 0, type: PlayerType.real),
+        );
+        if (me.id.isNotEmpty && me.rank > 0) {
+          _myRank = me.rank;
+          _myTier = me.tier;
+          _totalCount = players.length;
+          _isAssigned = true;
+        }
+      }
+    } catch (_) {
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) return const SizedBox.shrink(); // 로딩중엔 숨김
+
+    String message = "첫 게임을 플레이하고 리그에 배치되세요!";
+    Color bgColor = Colors.black.withOpacity(0.3);
+    Color textColor = Colors.white70;
+
+    if (_isAssigned && _myRank != null && _myTier != null && _totalCount != null) {
+      message = "현재 ${_myTier!.displayName} 리그 ${_myRank}위 / ${_totalCount}명";
+      if (LeagueService.isPromotion(_myRank!)) {
+        message += " 🔥승급권";
+        bgColor = const Color(0xFFD97706).withOpacity(0.8);
+        textColor = Colors.white;
+      } else if (LeagueService.isDemotion(_myRank!)) {
+        message += " 🥶강등권";
+        bgColor = const Color(0xFFB91C1C).withOpacity(0.8);
+        textColor = Colors.white;
+      } else {
+        message += " (잔류)";
+        bgColor = const Color(0xFF2563EB).withOpacity(0.8);
+        textColor = Colors.white;
+      }
+    }
+
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: context.w(8), vertical: context.w(2)),
+      padding: EdgeInsets.symmetric(horizontal: context.w(16), vertical: context.w(8)),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: StitchColors.yellow400.withOpacity(0.5)),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(context.r(20)),
+        border: Border.all(color: Colors.white24, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.bolt, color: StitchColors.yellow400, size: context.w(12)),
-          SizedBox(width: context.w(2)),
+          Icon(Icons.leaderboard_rounded, color: textColor, size: context.w(14)),
+          SizedBox(width: context.w(6)),
           Text(
-            "-1",
+            message,
             style: TextStyle(
-              color: StitchColors.yellow400,
-              fontSize: context.sp(10),
+              color: textColor,
+              fontSize: context.sp(12),
               fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
             ),
           ),
         ],
       ),
-    )
-    .animate(onPlay: (controller) => controller.repeat(reverse: true))
-    .moveY(begin: 0, end: -5, duration: 1200.ms, curve: Curves.easeInOut);
+    ).animate().fadeIn(duration: 500.ms).moveY(begin: context.w(10), end: 0, duration: 500.ms);
   }
 }

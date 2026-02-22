@@ -175,7 +175,7 @@ class GtoTopBar extends ConsumerWidget {
                             color: isFull ? StitchColors.green400 : StitchColors.yellow300,
                             size: context.w(16),
                           )
-                          .animate(target: isFull ? 1 : 0)
+                          .animate(key: const ValueKey('top_bar_energy_icon'), target: isFull ? 1 : 0)
                           .shimmer(duration: 2.seconds, delay: 3.seconds)
                           .then()
                           .shake(hz: 4, offset: const Offset(2, 0), duration: 200.ms),
@@ -261,7 +261,7 @@ class GtoTopBar extends ConsumerWidget {
                     ),
                   ],
                 )
-                .animate(onPlay: (c) => c.repeat(reverse: true)) // 무한 반복
+                .animate(key: const ValueKey('top_bar_timer_tooltip'), onPlay: (c) => c.repeat(reverse: true)) // 무한 반복
                 .moveY(begin: 0, end: -3, duration: 1.5.seconds, curve: Curves.easeInOut), // 둥둥 효과
               ),
           ],

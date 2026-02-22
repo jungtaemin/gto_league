@@ -12,8 +12,42 @@ import '../../data/services/ad_service.dart';
 import '../../data/services/supabase_service.dart';
 import '../../core/utils/responsive.dart';
 
-class GameOverScreen extends ConsumerWidget {
+class GameOverScreen extends ConsumerStatefulWidget {
   const GameOverScreen({super.key});
+
+  @override
+  ConsumerState<GameOverScreen> createState() => _GameOverScreenState();
+}
+
+class _GameOverScreenState extends ConsumerState<GameOverScreen> {
+  bool _leagueOpsExecuted = false;
+  bool _isLeagueMode = false;
+  int _leagueScore = 0;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _detectModeAndExecuteOps();
+    });
+  }
+
+  void _detectModeAndExecuteOps() {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final score = ref.read(gameStateProvider).score;
+    if (args is Map<String, dynamic> && args['mode'] == 'league') {
+      setState(() {
+        _isLeagueMode = true;
+        _leagueScore = score;
+      });
+    }
+    _executeLeagueOps(score);
+  }
+
+  void _executeLeagueOps(int score) {
+    if (_leagueOpsExecuted) return;
+    _leagueOpsExecuted = true;
+    _joinLeagueAndUpdateScore(score);
+  }
 
   Color _getTierColor(Tier tier) {
     switch (tier) {
@@ -35,12 +69,10 @@ class GameOverScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final gameState = ref.read(gameStateProvider);
+    final displayScore = _isLeagueMode ? _leagueScore : gameState.score;
     final tierColor = _getTierColor(gameState.currentTier);
-
-    // ── 리그 배정 + 점수 업데이트 (1회만 실행) ──
-    _joinLeagueAndUpdateScore(context, ref, gameState.score);
 
     return Scaffold(
       backgroundColor: AppColors.deepBlack,
@@ -81,7 +113,7 @@ class GameOverScreen extends ConsumerWidget {
                       ),
                       SizedBox(height: context.h(8)),
                       NeonText(
-                        '${gameState.score}',
+                        '$displayScore',
                         color: AppColors.acidYellow,
                         fontSize: context.sp(64),
                         strokeWidth: 2.0,
@@ -118,15 +150,15 @@ class GameOverScreen extends ConsumerWidget {
 
                   SizedBox(height: context.h(40)),
 
-                  // Stats Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildStatItem(context, 'Best Combo', '${gameState.combo}', delay: 300),
-                      _buildStatItem(context, 'Correct %', '-', delay: 350),
-                      _buildStatItem(context, 'Total', '-', delay: 400),
-                    ],
-                  ),
+                   // Stats Row
+                   Row(
+                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                     children: [
+                       _buildStatItem('Best Combo', '${gameState.combo}', delay: 300),
+                       _buildStatItem('Correct %', '-', delay: 350),
+                       _buildStatItem('Total', '-', delay: 400),
+                     ],
+                   ),
 
                   SizedBox(height: context.h(40)),
 
@@ -138,42 +170,47 @@ class GameOverScreen extends ConsumerWidget {
                     textColor: AppColors.pureBlack,
                     onPressed: () {
                       ref.read(gameStateProvider.notifier).reset();
-                      Navigator.of(context).pushReplacementNamed('/game');
+                      Navigator.of(context).pushReplacementNamed(
+                        _isLeagueMode ? '/league' : '/game',
+                      );
                     },
                   ).animate(delay: 500.ms).slideY(begin: 0.5, end: 0, duration: 400.ms, curve: Curves.easeOutBack).fadeIn(),
 
                   SizedBox(height: context.h(16)),
-
-                  NeoBrutalistButton(
-                    label: '♥️ 하트 충전 (광고)',
-                    color: AppColors.neonPink,
-                    textColor: AppColors.pureWhite,
-                    onPressed: () {
-                      final adService = ref.read(adServiceProvider);
-                      adService.showRewardedAd(
-                        rewardType: AdRewardType.heartRefill,
-                        onRewardEarned: () {
-                          ref.read(gameStateProvider.notifier).refillHearts();
-                          if (context.mounted) {
-                            Navigator.of(context).pushReplacementNamed('/game');
-                          }
-                        },
-                        onAdDismissed: () {
-                          adService.loadRewardedAd();
-                        },
-                        onAdNotReady: () {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('광고 준비 중... 잠시 후 다시 시도해주세요!'),
-                                backgroundColor: AppColors.darkGray,
-                              ),
-                            );
-                          }
-                        },
-                      );
-                    },
-                  ).animate(delay: 600.ms).slideY(begin: 0.5, end: 0, duration: 400.ms, curve: Curves.easeOutBack).fadeIn(),
+                  // Ad refill — only for non-league mode
+                  if (!_isLeagueMode) ...[
+                    SizedBox(height: context.h(16)),
+                    NeoBrutalistButton(
+                      label: '♥️ 하트 충전 (광고)',
+                      color: AppColors.neonPink,
+                      textColor: AppColors.pureWhite,
+                      onPressed: () {
+                        final adService = ref.read(adServiceProvider);
+                        adService.showRewardedAd(
+                          rewardType: AdRewardType.heartRefill,
+                          onRewardEarned: () {
+                            ref.read(gameStateProvider.notifier).refillHearts();
+                            if (context.mounted) {
+                              Navigator.of(context).pushReplacementNamed('/game');
+                            }
+                          },
+                          onAdDismissed: () {
+                            adService.loadRewardedAd();
+                          },
+                          onAdNotReady: () {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('광고 준비 중... 잠시 후 다시 시도해주세요!'),
+                                  backgroundColor: AppColors.darkGray,
+                                ),
+                              );
+                            }
+                          },
+                        );
+                      },
+                    ).animate(delay: 600.ms).slideY(begin: 0.5, end: 0, duration: 400.ms, curve: Curves.easeOutBack).fadeIn(),
+                  ],
 
                   SizedBox(height: context.h(24)),
 
@@ -196,7 +233,7 @@ class GameOverScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatItem(BuildContext context, String label, String value, {required int delay}) {
+  Widget _buildStatItem(String label, String value, {required int delay}) {
     return Column(
       children: [
         Text(
@@ -213,32 +250,27 @@ class GameOverScreen extends ConsumerWidget {
   }
 
   // ── 리그 배정 + 점수 업데이트 ──
-  static bool _leagueJoined = false;
-  
-  void _joinLeagueAndUpdateScore(BuildContext context, WidgetRef ref, int score) {
-    if (_leagueJoined) return;
-    _leagueJoined = true;
-    
+  void _joinLeagueAndUpdateScore(int score) {
     Future.microtask(() async {
       if (!SupabaseService.isLoggedIn) return;
-      
+
       final leagueService = ref.read(leagueServiceProvider);
-      
-      // 1. 리그 배정 (이미 배정되어 있으면 기존 그룹 반환)
-      final groupId = await leagueService.joinOrCreateLeague(score);
-      
-      // 2. 점수 업데이트
+
+      // 1. 리그 배정 (JoinLeagueResult 반환)
+      final result = await leagueService.joinOrCreateLeague(score);
+
+      // 2. 점수 업데이트 (매번 무조건 호출)
       await leagueService.updateScore(score);
-      
-      // 3. 첫 배정 시 안내 (화려한 팝업)
-      if (groupId != null && context.mounted) {
+
+      // 3. 첫 배정 시에만 축하 팝업 (is_new == true)
+      if (result != null && result.isNew && mounted) {
         final tier = Tier.fromScore(score);
-        _showLeaguePlacementDialog(context, tier);
+        _showLeaguePlacementDialog(tier);
       }
     });
   }
 
-  void _showLeaguePlacementDialog(BuildContext context, Tier tier) {
+  void _showLeaguePlacementDialog(Tier tier) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,

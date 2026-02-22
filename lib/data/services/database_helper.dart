@@ -1,12 +1,13 @@
-import 'package:csv/csv.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 /// Singleton helper that manages the local GTO SQLite database.
 ///
-/// On first launch (or when [_dbVersion] is bumped) the CSV assets are
-/// parsed and migrated into two tables: `push_ranges` and `call_ranges`.
+/// Tables are created on first launch for the legacy push/call range system.
+/// The primary GTO data source is now `gto_master_db.json` (loaded by
+/// `gto_data_provider.dart`). This helper remains for backward compatibility
+/// with [GtoRepository].
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
@@ -64,16 +65,16 @@ class DatabaseHelper {
   Future<void> _createDB(Database db, int version) async {
     await _createTables(db);
     await _createIndexes(db);
-    await _migrateCSVData(db);
+    debugPrint('[DatabaseHelper] Tables created (empty — CSV migration removed)');
   }
 
   Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
-    // Drop → recreate → re-migrate on any version bump.
+    // Drop → recreate on any version bump.
     await db.execute('DROP TABLE IF EXISTS push_ranges');
     await db.execute('DROP TABLE IF EXISTS call_ranges');
     await _createTables(db);
     await _createIndexes(db);
-    await _migrateCSVData(db);
+    debugPrint('[DatabaseHelper] Tables recreated (v$oldVersion → v$newVersion)');
   }
 
   Future<void> _createTables(Database db) async {
@@ -116,58 +117,13 @@ class DatabaseHelper {
   }
 
   // ---------------------------------------------------------------------------
-  // CSV → SQLite migration
+  // Legacy CSV migration removed
   // ---------------------------------------------------------------------------
-
-  Future<void> _migrateCSVData(Database db) async {
-    await _migratePushRanges(db);
-    await _migrateCallRanges(db);
-  }
-
-  Future<void> _migratePushRanges(Database db) async {
-    final data = await rootBundle.loadString('assets/db/gto_push_chart.csv');
-    final rows = const CsvToListConverter().convert(data, eol: '\n');
-
-    await db.transaction((txn) async {
-      final batch = txn.batch();
-      for (final row in rows.skip(1)) {
-        batch.insert('push_ranges', {
-          'position': row[0].toString().trim(),
-          'hand': row[1].toString().trim(),
-          'stack_bb': (row[2] is int) ? row[2] : int.parse(row[2].toString().trim()),
-          'action': row[3].toString().trim(),
-          'ev_bb': (row[4] is double)
-              ? row[4]
-              : double.parse(row[4].toString().trim()),
-          'chart_type': row[5].toString().trim(),
-        });
-      }
-      await batch.commit(noResult: true);
-    });
-  }
-
-  Future<void> _migrateCallRanges(Database db) async {
-    final data = await rootBundle.loadString('assets/db/gto_call_chart.csv');
-    final rows = const CsvToListConverter().convert(data, eol: '\n');
-
-    await db.transaction((txn) async {
-      final batch = txn.batch();
-      for (final row in rows.skip(1)) {
-        batch.insert('call_ranges', {
-          'position': row[0].toString().trim(),
-          'hand': row[1].toString().trim(),
-          'stack_bb': (row[2] is int) ? row[2] : int.parse(row[2].toString().trim()),
-          'action': row[3].toString().trim(),
-          'ev_bb': (row[4] is double)
-              ? row[4]
-              : double.parse(row[4].toString().trim()),
-          'chart_type': row[5].toString().trim(),
-          'opponent_position': row[6].toString().trim(),
-        });
-      }
-      await batch.commit(noResult: true);
-    });
-  }
+  //
+  // The CSV files (gto_push_chart.csv, gto_call_chart.csv) have been superseded
+  // by the GTO master database (assets/db/gto_master_db.json) which provides
+  // 108,160 scenarios across 5 BB levels with full EV/frequency data.
+  // See: lib/data/providers/gto_data_provider.dart
 
   // ---------------------------------------------------------------------------
   // Query helpers (convenience – extend as needed)

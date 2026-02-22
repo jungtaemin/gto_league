@@ -75,7 +75,7 @@ class GtoCompPlayButton extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           // Text
-                          const Text("배틀 시작", style: TextStyle(
+                          const Text("리그 참가", style: TextStyle(
                             color: Color(0xFF5D2804),
                             fontSize: 30, fontFamily: 'Jua', fontWeight: FontWeight.w900,
                             letterSpacing: -0.5,
@@ -121,7 +121,7 @@ class GtoCompPlayButton extends StatelessWidget {
             border: Border.all(color: const Color(0xFFE2E8F0), width: 2),
             boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), offset: const Offset(0, 4), blurRadius: 10)],
           ),
-          child: const Text("지금 바로 올인!", style: TextStyle(
+          child: const Text("지금 바로 리그전!", style: TextStyle(
             color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontFamily: 'Jua', fontSize: 14,
           )),
         ),

@@ -16,7 +16,6 @@ import '../../data/repositories/gto_repository.dart';
 
 // Providers
 import '../../providers/game_state_notifier.dart';
-import '../../providers/game_providers.dart';
 import '../../providers/user_stats_provider.dart';
 
 // Utils
@@ -38,7 +37,8 @@ import '../home/widgets/gto/gto_battle_header.dart';
 import '../home/widgets/gto/gto_battle_timer_bar.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
-  const GameScreen({super.key});
+  final bool isLeague;
+  const GameScreen({super.key, this.isLeague = false});
 
   @override
   ConsumerState<GameScreen> createState() => _GameScreenState();
@@ -91,10 +91,15 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         ref.read(timerProvider.notifier).start();
+        ref.read(gameStateProvider.notifier).setLeagueMode(widget.isLeague);
+        // League mode: 1 life (instant death)
+        if (widget.isLeague) {
+          ref.read(gameStateProvider.notifier).setHearts(1);
+        }
         // Set defense mode for first card
         if (deck.isNotEmpty) {
           ref.read(gameStateProvider.notifier)
-              .setDefenseMode(deck.first.chartType == 'CALL');
+              .setDefenseMode(deck.first.chartType.toUpperCase() == 'CALL');
         }
       }
     });
@@ -169,7 +174,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     if (currentIndex != null && currentIndex < _deck.length) {
       final nextQuestion = _deck[currentIndex];
       ref.read(gameStateProvider.notifier)
-          .setDefenseMode(nextQuestion.chartType == 'CALL');
+          .setDefenseMode(nextQuestion.chartType.toUpperCase() == 'CALL');
     }
 
     if (currentIndex == null || currentIndex >= _deck.length - 1) {
@@ -193,6 +198,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         position: question.position,
         hand: question.hand,
         evBb: question.evBb,
+        evDiffBb: question.evDiffBb,
         onDismiss: _onFactBombDismissed,
       );
     } else {
@@ -208,13 +214,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void _navigateToGameOver() {
-    final score = ref.read(gameStateProvider).score;
-    ref.read(rankingServiceProvider).submitScore(score);
     ref.read(timerProvider.notifier).stop();
     SoundManager.play(SoundType.gameOver);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/game-over');
+        Navigator.of(context).pushReplacementNamed('/game-over', arguments: {'mode': widget.isLeague ? 'league' : 'training'});
       }
     });
   }
@@ -299,6 +303,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 if (gameState.isDefenseMode)
                   DefenseAlertBanner(
                     opponentPosition: currentQ.opponentPosition ?? 'UTG',
+                    actionHistory: currentQ.actionHistory,
                   ),
 
                 SizedBox(height: context.h(4)),
@@ -308,6 +313,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   heroPosition: currentQ.position,
                   opponentPosition: currentQ.opponentPosition,
                   isDefenseMode: gameState.isDefenseMode,
+                  actionHistory: currentQ.actionHistory,
                 ),
 
                 // 4. Card Area (Swiper) - fills remaining space
@@ -414,14 +420,15 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 ],
               ),
 
-              // Time bank
-              if (state.timeBankCount > 0)
+              // Time bank conditionally based on league mode
+              if (state.isLeague && state.timeBankCount > 0)
                 GestureDetector(
                   onTap: () {
                     final success = ref.read(gameStateProvider.notifier).useTimeBank();
                     if (success) {
-                      ref.read(timerProvider.notifier).addTime(30);
+                      ref.read(timerProvider.notifier).addTime(15);
                       HapticManager.swipe();
+                      SoundManager.play(SoundType.chipStack);
                     }
                   },
                   child: Container(

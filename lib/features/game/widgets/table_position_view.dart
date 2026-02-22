@@ -7,13 +7,41 @@ class TablePositionView extends StatelessWidget {
   final String heroPosition;
   final String? opponentPosition;
   final bool isDefenseMode;
+  final String actionHistory;
 
   const TablePositionView({
     super.key,
     required this.heroPosition,
     this.opponentPosition,
     this.isDefenseMode = false,
+    this.actionHistory = '',
   });
+
+  /// Parse actionHistory to find all positions involved (push or call)
+  static Map<String, String> parseActivePositions(String actionHistory) {
+    final result = <String, String>{}; // position -> action ('push' or 'call')
+    if (actionHistory.isEmpty) return result;
+    for (final part in actionHistory.split(', ')) {
+      final trimmed = part.trim();
+      if (trimmed.contains('pushes')) {
+        final pos = trimmed.split(' ').first;
+        result[_normalizePos(pos)] = 'push';
+      } else if (trimmed.contains('calls')) {
+        final pos = trimmed.split(' ').first;
+        result[_normalizePos(pos)] = 'call';
+      }
+    }
+    return result;
+  }
+
+  static String _normalizePos(String pos) {
+    switch (pos.toUpperCase()) {
+      case 'BTN': return 'BU';
+      case 'UTG1': return 'UTG+1';
+      case 'UTG2': return 'UTG+2';
+      default: return pos.toUpperCase();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +62,7 @@ class TablePositionView extends StatelessWidget {
           heroPosition: heroPosition,
           opponentPosition: opponentPosition,
           isDefenseMode: isDefenseMode,
+          activePositions: parseActivePositions(actionHistory),
           context: context, // Pass context for responsive sizing in painter
         ),
       ),
@@ -45,17 +74,29 @@ class _TablePainter extends CustomPainter {
   final String heroPosition;
   final String? opponentPosition;
   final bool isDefenseMode;
+  final Map<String, String> activePositions; // pos -> 'push' or 'call'
   final BuildContext context;
 
   // 9-max Position Mapping (Preflop Action Order)
   static const List<String> seats = [
-    'UTG', 'UTG+1', 'UTG+2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'
+    'UTG', 'UTG+1', 'UTG+2', 'LJ', 'HJ', 'CO', 'BU', 'SB', 'BB'
   ];
+
+  /// Normalize position aliases (e.g. BTN → BU) to match seats array
+  static String _normalizePosition(String pos) {
+    switch (pos.toUpperCase()) {
+      case 'BTN': return 'BU';
+      case 'UTG1': return 'UTG+1';
+      case 'UTG2': return 'UTG+2';
+      default: return pos.toUpperCase();
+    }
+  }
 
   _TablePainter({
     required this.heroPosition,
     this.opponentPosition,
     required this.isDefenseMode,
+    this.activePositions = const {},
     required this.context,
   });
 
@@ -89,8 +130,8 @@ class _TablePainter extends CustomPainter {
     );
 
     // Calculate rotation offset to put Hero at Bottom (90 degrees, pi/2)
-    int heroIndex = seats.indexOf(heroPosition);
-    if (heroIndex == -1) heroIndex = 6; // Default to BTN
+    int heroIndex = seats.indexOf(_normalizePosition(heroPosition));
+    if (heroIndex == -1) heroIndex = 6; // Default to BU
 
     // Base angles for 9 seats (Clockwise from SB)
     const double anglePerSeat = 2 * pi / 9;
@@ -105,8 +146,12 @@ class _TablePainter extends CustomPainter {
   void _drawSeat(Canvas canvas, Size size, Offset center, int index, double angle, int heroIndex) {
     final posName = seats[index];
     final isHero = posName == heroPosition;
-    final isOpponent = isDefenseMode && posName == opponentPosition;
-    final isDealer = posName == 'BTN';
+    // Check if this position is an active opponent (push or call)
+    final isMainOpponent = isDefenseMode && posName == opponentPosition;
+    final activeAction = activePositions[posName]; // 'push', 'call', or null
+    final isActiveOpponent = isDefenseMode && activeAction != null;
+    final isOpponent = isMainOpponent || isActiveOpponent;
+    final isDealer = posName == 'BU';
     
     // Seat positioning radius
     double radiusX = size.width * 0.42;
@@ -133,18 +178,25 @@ class _TablePainter extends CustomPainter {
     
     bool isFolded = false;
     
-    // Find Opponent index (if exists)
-    int opponentIndex = -1;
-    if (isDefenseMode && opponentPosition != null) {
-      opponentIndex = seats.indexOf(opponentPosition!);
-    }
-    
-    // Logic Implementation
-    if (isDefenseMode && opponentIndex != -1) {
-       if (index < opponentIndex) isFolded = true; // Before Opponent
-       if (index > opponentIndex && index < heroIndex) isFolded = true; // Between
+    // Determine fold status from actionHistory
+    if (isDefenseMode && activePositions.isNotEmpty) {
+      // If not hero and not an active position, check if this position folded
+      if (!isHero && !isOpponent) {
+        // Position is folded if it's not active and comes before hero in action order
+        isFolded = index < heroIndex;
+      }
     } else {
-       if (index < heroIndex) isFolded = true;
+      // Legacy single-opponent logic
+      int opponentIndex = -1;
+      if (isDefenseMode && opponentPosition != null) {
+        opponentIndex = seats.indexOf(_normalizePosition(opponentPosition!));
+      }
+      if (isDefenseMode && opponentIndex != -1) {
+         if (index < opponentIndex) isFolded = true;
+         if (index > opponentIndex && index < heroIndex) isFolded = true;
+      } else {
+         if (index < heroIndex) isFolded = true;
+      }
     }
     
     // Safety: Hero/Opponent never folded
@@ -159,8 +211,11 @@ class _TablePainter extends CustomPainter {
        canvas.drawCircle(seatOffset, activeSeatRadius, Paint()..color = StitchColors.accentCyan.withOpacity(0.4)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6));
        canvas.drawCircle(seatOffset, seatRadius, paint);
     } else if (isOpponent) {
-       paint.color = StitchColors.glowRed;
-       canvas.drawCircle(seatOffset, activeSeatRadius, Paint()..color = StitchColors.glowRed.withOpacity(0.4)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6));
+       // Color differently for push vs call
+       final isPush = activeAction == 'push';
+       final oppColor = isPush ? StitchColors.glowRed : const Color(0xFFFBBF24); // Red for push, Gold for call
+       paint.color = oppColor;
+       canvas.drawCircle(seatOffset, activeSeatRadius, Paint()..color = oppColor.withOpacity(0.4)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6));
        canvas.drawCircle(seatOffset, seatRadius, paint);
     } else if (isFolded) {
        paint.color = const Color(0xFF020617);
@@ -173,8 +228,35 @@ class _TablePainter extends CustomPainter {
     }
 
     // Labels
-    if (isHero || isOpponent) {
-        // Active
+    if (isOpponent) {
+        // Opponent label - ALL-IN for push, CALL for call
+        final isPush = activeAction == 'push';
+        final labelText = isPush ? 'ALL-IN' : 'CALL';
+        final labelColor = isPush ? const Color(0xFFFBBF24) : const Color(0xFF60A5FA); // Gold for push, Blue for call
+        final textSpan = TextSpan(
+          children: [
+            TextSpan(
+              text: "$posName\n",
+              style: TextStyle(color: Colors.white, fontSize: context.sp(9), fontWeight: FontWeight.bold, shadows: const [Shadow(color: Colors.black, blurRadius: 4)]),
+            ),
+            TextSpan(
+              text: labelText,
+              style: TextStyle(
+                color: labelColor,
+                fontSize: context.sp(10),
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.5,
+                shadows: [
+                  const Shadow(color: Colors.black, blurRadius: 2),
+                  Shadow(color: labelColor.withOpacity(0.6), blurRadius: 6),
+                ],
+              ),
+            ),
+          ],
+        );
+        _drawLabel(canvas, seatOffset, center, textSpan, isFolded: true);
+    } else if (isHero) {
+        // Hero Active label
         final textSpan = TextSpan(
           text: posName,
           style: TextStyle(color: Colors.white, fontSize: context.sp(11), fontWeight: FontWeight.w900, shadows: const [Shadow(color: Colors.black, blurRadius: 4)]),
@@ -272,6 +354,7 @@ class _TablePainter extends CustomPainter {
   bool shouldRepaint(covariant _TablePainter oldDelegate) {
     return oldDelegate.heroPosition != heroPosition ||
            oldDelegate.opponentPosition != opponentPosition ||
-           oldDelegate.isDefenseMode != isDefenseMode;
+           oldDelegate.isDefenseMode != isDefenseMode ||
+           oldDelegate.activePositions.length != activePositions.length;
   }
 }

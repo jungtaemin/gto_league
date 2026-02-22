@@ -10,6 +10,7 @@ class GameState {
   final bool isDefenseMode;
   final int timeBankCount;
   final Tier currentTier;
+  final bool isLeague;
 
   const GameState({
     required this.score,
@@ -20,6 +21,7 @@ class GameState {
     required this.isDefenseMode,
     required this.timeBankCount,
     required this.currentTier,
+    required this.isLeague,
   });
 
   /// Initial game state with default values
@@ -33,6 +35,7 @@ class GameState {
       isDefenseMode: false,
       timeBankCount: 3,
       currentTier: Tier.fish,
+      isLeague: false,
     );
   }
 
@@ -46,6 +49,7 @@ class GameState {
     bool? isDefenseMode,
     int? timeBankCount,
     Tier? currentTier,
+    bool? isLeague,
   }) {
     return GameState(
       score: score ?? this.score,
@@ -56,6 +60,7 @@ class GameState {
       isDefenseMode: isDefenseMode ?? this.isDefenseMode,
       timeBankCount: timeBankCount ?? this.timeBankCount,
       currentTier: currentTier ?? this.currentTier,
+      isLeague: isLeague ?? this.isLeague,
     );
   }
 
@@ -71,7 +76,8 @@ class GameState {
           isFeverMode == other.isFeverMode &&
           isDefenseMode == other.isDefenseMode &&
           timeBankCount == other.timeBankCount &&
-          currentTier == other.currentTier;
+          currentTier == other.currentTier &&
+          isLeague == other.isLeague;
 
   @override
   int get hashCode =>
@@ -82,9 +88,10 @@ class GameState {
       isFeverMode.hashCode ^
       isDefenseMode.hashCode ^
       timeBankCount.hashCode ^
-      currentTier.hashCode;
+      currentTier.hashCode ^
+      isLeague.hashCode;
 
   @override
   String toString() =>
-      'GameState(score: $score, hearts: $hearts, combo: $combo, currentStreak: $currentStreak, isFeverMode: $isFeverMode, isDefenseMode: $isDefenseMode, timeBankCount: $timeBankCount, currentTier: $currentTier)';
+      'GameState(score: $score, hearts: $hearts, combo: $combo, currentStreak: $currentStreak, isFeverMode: $isFeverMode, isDefenseMode: $isDefenseMode, timeBankCount: $timeBankCount, currentTier: $currentTier, isLeague: $isLeague)';
 }

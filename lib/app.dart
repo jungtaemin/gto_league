@@ -5,9 +5,10 @@ import 'features/onboarding/onboarding_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/home/gto_home_screen.dart';
 import 'features/game/game_screen.dart';
-import 'features/ranking/ranking_screen.dart';
 import 'features/game_over/game_over_screen.dart';
 import 'features/privacy/privacy_screen.dart';
+import 'features/game/deep_run_screen.dart';
+import 'features/game/league_screen.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -24,9 +25,10 @@ class App extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const GtoHomeScreen(),
         '/game': (context) => const GameScreen(),
-        '/ranking': (context) => const RankingScreen(),
         '/game-over': (context) => const GameOverScreen(),
         '/privacy': (context) => const PrivacyScreen(),
+        '/deep-run': (context) => const DeepRunScreen(),
+        '/league': (context) => const LeagueScreen(),
       },
     );
   }

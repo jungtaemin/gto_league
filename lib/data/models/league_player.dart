@@ -1,5 +1,13 @@
 import 'tier.dart';
 
+enum PlayerType { real, pacemakerBot }
+
+class JoinLeagueResult {
+  final String groupId;
+  final bool isNew;
+  const JoinLeagueResult({required this.groupId, required this.isNew});
+}
+
 /// Represents a player in the league
 class LeaguePlayer {
   final String id;
@@ -7,8 +15,7 @@ class LeaguePlayer {
   final int score;
   final Tier tier;
   final int rank;
-  final bool isGhost;
-  final bool isEmptySlot;
+  final PlayerType type;
 
   const LeaguePlayer({
     required this.id,
@@ -16,8 +23,7 @@ class LeaguePlayer {
     required this.score,
     required this.tier,
     required this.rank,
-    required this.isGhost,
-    this.isEmptySlot = false,
+    required this.type,
   });
 
   /// Create a copy of this player with optional field overrides
@@ -27,8 +33,7 @@ class LeaguePlayer {
     int? score,
     Tier? tier,
     int? rank,
-    bool? isGhost,
-    bool? isEmptySlot,
+    PlayerType? type,
   }) {
     return LeaguePlayer(
       id: id ?? this.id,
@@ -36,10 +41,12 @@ class LeaguePlayer {
       score: score ?? this.score,
       tier: tier ?? this.tier,
       rank: rank ?? this.rank,
-      isGhost: isGhost ?? this.isGhost,
-      isEmptySlot: isEmptySlot ?? this.isEmptySlot,
+      type: type ?? this.type,
     );
   }
+
+  bool get isBot => type == PlayerType.pacemakerBot;
+  bool get isReal => type == PlayerType.real;
 
   @override
   bool operator ==(Object other) =>
@@ -51,8 +58,7 @@ class LeaguePlayer {
           score == other.score &&
           tier == other.tier &&
           rank == other.rank &&
-          isGhost == other.isGhost &&
-          isEmptySlot == other.isEmptySlot;
+          type == other.type;
 
   @override
   int get hashCode =>
@@ -61,10 +67,9 @@ class LeaguePlayer {
       score.hashCode ^
       tier.hashCode ^
       rank.hashCode ^
-      isGhost.hashCode ^
-      isEmptySlot.hashCode;
+      type.hashCode;
 
   @override
   String toString() =>
-      'LeaguePlayer(id: $id, nickname: $nickname, score: $score, tier: $tier, rank: $rank, isGhost: $isGhost)';
+      'LeaguePlayer(id: $id, nickname: $nickname, score: $score, tier: $tier, rank: $rank, type: $type)';
 }

@@ -42,7 +42,7 @@ dependencies:
   google_fonts: ^8.0.0
   shared_preferences: ^2.3.0
   uuid: ^4.5.1
-  csv: ^6.0.0
+  # csv: ^6.0.0  # Removed — legacy CSV migration replaced by gto_master_db.json
   cupertino_icons: ^1.0.8
   google_sign_in: ^6.2.2
   playing_cards: ^0.4.1+11
@@ -72,6 +72,7 @@ flutter:
     - assets/music/
     - assets/images/
     - assets/images/skins/
+    - assets/images/characters/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

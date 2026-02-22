@@ -24,28 +24,52 @@ class DecorateRepository {
     // Inject Mock Data
     final mockItems = [
       DecorateItem(
-        id: 'char_robot',
+        id: 'char_f1',
         type: 'character',
-        name: 'GTO Robot',
-        assetUrl: 'assets/images/gto_robot.png',
+        name: '포커 플레이어',
+        assetUrl: 'assets/images/characters/char_f1.png',
         rarity: 'common',
-        metadata: {'price': 0, 'desc': 'Standard Issue GTO Droid'},
+        metadata: {'price': 0, 'desc': '귀여운 포커 플레이어입니다.'},
       ),
       DecorateItem(
-        id: 'char_ninja',
+        id: 'char_f2',
         type: 'character',
-        name: 'Ninja Girl',
-        assetUrl: 'assets/images/ninja_girl.png',
+        name: '카지노 딜러',
+        assetUrl: 'assets/images/characters/char_f2.png',
+        rarity: 'rare',
+        metadata: {'price': 500, 'desc': '우아한 카지노 딜러입니다.'},
+      ),
+      DecorateItem(
+        id: 'char_f3',
+        type: 'character',
+        name: '사이버 해커',
+        assetUrl: 'assets/images/characters/char_f3.png',
         rarity: 'epic',
-        metadata: {'price': 10000, 'desc': 'Silent but deadly.'},
+        metadata: {'price': 2000, 'desc': '쿨한 분위기의 사이버펑크 해커입니다.'},
       ),
       DecorateItem(
-        id: 'char_spacemarine',
+        id: 'char_m1',
         type: 'character',
-        name: 'Space Marine',
-        assetUrl: 'assets/images/space_marine.png',
+        name: '프로 포커',
+        assetUrl: 'assets/images/characters/char_m1.png',
+        rarity: 'common',
+        metadata: {'price': 0, 'desc': '정장을 차려입은 핸섬한 프로입니다.'},
+      ),
+      DecorateItem(
+        id: 'char_m2',
+        type: 'character',
+        name: '카지노 마스터',
+        assetUrl: 'assets/images/characters/char_m2.png',
+        rarity: 'rare',
+        metadata: {'price': 500, 'desc': '카지노를 주름잡는 마스터입니다.'},
+      ),
+      DecorateItem(
+        id: 'char_m3',
+        type: 'character',
+        name: '사이버 용병',
+        assetUrl: 'assets/images/characters/char_m3.png',
         rarity: 'legendary',
-        metadata: {'price': 5000, 'color': '#00FFFF', 'desc': 'Elite soldier of the galaxy.'},
+        metadata: {'price': 5000, 'desc': '거친 매력의 사이버 용병입니다.'},
       ),
       // Card Skins
       DecorateItem(
@@ -97,7 +121,7 @@ class DecorateRepository {
     } catch (_) {}
 
     // Default items always owned
-    if (!owned.contains('char_robot')) owned.add('char_robot');
+    if (!owned.contains('char_f1')) owned.add('char_f1');
     if (!owned.contains('skin_card_default')) owned.add('skin_card_default');
     
     return owned;
@@ -118,7 +142,7 @@ class DecorateRepository {
     // Default equipped
     return UserEquipped(
         userId: userId, 
-        characterId: 'char_robot',
+        characterId: 'char_f1',
         cardSkinId: 'skin_card_default',
     );
   }
