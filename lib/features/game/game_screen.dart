@@ -51,6 +51,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   bool _showSnapBonus = false;
   bool _showAnswerResult = false;
   bool _lastAnswerCorrect = true;
+  bool _lastWasFold = false;
   SwipeResult? _lastResult;
   CardQuestion? _lastQuestion;
   DateTime? _cardShownTime;
@@ -76,7 +77,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void dispose() {
     ref.read(timerProvider.notifier).stop();
     _swiperController.dispose();
-    MusicManager.play(MusicType.lobby);
     super.dispose();
   }
 
@@ -144,6 +144,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     setState(() {
       _showAnswerResult = true;
       _lastAnswerCorrect = isCorrect;
+      _lastWasFold = (direction == CardSwiperDirection.left);
       _lastResult = result;
       _lastQuestion = question;
     });
@@ -339,6 +340,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                       AnswerResultOverlay(
                         isCorrect: _lastAnswerCorrect,
                         isVisible: _showAnswerResult,
+                        wasFold: _lastWasFold,
                         onComplete: _onAnswerResultComplete,
                       ),
                       

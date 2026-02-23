@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/music_manager.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -196,7 +197,9 @@ class _GtoLeagueBodyState extends ConsumerState<GtoLeagueBody> {
               style: TextStyle(fontSize: context.sp(14), color: Colors.white54)),
           SizedBox(height: context.w(32)),
           ElevatedButton(
-            onPressed: () => Navigator.pushNamed(context, '/league'),
+            onPressed: () => Navigator.pushNamed(context, '/league').then((_) {
+              MusicManager.ensurePlaying(MusicType.lobby);
+            }),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.leaguePromotionGold,
               foregroundColor: Colors.black,

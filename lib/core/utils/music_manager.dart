@@ -7,15 +7,16 @@ enum MusicType {
 }
 
 /// Manages background music (BGM) for the game.
-/// Handles looping, fading, and switching tracks.
+/// Handles looping, switching tracks, and lifecycle resilience.
 class MusicManager {
   static final AudioPlayer _player = AudioPlayer();
   static bool _initialized = false;
   static MusicType? _currentType;
+  static MusicType? _pendingType; // Track pending play requests
+  static bool _isTransitioning = false; // Prevent race conditions
   
   // Volume settings
   static const double _defaultVolume = 0.4;
-  static const Duration _fadeDuration = Duration(milliseconds: 800);
 
   /// Initialize the music manager.
   static Future<void> init() async {
@@ -30,15 +31,31 @@ class MusicManager {
   }
 
   /// Play background music by type.
-  /// If the same music is already playing, does nothing.
-  /// If new music, fades out current and fades in new.
+  /// If the same music is already playing, ensures it keeps playing.
+  /// If different music, switches to the new track.
   static Future<void> play(MusicType type) async {
     if (!_initialized) return;
     
-    // If already playing this type, do nothing
+    // If already playing this exact type and actually in playing state, skip
     if (_currentType == type && _player.state == PlayerState.playing) {
+      debugPrint('🎵 BGM already playing: ${type.name}');
       return;
     }
+
+    // If a transition is already in progress, just record what we want
+    if (_isTransitioning) {
+      _pendingType = type;
+      debugPrint('🎵 BGM transition queued: ${type.name}');
+      return;
+    }
+
+    await _doPlay(type);
+  }
+
+  /// Internal play logic with transition guard.
+  static Future<void> _doPlay(MusicType type) async {
+    _isTransitioning = true;
+    _pendingType = null;
 
     try {
       _currentType = type;
@@ -46,27 +63,51 @@ class MusicManager {
       
       debugPrint('🎵 Switching BGM to $assetPath');
 
-      // Fade out current if playing
-      if (_player.state == PlayerState.playing) {
-        await _player.setVolume(0.0); // Simple cut for now, or implement fade out
+      // Stop current if playing
+      if (_player.state == PlayerState.playing || _player.state == PlayerState.paused) {
         await _player.stop();
       }
 
       // Play new track
       await _player.setSource(AssetSource(assetPath));
-      await _player.setVolume(_defaultVolume); // Restore volume
+      await _player.setVolume(_defaultVolume);
       await _player.resume();
       
+      debugPrint('🎵 BGM now playing: ${type.name}');
     } catch (e) {
       debugPrint('🔇 Error playing music ${type.name}: $e');
+    } finally {
+      _isTransitioning = false;
+    }
+
+    // If another type was requested during transition, play it now
+    if (_pendingType != null && _pendingType != _currentType) {
+      final pending = _pendingType!;
+      _pendingType = null;
+      await _doPlay(pending);
     }
   }
 
-  /// Stop music (with optional fade out).
+  /// Ensure the music is playing (call on screen resume/rebuild).
+  /// Re-starts the current type if the player stopped unexpectedly.
+  static Future<void> ensurePlaying(MusicType type) async {
+    if (!_initialized) return;
+
+    if (_player.state == PlayerState.playing && _currentType == type) {
+      return; // Already fine
+    }
+
+    // Force replay — reset currentType to bypass the duplicate check
+    _currentType = null;
+    await play(type);
+  }
+
+  /// Stop music.
   static Future<void> stop() async {
     if (!_initialized) return;
     try {
       _currentType = null;
+      _pendingType = null;
       await _player.stop();
       debugPrint('🎵 Music stopped');
     } catch (e) {

@@ -8,12 +8,12 @@ part of 'league_engine.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// League 100-Hand Survival game loop engine.
+/// League 50-Hand Survival game loop engine.
 ///
 /// Fork of [DeepRunEngine] with:
 /// - 1 life (instant death on wrong answer)
 /// - 3 time chips at start (+15s each, manual activation)
-/// - Same 5 levels × 20 hands structure
+/// - Same 5 levels × 10 hands structure
 /// - Same scoring system
 ///
 /// ## Scoring
@@ -29,12 +29,12 @@ part of 'league_engine.dart';
 @ProviderFor(LeagueEngine)
 final leagueEngineProvider = LeagueEngineProvider._();
 
-/// League 100-Hand Survival game loop engine.
+/// League 50-Hand Survival game loop engine.
 ///
 /// Fork of [DeepRunEngine] with:
 /// - 1 life (instant death on wrong answer)
 /// - 3 time chips at start (+15s each, manual activation)
-/// - Same 5 levels × 20 hands structure
+/// - Same 5 levels × 10 hands structure
 /// - Same scoring system
 ///
 /// ## Scoring
@@ -48,12 +48,12 @@ final leagueEngineProvider = LeagueEngineProvider._();
 /// Level 4 = 7BB, Level 5 = 5BB
 final class LeagueEngineProvider
     extends $NotifierProvider<LeagueEngine, LeagueState> {
-  /// League 100-Hand Survival game loop engine.
+  /// League 50-Hand Survival game loop engine.
   ///
   /// Fork of [DeepRunEngine] with:
   /// - 1 life (instant death on wrong answer)
   /// - 3 time chips at start (+15s each, manual activation)
-  /// - Same 5 levels × 20 hands structure
+  /// - Same 5 levels × 10 hands structure
   /// - Same scoring system
   ///
   /// ## Scoring
@@ -92,14 +92,14 @@ final class LeagueEngineProvider
   }
 }
 
-String _$leagueEngineHash() => r'320e8f568a235b3dca84f417418236791ae3bc39';
+String _$leagueEngineHash() => r'95daeff708fea57b4d881f991c1b1a42d2f711e6';
 
-/// League 100-Hand Survival game loop engine.
+/// League 50-Hand Survival game loop engine.
 ///
 /// Fork of [DeepRunEngine] with:
 /// - 1 life (instant death on wrong answer)
 /// - 3 time chips at start (+15s each, manual activation)
-/// - Same 5 levels × 20 hands structure
+/// - Same 5 levels × 10 hands structure
 /// - Same scoring system
 ///
 /// ## Scoring

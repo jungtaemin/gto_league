@@ -18,12 +18,14 @@ import '../../core/utils/haptic_manager.dart';
 import '../../core/utils/sound_manager.dart';
 import '../../core/utils/music_manager.dart';
 import '../../core/utils/responsive.dart';
+import '../../core/theme/app_colors.dart';
 
 // Deep Run Widgets
 import 'widgets/deep_run_background.dart';
 import 'widgets/deep_run_hud.dart';
 import 'widgets/level_up_cutscene.dart';
 import 'widgets/ev_diff_overlay.dart';
+import 'widgets/active_bb_chip.dart';
 
 // Shared Widgets
 import 'widgets/poker_card_widget.dart';
@@ -33,7 +35,7 @@ import 'widgets/defense_alert_banner.dart';
 import 'widgets/fact_bomb_bottom_sheet.dart';
 import 'widgets/table_position_view.dart';
 
-/// 100-Hand Deep Run Survival mode screen.
+/// 50-Hand Deep Run Survival mode screen.
 ///
 /// Uses [DeepRunEngine] for game state management and
 /// [GtoDataProvider] + [DeepRunQuestionGenerator] for question generation.
@@ -60,9 +62,11 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
   bool _isDisabled = false;
   bool _showAnswerResult = false;
   bool _lastAnswerCorrect = true;
+  bool _lastWasFold = false;
   bool _showEvDiff = false;
   double _lastEvDiff = 0.0;
   double _dragProgress = 0.0;
+  bool _showStartCutscene = true;
   DateTime? _cardShownTime;
   SwipeResult? _lastResult;
   CardQuestion? _lastQuestion;
@@ -81,7 +85,6 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
   void dispose() {
     ref.read(timerProvider.notifier).stop();
     _swiperController.dispose();
-    MusicManager.play(MusicType.lobby);
     super.dispose();
   }
 
@@ -115,7 +118,7 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
       _swiperController = CardSwiperController();
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _currentDeck.isNotEmpty) {
+        if (mounted && _currentDeck.isNotEmpty && !_showStartCutscene) {
           ref.read(timerProvider.notifier).start();
         }
       });
@@ -159,6 +162,7 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
     setState(() {
       _showAnswerResult = true;
       _lastAnswerCorrect = isCorrect;
+      _lastWasFold = (direction == CardSwiperDirection.left);
       _lastResult = result;
       _lastQuestion = question;
     });
@@ -422,6 +426,18 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
                 Expanded(
                   child: Stack(
                     children: [
+                      // Active BB Chip (in the background, aligned bottom)
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: EdgeInsets.only(bottom: context.h(24)),
+                          child: ActiveBbChip(
+                            bbLevel: engineState.currentBbLevel,
+                            theme: AppColors.getLevelTheme(engineState.currentLevel),
+                          ),
+                        ),
+                      ),
+
                       CardSwiper(
                         controller: _swiperController,
                         cardsCount: _currentDeck.length,
@@ -429,7 +445,8 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
                         onSwipe: _onSwipe,
                         onSwipeDirectionChange: _onSwipeDirectionChange,
                         isDisabled: _isDisabled ||
-                            engineState.phase != DeepRunPhase.playing,
+                            engineState.phase != DeepRunPhase.playing ||
+                            _showStartCutscene,
                         allowedSwipeDirection:
                             const AllowedSwipeDirection.symmetric(
                           horizontal: true,
@@ -449,6 +466,7 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
                       AnswerResultOverlay(
                         isCorrect: _lastAnswerCorrect,
                         isVisible: _showAnswerResult,
+                        wasFold: _lastWasFold,
                         onComplete: _onAnswerResultComplete,
                       ),
 
@@ -470,7 +488,19 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
           ),
 
           // 7. Level-Up Cutscene Overlay
-          if (engineState.phase == DeepRunPhase.levelUp)
+          if (_showStartCutscene)
+            LevelUpCutscene(
+              newLevel: 1,
+              newBbLevel: 15,
+              isGameStart: true,
+              onComplete: () {
+                if (mounted) {
+                  setState(() => _showStartCutscene = false);
+                  ref.read(timerProvider.notifier).start();
+                }
+              },
+            )
+          else if (engineState.phase == DeepRunPhase.levelUp)
             LevelUpCutscene(
               newLevel: engineState.currentLevel + 1,
               newBbLevel: _bbLevelForLevel(engineState.currentLevel + 1),

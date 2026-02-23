@@ -7,7 +7,7 @@ part 'league_engine.g.dart';
 
 // ── League Phase ──────────────────────────────────────────────
 
-/// Phase of the League 100-Hand Survival game.
+/// Phase of the League 50-Hand Survival game.
 enum LeaguePhase {
   /// Actively playing hands.
   playing,
@@ -18,7 +18,7 @@ enum LeaguePhase {
   /// Player lost their single life — game over.
   gameOver,
 
-  /// Player completed all 100 hands — victory.
+  /// Player completed all 50 hands — victory.
   victory,
 }
 
@@ -27,17 +27,17 @@ enum LeaguePhase {
 /// Immutable state for the League Survival mode.
 ///
 /// Identical to Deep Run but with 1 life and time chips.
-/// 5 levels × 20 hands = 100 total hands.
+/// 5 levels × 10 hands = 50 total hands.
 /// 1-Strike system: wrong answer → instant game over.
 /// Time chips: 3 at start, +15s each, manual activation.
 class LeagueState {
   /// Current level (1–5).
   final int currentLevel;
 
-  /// Current hand within the level (1–20, resets each level).
+  /// Current hand within the level (1–10, resets each level).
   final int handInLevel;
 
-  /// Total hands played across all levels (1–100).
+  /// Total hands played across all levels (1–50).
   final int totalHands;
 
   /// Remaining strikes before game over (starts at 1).
@@ -55,10 +55,10 @@ class LeagueState {
   /// Consecutive correct answers (resets on wrong answer).
   final int currentStreak;
 
-  /// Whether the game has ended (strikes = 0 or completed 100 hands).
+  /// Whether the game has ended (strikes = 0 or completed 50 hands).
   final bool isGameOver;
 
-  /// Whether the player completed all 100 hands.
+  /// Whether the player completed all 50 hands.
   final bool isVictory;
 
   /// Whether a level-up cutscene is playing.
@@ -194,12 +194,12 @@ class LeagueState {
 
 // ── League Engine ─────────────────────────────────────────────
 
-/// League 100-Hand Survival game loop engine.
+/// League 50-Hand Survival game loop engine.
 ///
 /// Fork of [DeepRunEngine] with:
 /// - 1 life (instant death on wrong answer)
 /// - 3 time chips at start (+15s each, manual activation)
-/// - Same 5 levels × 20 hands structure
+/// - Same 5 levels × 10 hands structure
 /// - Same scoring system
 ///
 /// ## Scoring
@@ -231,7 +231,7 @@ class LeagueEngine extends _$LeagueEngine {
   static const double timeChipBonus = 15.0;
 
   /// Hands per level.
-  static const int _handsPerLevel = 20;
+  static const int _handsPerLevel = 10;
 
   /// Total number of levels.
   static const int _totalLevels = 5;
@@ -313,7 +313,7 @@ class LeagueEngine extends _$LeagueEngine {
     final int newHandInLevel = state.handInLevel + 1;
     final int newTotalHands = state.totalHands + 1;
 
-    // Victory: completed all 100 hands.
+    // Victory: completed all 50 hands.
     if (newTotalHands > _totalHands) {
       state = state.copyWith(
         totalHands: _totalHands,
@@ -325,7 +325,7 @@ class LeagueEngine extends _$LeagueEngine {
       return;
     }
 
-    // Level up: completed 20 hands in current level.
+    // Level up: completed 10 hands in current level.
     if (newHandInLevel > _handsPerLevel &&
         state.currentLevel < _totalLevels) {
       state = state.copyWith(

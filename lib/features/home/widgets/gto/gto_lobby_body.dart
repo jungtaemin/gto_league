@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/music_manager.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/utils/responsive.dart';
@@ -197,7 +198,11 @@ class GtoLobbyBody extends ConsumerWidget {
           );
           return;
         }
-        if (context.mounted) Navigator.pushNamed(context, '/league');
+        if (context.mounted) {
+          Navigator.pushNamed(context, '/league').then((_) {
+            MusicManager.ensurePlaying(MusicType.lobby);
+          });
+        }
       },
       child: SizedBox(
         height: buttonHeight,

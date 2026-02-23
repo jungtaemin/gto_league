@@ -5,7 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import 'package:holdem_allin_fold/core/theme/app_colors.dart';
 
-/// Dynamic level background for the 100-Hand Deep Run Survival mode.
+/// Dynamic level background for the 50-Hand Deep Run Survival mode.
 ///
 /// Animated gradient that crossfades when [currentLevel] changes (1–5).
 /// Level 5 special: pitch-black with pulsing red vignette edges.

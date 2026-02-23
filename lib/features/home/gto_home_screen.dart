@@ -24,7 +24,7 @@ class _GtoHomeScreenState extends State<GtoHomeScreen> {
   @override
   void initState() {
     super.initState();
-    MusicManager.play(MusicType.lobby);
+    MusicManager.ensurePlaying(MusicType.lobby);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkSeasonResult();
     });

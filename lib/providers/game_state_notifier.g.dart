@@ -74,7 +74,7 @@ final class GameStateNotifierProvider
   }
 }
 
-String _$gameStateNotifierHash() => r'6992bb90e4cc48d14d69559ca116f38d96401d7d';
+String _$gameStateNotifierHash() => r'f608cba8ea88681cc659f528dbdc6790540b9407';
 
 /// Game state management notifier.
 ///

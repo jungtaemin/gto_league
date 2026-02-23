@@ -31,46 +31,51 @@ class PokerCardWidget extends ConsumerWidget {
     final stackHeight = context.w(280).clamp(200.0, 350.0);
     final cardOffset = context.w(35);
 
-    return Center(
-      child: SizedBox(
-        height: stackHeight,
-        child: Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
-            // Hit-test용 투명 배경
-            const Positioned.fill(
-              child: ColoredBox(color: Colors.transparent),
-            ),
-            // Left Card
-            Positioned(
-              left: cardOffset,
-              child: Transform.rotate(
-                angle: -0.1,
-                child: _buildDecoratedCard(
-                  _parseCard(pokerHand.rank1, _getSuitChar(pokerHand, 0)),
-                  cardStyle,
-                  currentSkin,
-                  cardWidth,
-                  cardHeight,
+    return SizedBox.expand(
+      child: ColoredBox(
+        color: Colors.transparent, // 투명 배경으로 전체 영역 클릭/스와이프 감지
+        child: Center(
+          child: SizedBox(
+            height: stackHeight,
+            child: Stack(
+              alignment: Alignment.center,
+              clipBehavior: Clip.none,
+              children: [
+                // Hit-test용 투명 배경
+                const Positioned.fill(
+                  child: ColoredBox(color: Colors.transparent),
                 ),
-              ),
-            ),
-            // Right Card
-            Positioned(
-              right: cardOffset,
-              child: Transform.rotate(
-                angle: 0.1,
-                child: _buildDecoratedCard(
-                  _parseCard(pokerHand.rank2, _getSuitChar(pokerHand, 1)),
-                  cardStyle,
-                  currentSkin,
-                  cardWidth,
-                  cardHeight,
+                // Left Card
+                Positioned(
+                  left: cardOffset,
+                  child: Transform.rotate(
+                    angle: -0.1,
+                    child: _buildDecoratedCard(
+                      _parseCard(pokerHand.rank1, _getSuitChar(pokerHand, 0)),
+                      cardStyle,
+                      currentSkin,
+                      cardWidth,
+                      cardHeight,
+                    ),
+                  ),
                 ),
-              ),
+                // Right Card
+                Positioned(
+                  right: cardOffset,
+                  child: Transform.rotate(
+                    angle: 0.1,
+                    child: _buildDecoratedCard(
+                      _parseCard(pokerHand.rank2, _getSuitChar(pokerHand, 1)),
+                      cardStyle,
+                      currentSkin,
+                      cardWidth,
+                      cardHeight,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

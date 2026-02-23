@@ -7,7 +7,7 @@ part 'deep_run_engine.g.dart';
 
 // ── Deep Run Phase ─────────────────────────────────────────────
 
-/// Phase of the 100-Hand Deep Run Survival game.
+/// Phase of the 50-Hand Deep Run Survival game.
 enum DeepRunPhase {
   /// Actively playing hands.
   playing,
@@ -18,25 +18,25 @@ enum DeepRunPhase {
   /// Player lost all strikes — game over.
   gameOver,
 
-  /// Player completed all 100 hands — victory.
+  /// Player completed all 50 hands — victory.
   victory,
 }
 
 // ── Deep Run State ─────────────────────────────────────────────
 
-/// Immutable state for the 100-Hand Deep Run Survival mode.
+/// Immutable state for the 50-Hand Deep Run Survival mode.
 ///
-/// 5 levels × 20 hands = 100 total hands.
+/// 5 levels × 10 hands = 50 total hands.
 /// 3-Strike system: wrong answer → lose 1 strike, 0 strikes → game over.
 /// Level progression: 15BB → 12BB → 10BB → 7BB → 5BB.
 class DeepRunState {
   /// Current level (1–5).
   final int currentLevel;
 
-  /// Current hand within the level (1–20, resets each level).
+  /// Current hand within the level (1–10, resets each level).
   final int handInLevel;
 
-  /// Total hands played across all levels (1–100).
+  /// Total hands played across all levels (1–50).
   final int totalHands;
 
   /// Remaining strikes before game over (starts at 3).
@@ -51,10 +51,10 @@ class DeepRunState {
   /// Consecutive correct answers (resets on wrong answer).
   final int currentStreak;
 
-  /// Whether the game has ended (strikes = 0 or completed 100 hands).
+  /// Whether the game has ended (strikes = 0 or completed 50 hands).
   final bool isGameOver;
 
-  /// Whether the player completed all 100 hands.
+  /// Whether the player completed all 50 hands.
   final bool isVictory;
 
   /// Whether a level-up cutscene is playing.
@@ -184,9 +184,9 @@ class DeepRunState {
 
 // ── Deep Run Engine ────────────────────────────────────────────
 
-/// 100-Hand Deep Run Survival game loop engine.
+/// 50-Hand Deep Run Survival game loop engine.
 ///
-/// Manages 5 levels × 20 hands, 3-strike system, scoring,
+/// Manages 5 levels × 10 hands, 3-strike system, scoring,
 /// and level transitions. Consumed by Deep Run Screen.
 ///
 /// ## Scoring
@@ -212,7 +212,7 @@ class DeepRunEngine extends _$DeepRunEngine {
   static const int _maxStrikes = 3;
 
   /// Hands per level.
-  static const int _handsPerLevel = 20;
+  static const int _handsPerLevel = 10;
 
   /// Total number of levels.
   static const int _totalLevels = 5;
@@ -274,7 +274,7 @@ class DeepRunEngine extends _$DeepRunEngine {
     final int newHandInLevel = state.handInLevel + 1;
     final int newTotalHands = state.totalHands + 1;
 
-    // Victory: completed all 100 hands.
+    // Victory: completed all 50 hands.
     if (newTotalHands > _totalHands) {
       state = state.copyWith(
         totalHands: _totalHands,
@@ -286,7 +286,7 @@ class DeepRunEngine extends _$DeepRunEngine {
       return;
     }
 
-    // Level up: completed 20 hands in current level.
+    // Level up: completed 10 hands in current level.
     if (newHandInLevel > _handsPerLevel && state.currentLevel < _totalLevels) {
       state = state.copyWith(
         handInLevel: newHandInLevel,

@@ -5,26 +5,26 @@ import 'package:flutter/foundation.dart';
 import '../models/card_question.dart';
 import '../models/gto_scenario.dart';
 
-/// Generates shuffled decks of 20 [CardQuestion] instances per level
+/// Generates shuffled decks of 10 [CardQuestion] instances per level
 /// from the GTO master database for Deep Run mode.
 ///
 /// Ensures:
-/// - 70/30 push/defense ratio (14 push, 6 defense ±1)
+/// - 70/30 push/defense ratio (7 push, 3 defense ±1)
 /// - Position balance (max 3 questions from same position)
 /// - Hand diversity (no duplicate hand+position combos)
 /// - Anti-streak (max 3 consecutive same-answer questions)
 /// - Reproducible output via optional [seed]
 class DeepRunQuestionGenerator {
-  static const int _deckSize = 20;
-  static const int _targetPushCount = 14;
-  static const int _targetDefenseCount = 6;
-  // 4:1 ratio → out of 6 defense: 5 single, 1 multi (≈ 80/20)
-  static const int _targetDefenseSingleCount = 5;
+  static const int _deckSize = 10;
+  static const int _targetPushCount = 7;
+  static const int _targetDefenseCount = 3;
+  // 7:3 ratio -> out of 3 defense: 2 single, 1 multi
+  static const int _targetDefenseSingleCount = 2;
   static const int _targetDefenseMultiCount = 1;
   static const int _maxSamePosition = 3;
   static const int _maxConsecutiveSameAction = 3;
 
-  /// Generate a shuffled deck of 20 [CardQuestion]s for the given BB level.
+  /// Generate a shuffled deck of 10 [CardQuestion]s for the given BB level.
   ///
   /// [bbLevel] — the stack depth in big blinds (e.g. 10, 12, 15, 20, 25).
   /// [scenarios] — full list of [GtoScenario] from the master database.

@@ -18,12 +18,14 @@ import '../../core/utils/haptic_manager.dart';
 import '../../core/utils/sound_manager.dart';
 import '../../core/utils/music_manager.dart';
 import '../../core/utils/responsive.dart';
+import '../../core/theme/app_colors.dart';
 
-// League Widgets
+// Game Widgets
 import 'widgets/league_hud.dart';
 import 'widgets/deep_run_background.dart';
 import 'widgets/level_up_cutscene.dart';
 import 'widgets/ev_diff_overlay.dart';
+import 'widgets/active_bb_chip.dart';
 
 // Shared Widgets
 import 'widgets/poker_card_widget.dart';
@@ -33,7 +35,7 @@ import 'widgets/defense_alert_banner.dart';
 import 'widgets/fact_bomb_bottom_sheet.dart';
 import 'widgets/table_position_view.dart';
 
-/// League 100-Hand Survival mode screen.
+/// League 50-Hand Survival mode screen.
 ///
 /// Uses [LeagueEngine] for game state management and
 /// [GtoDataProvider] + [DeepRunQuestionGenerator] for question generation.
@@ -65,9 +67,11 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
   bool _isDisabled = false;
   bool _showAnswerResult = false;
   bool _lastAnswerCorrect = true;
+  bool _lastWasFold = false;
   bool _showEvDiff = false;
   double _lastEvDiff = 0.0;
   double _dragProgress = 0.0;
+  bool _showStartCutscene = true;
   DateTime? _cardShownTime;
   SwipeResult? _lastResult;
   CardQuestion? _lastQuestion;
@@ -86,7 +90,6 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
   void dispose() {
     ref.read(timerProvider.notifier).stop();
     _swiperController.dispose();
-    MusicManager.play(MusicType.lobby);
     super.dispose();
   }
 
@@ -120,7 +123,7 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
       _swiperController = CardSwiperController();
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _currentDeck.isNotEmpty) {
+        if (mounted && _currentDeck.isNotEmpty && !_showStartCutscene) {
           ref.read(timerProvider.notifier).start();
         }
       });
@@ -164,6 +167,7 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
     setState(() {
       _showAnswerResult = true;
       _lastAnswerCorrect = isCorrect;
+      _lastWasFold = (direction == CardSwiperDirection.left);
       _lastResult = result;
       _lastQuestion = question;
     });
@@ -298,11 +302,13 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
     SoundManager.play(SoundType.gameOver);
     HapticManager.gameOver();
 
+    final leagueScore = ref.read(leagueEngineProvider).score;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         Navigator.of(context).pushReplacementNamed(
-          '/game-over',
-          arguments: {'mode': 'league'},
+          '/league-game-over',
+          arguments: {'leagueScore': leagueScore},
         );
       }
     });
@@ -441,6 +447,18 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
                 Expanded(
                   child: Stack(
                     children: [
+                      // Active BB Chip (in the background, aligned bottom)
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: EdgeInsets.only(bottom: context.h(24)),
+                          child: ActiveBbChip(
+                            bbLevel: engineState.currentBbLevel,
+                            theme: AppColors.getLevelTheme(engineState.currentLevel),
+                          ),
+                        ),
+                      ),
+
                       CardSwiper(
                         controller: _swiperController,
                         cardsCount: _currentDeck.length,
@@ -448,7 +466,8 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
                         onSwipe: _onSwipe,
                         onSwipeDirectionChange: _onSwipeDirectionChange,
                         isDisabled: _isDisabled ||
-                            engineState.phase != LeaguePhase.playing,
+                            engineState.phase != LeaguePhase.playing ||
+                            _showStartCutscene,
                         allowedSwipeDirection:
                             const AllowedSwipeDirection.symmetric(
                           horizontal: true,
@@ -468,6 +487,7 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
                       AnswerResultOverlay(
                         isCorrect: _lastAnswerCorrect,
                         isVisible: _showAnswerResult,
+                        wasFold: _lastWasFold,
                         onComplete: _onAnswerResultComplete,
                       ),
 
@@ -489,7 +509,19 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
           ),
 
           // 7. Level-Up Cutscene Overlay
-          if (engineState.phase == LeaguePhase.levelUp)
+          if (_showStartCutscene)
+            LevelUpCutscene(
+              newLevel: 1,
+              newBbLevel: 15,
+              isGameStart: true,
+              onComplete: () {
+                if (mounted) {
+                  setState(() => _showStartCutscene = false);
+                  ref.read(timerProvider.notifier).start();
+                }
+              },
+            )
+          else if (engineState.phase == LeaguePhase.levelUp)
             LevelUpCutscene(
               newLevel: engineState.currentLevel + 1,
               newBbLevel: _bbLevelForLevel(engineState.currentLevel + 1),

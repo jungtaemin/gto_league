@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/music_manager.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/responsive.dart';
@@ -80,7 +81,9 @@ class _DeepRunEntryCardState extends State<_DeepRunEntryCard> {
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) {
         setState(() => _isPressed = false);
-        Navigator.pushNamed(context, '/deep-run');
+        Navigator.pushNamed(context, '/deep-run').then((_) {
+          MusicManager.ensurePlaying(MusicType.lobby);
+        });
       },
       onTapCancel: () => setState(() => _isPressed = false),
       child: AnimatedScale(
@@ -141,7 +144,7 @@ class _DeepRunEntryCardState extends State<_DeepRunEntryCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '100-HAND DEEP RUN',
+                          '50-HAND DEEP RUN',
                           style: TextStyle(
                             fontFamily: 'Black Han Sans',
                             fontSize: context.sp(20),
@@ -184,7 +187,7 @@ class _DeepRunEntryCardState extends State<_DeepRunEntryCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildInfoRow(context, '🎯', '5단계 × 20핸드 = 100핸드 서바이벌'),
+                    _buildInfoRow(context, '🎯', '5단계 × 10핸드 = 50핸드 서바이벌'),
                     SizedBox(height: context.w(6)),
                     _buildInfoRow(context, '❤️', '3개의 생명 — 모두 잃으면 게임 오버'),
                     SizedBox(height: context.w(6)),

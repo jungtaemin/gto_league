@@ -9,7 +9,6 @@ import '../../providers/game_state_notifier.dart';
 import '../../providers/game_providers.dart';
 import '../../data/models/tier.dart';
 import '../../data/services/ad_service.dart';
-import '../../data/services/supabase_service.dart';
 import '../../core/utils/responsive.dart';
 
 class GameOverScreen extends ConsumerStatefulWidget {
@@ -20,33 +19,9 @@ class GameOverScreen extends ConsumerStatefulWidget {
 }
 
 class _GameOverScreenState extends ConsumerState<GameOverScreen> {
-  bool _leagueOpsExecuted = false;
-  bool _isLeagueMode = false;
-  int _leagueScore = 0;
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _detectModeAndExecuteOps();
-    });
-  }
-
-  void _detectModeAndExecuteOps() {
-    final args = ModalRoute.of(context)?.settings.arguments;
-    final score = ref.read(gameStateProvider).score;
-    if (args is Map<String, dynamic> && args['mode'] == 'league') {
-      setState(() {
-        _isLeagueMode = true;
-        _leagueScore = score;
-      });
-    }
-    _executeLeagueOps(score);
-  }
-
-  void _executeLeagueOps(int score) {
-    if (_leagueOpsExecuted) return;
-    _leagueOpsExecuted = true;
-    _joinLeagueAndUpdateScore(score);
   }
 
   Color _getTierColor(Tier tier) {
@@ -71,7 +46,7 @@ class _GameOverScreenState extends ConsumerState<GameOverScreen> {
   @override
   Widget build(BuildContext context) {
     final gameState = ref.read(gameStateProvider);
-    final displayScore = _isLeagueMode ? _leagueScore : gameState.score;
+    final displayScore = gameState.score;
     final tierColor = _getTierColor(gameState.currentTier);
 
     return Scaffold(
@@ -170,17 +145,14 @@ class _GameOverScreenState extends ConsumerState<GameOverScreen> {
                     textColor: AppColors.pureBlack,
                     onPressed: () {
                       ref.read(gameStateProvider.notifier).reset();
-                      Navigator.of(context).pushReplacementNamed(
-                        _isLeagueMode ? '/league' : '/game',
-                      );
+                      Navigator.of(context).pushReplacementNamed('/game');
                     },
                   ).animate(delay: 500.ms).slideY(begin: 0.5, end: 0, duration: 400.ms, curve: Curves.easeOutBack).fadeIn(),
 
                   SizedBox(height: context.h(16)),
-                  // Ad refill — only for non-league mode
-                  if (!_isLeagueMode) ...[
-                    SizedBox(height: context.h(16)),
-                    NeoBrutalistButton(
+                  // Ad refill — always show for training mode
+                  SizedBox(height: context.h(16)),
+                  NeoBrutalistButton(
                       label: '♥️ 하트 충전 (광고)',
                       color: AppColors.neonPink,
                       textColor: AppColors.pureWhite,
@@ -210,7 +182,6 @@ class _GameOverScreenState extends ConsumerState<GameOverScreen> {
                         );
                       },
                     ).animate(delay: 600.ms).slideY(begin: 0.5, end: 0, duration: 400.ms, curve: Curves.easeOutBack).fadeIn(),
-                  ],
 
                   SizedBox(height: context.h(24)),
 
@@ -247,106 +218,6 @@ class _GameOverScreenState extends ConsumerState<GameOverScreen> {
         ),
       ],
     ).animate(delay: delay.ms).fadeIn().slideY(begin: 0.2, end: 0);
-  }
-
-  // ── 리그 배정 + 점수 업데이트 ──
-  void _joinLeagueAndUpdateScore(int score) {
-    Future.microtask(() async {
-      if (!SupabaseService.isLoggedIn) return;
-
-      final leagueService = ref.read(leagueServiceProvider);
-
-      // 1. 리그 배정 (JoinLeagueResult 반환)
-      final result = await leagueService.joinOrCreateLeague(score);
-
-      // 2. 점수 업데이트 (매번 무조건 호출)
-      await leagueService.updateScore(score);
-
-      // 3. 첫 배정 시에만 축하 팝업 (is_new == true)
-      if (result != null && result.isNew && mounted) {
-        final tier = Tier.fromScore(score);
-        _showLeaguePlacementDialog(tier);
-      }
-    });
-  }
-
-  void _showLeaguePlacementDialog(Tier tier) {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: 'League Placement',
-      barrierColor: Colors.black.withOpacity(0.8),
-      transitionDuration: const Duration(milliseconds: 600),
-      pageBuilder: (context, anim1, anim2) => const SizedBox(), 
-      transitionBuilder: (context, anim1, anim2, child) {
-        final curve = CurvedAnimation(parent: anim1, curve: Curves.elasticOut);
-        return ScaleTransition(
-          scale: curve,
-          child: FadeTransition(
-            opacity: anim1,
-            child: Dialog(
-              backgroundColor: Colors.transparent,
-              child: Container(
-                padding: EdgeInsets.all(context.w(24)),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-                    begin: Alignment.topLeft, end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(context.r(24)),
-                  border: Border.all(color: AppColors.acidYellow, width: 2),
-                  boxShadow: [
-                    BoxShadow(color: AppColors.acidYellow.withOpacity(0.3), blurRadius: 20, spreadRadius: 5),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'LEAGUE PLACEMENT',
-                      style: AppTextStyles.bodySmall(color: Colors.white54).copyWith(letterSpacing: 2.0),
-                    ),
-                    SizedBox(height: context.w(16)),
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Container(
-                          width: context.w(100), height: context.w(100),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.acidYellow.withOpacity(0.2),
-                            boxShadow: [BoxShadow(color: AppColors.acidYellow.withOpacity(0.4), blurRadius: 30)],
-                          ),
-                        ),
-                        Text(tier.emoji, style: TextStyle(fontSize: context.sp(64))),
-                      ],
-                    ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(begin: const Offset(1, 1), end: const Offset(1.1, 1.1), duration: 1000.ms),
-                    SizedBox(height: context.w(16)),
-                    Text(
-                      '${tier.displayName} 리그',
-                      style: AppTextStyles.headingSmall(color: AppColors.acidYellow),
-                    ),
-                    SizedBox(height: context.w(8)),
-                    Text(
-                      '배치가 완료되었습니다!',
-                      style: AppTextStyles.body(color: Colors.white),
-                    ),
-                    SizedBox(height: context.w(24)),
-                    NeoBrutalistButton(
-                      label: '확인',
-                      isPrimary: true,
-                      color: AppColors.acidYellow,
-                      textColor: AppColors.pureBlack,
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
   }
 }
 

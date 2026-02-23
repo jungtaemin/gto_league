@@ -9,6 +9,7 @@ import 'features/game_over/game_over_screen.dart';
 import 'features/privacy/privacy_screen.dart';
 import 'features/game/deep_run_screen.dart';
 import 'features/game/league_screen.dart';
+import 'features/game_over/league_game_over_screen.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -26,6 +27,7 @@ class App extends StatelessWidget {
         '/home': (context) => const GtoHomeScreen(),
         '/game': (context) => const GameScreen(),
         '/game-over': (context) => const GameOverScreen(),
+        '/league-game-over': (context) => const LeagueGameOverScreen(),
         '/privacy': (context) => const PrivacyScreen(),
         '/deep-run': (context) => const DeepRunScreen(),
         '/league': (context) => const LeagueScreen(),

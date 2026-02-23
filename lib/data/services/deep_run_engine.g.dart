@@ -8,9 +8,9 @@ part of 'deep_run_engine.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// 100-Hand Deep Run Survival game loop engine.
+/// 50-Hand Deep Run Survival game loop engine.
 ///
-/// Manages 5 levels × 20 hands, 3-strike system, scoring,
+/// Manages 5 levels × 10 hands, 3-strike system, scoring,
 /// and level transitions. Consumed by Deep Run Screen.
 ///
 /// ## Scoring
@@ -26,9 +26,9 @@ part of 'deep_run_engine.dart';
 @ProviderFor(DeepRunEngine)
 final deepRunEngineProvider = DeepRunEngineProvider._();
 
-/// 100-Hand Deep Run Survival game loop engine.
+/// 50-Hand Deep Run Survival game loop engine.
 ///
-/// Manages 5 levels × 20 hands, 3-strike system, scoring,
+/// Manages 5 levels × 10 hands, 3-strike system, scoring,
 /// and level transitions. Consumed by Deep Run Screen.
 ///
 /// ## Scoring
@@ -42,9 +42,9 @@ final deepRunEngineProvider = DeepRunEngineProvider._();
 /// Level 4 = 7BB, Level 5 = 5BB
 final class DeepRunEngineProvider
     extends $NotifierProvider<DeepRunEngine, DeepRunState> {
-  /// 100-Hand Deep Run Survival game loop engine.
+  /// 50-Hand Deep Run Survival game loop engine.
   ///
-  /// Manages 5 levels × 20 hands, 3-strike system, scoring,
+  /// Manages 5 levels × 10 hands, 3-strike system, scoring,
   /// and level transitions. Consumed by Deep Run Screen.
   ///
   /// ## Scoring
@@ -83,11 +83,11 @@ final class DeepRunEngineProvider
   }
 }
 
-String _$deepRunEngineHash() => r'479c48b9f64dabfc90e663c70105053b1cc05708';
+String _$deepRunEngineHash() => r'e94e4d53259e9a3028533694e45d0de69333983a';
 
-/// 100-Hand Deep Run Survival game loop engine.
+/// 50-Hand Deep Run Survival game loop engine.
 ///
-/// Manages 5 levels × 20 hands, 3-strike system, scoring,
+/// Manages 5 levels × 10 hands, 3-strike system, scoring,
 /// and level transitions. Consumed by Deep Run Screen.
 ///
 /// ## Scoring

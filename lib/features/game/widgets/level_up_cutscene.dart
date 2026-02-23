@@ -20,11 +20,15 @@ class LevelUpCutscene extends StatefulWidget {
   /// Called when the cutscene finishes (~2.5s).
   final VoidCallback onComplete;
 
+  /// Whether this is the initial game start sequence.
+  final bool isGameStart;
+
   const LevelUpCutscene({
     super.key,
     required this.newLevel,
     required this.newBbLevel,
     required this.onComplete,
+    this.isGameStart = false,
   });
 
   @override
@@ -158,11 +162,11 @@ class _LevelUpCutsceneState extends State<LevelUpCutscene>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // "🚨 STAGE UP!" with scale bounce + shake
+                        // "🚨 STAGE UP!" or "🚨 GAME START!" with scale bounce + shake
                         Transform.scale(
                           scale: _stageScaleIn.value.clamp(0.0, 1.2),
                           child: Text(
-                            '🚨 STAGE UP!',
+                            widget.isGameStart ? '🚨 GAME START!' : '🚨 STAGE UP!',
                             style: AppTextStyles.display(
                               color: theme.accent,
                             ),
@@ -178,30 +182,10 @@ class _LevelUpCutsceneState extends State<LevelUpCutscene>
                               offset: const Offset(3, 3),
                             ),
 
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 32),
 
-                        // "BLINDS UP! (XXbb)" with slide-up + fade
-                        SlideTransition(
-                          position: _blindsSlideUp,
-                          child: Opacity(
-                            opacity: _blindsFadeIn.value.clamp(0.0, 1.0),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                boxShadow: AppColors.neonGlow(
-                                  theme.accent,
-                                  intensity: 0.4,
-                                ),
-                              ),
-                              child: Text(
-                                'BLINDS UP! (${widget.newBbLevel}BB)',
-                                style: AppTextStyles.heading(
-                                  color: theme.accent,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                        ),
+                        // The animated Poker Chip used for all stages
+                        _buildChip(theme),
                       ],
                     ),
                   ),
@@ -211,6 +195,154 @@ class _LevelUpCutsceneState extends State<LevelUpCutscene>
           },
         ),
       ),
+    );
+  }
+
+  Widget _buildChip(LevelTheme theme) {
+    return Transform.scale(
+      scale: _stageScaleIn.value.clamp(0.0, 1.2),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Background Glow Component
+          Container(
+            width: 240,
+            height: 240,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: theme.accent.withOpacity(0.4),
+                  blurRadius: 100,
+                  spreadRadius: 30,
+                ),
+              ],
+            ),
+          ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+           .scale(begin: const Offset(0.9, 0.9), end: const Offset(1.1, 1.1), duration: 1000.ms),
+
+          // Main Chip Body
+          Container(
+            width: 200,
+            height: 200,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [theme.background, AppColors.deepBlack],
+                radius: 0.8,
+              ),
+              border: Border.all(
+                color: theme.accent,
+                width: 8,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.8),
+                  blurRadius: 30,
+                  offset: const Offset(0, 15),
+                ),
+              ],
+            ),
+            child: Container(
+              margin: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: theme.accent.withOpacity(0.6),
+                  width: 2,
+                ),
+              ),
+              child: Container(
+                margin: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: theme.accent.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${widget.newBbLevel}',
+                        style: TextStyle(
+                          fontFamily: 'Black Han Sans',
+                          fontSize: 72,
+                          height: 1.0,
+                          color: AppColors.pureWhite,
+                          shadows: [
+                            Shadow(
+                              color: theme.accent,
+                              blurRadius: 20,
+                            ),
+                            const Shadow(
+                              color: Colors.black,
+                              blurRadius: 5,
+                              offset: Offset(2, 4),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        'BB',
+                        style: TextStyle(
+                          fontFamily: 'Black Han Sans',
+                          fontSize: 28,
+                          height: 1.0,
+                          color: theme.accent,
+                          letterSpacing: 2.0,
+                          shadows: const [
+                            Shadow(
+                              color: Colors.black,
+                              blurRadius: 6,
+                              offset: Offset(2, 2),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          
+          // Shimmer Sweep
+          Container(
+            width: 200,
+            height: 200,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+            ),
+          ).animate(delay: 500.ms)
+           .shimmer(duration: 1500.ms, color: Colors.white.withOpacity(0.5), angle: 1.0, blendMode: BlendMode.screen),
+        ],
+      ),
+    )
+    .animate(
+      autoPlay: true,
+      delay: 100.ms,
+    )
+    // Entry animation: pop and slight rotation
+    .scale(
+      begin: const Offset(0.1, 0.1),
+      end: const Offset(1.0, 1.0),
+      duration: 800.ms,
+      curve: Curves.elasticOut,
+    )
+    .rotate(
+      begin: -0.15,
+      end: 0.0,
+      duration: 800.ms,
+      curve: Curves.easeOutBack,
+    )
+    // Impact shake
+    .shake(
+      duration: 400.ms,
+      hz: 4,
+      offset: const Offset(4, 4),
     );
   }
 }
