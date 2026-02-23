@@ -6,7 +6,6 @@ import '../../../../core/utils/responsive.dart';
 import '../../../../providers/user_stats_provider.dart';
 import 'gto_bottom_nav.dart';
 import 'gto_top_bar.dart';
-import 'gto_hero_stage.dart';
 import 'stitch_colors.dart';
 import 'settings_dialog.dart'; // 추가됨
 import '../../../../data/models/league_player.dart';
@@ -33,15 +32,17 @@ class GtoLobbyBody extends ConsumerWidget {
 
         SizedBox(height: context.w(2)),
 
-        // 2. Logo (화면 전체 너비 기준 중앙) + Side Menu (우측 오버레이)
-        _buildLogoWithSideMenu(context),
+        // 2. Logo (좌측 상단 컴팩트) + Side Menu (우측 오버레이)
+        _buildTopUI(context),
 
-        // 3. Hero Stage (Robot) → 남은 공간 자동 차지
-        const Expanded(
-          child: GtoHeroStage(),
-        ),
+        // 3. 빈 공간 (기존 Hero Stage 자리) → 남은 공간 자동 차지하여 배경 영상 노출 극대화
+        const Expanded(child: SizedBox()),
 
-        // 4. Battle Button
+        // 4. League Rank Brief Panel (버튼 바로 위로 이동)
+        const _LeagueBriefPanel(),
+        SizedBox(height: context.w(16)),
+
+        // 5. Battle Button
         Padding(
           padding: EdgeInsets.only(left: context.w(24), right: context.w(24), bottom: navBottomPadding),
           child: _buildBattleButton(context, ref),
@@ -50,78 +51,84 @@ class GtoLobbyBody extends ConsumerWidget {
     );
   }
 
-  /// 로고는 화면 전체 너비 기준 정중앙, 사이드 메뉴는 우측에 오버레이
-  Widget _buildLogoWithSideMenu(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        // 로고: 전체 너비 사용, 중앙 정렬
-        _buildLogoSection(context),
-        // 사이드 메뉴: 우측 상단에 오버레이
-        Positioned(
-          right: context.w(2),
-          top: context.w(6),
-          child: _buildRightSideMenu(context),
-        ),
-      ],
+  Widget _buildTopUI(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: context.w(16)),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // 좌측 상단: 로고 및 칩
+          Align(
+            alignment: Alignment.topLeft,
+            child: _buildLogoSection(context),
+          ),
+          // 우측 상단: 설정 / 우편함 등
+          Positioned(
+            right: 0,
+            top: context.w(6),
+            child: _buildRightSideMenu(context),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildLogoSection(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // GTO 텍스트 - Column으로 배치하여 LEAGUE와 절대 겹치지 않음
-          ShaderMask(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // GTO 텍스트
+        ShaderMask(
+          shaderCallback: (bounds) => const LinearGradient(
+            colors: [Color(0xFF93C5FD), Color(0xFF3B82F6)],
+            begin: Alignment.topCenter, end: Alignment.bottomCenter,
+            stops: [0.2, 1.0],
+          ).createShader(bounds),
+          child: Text("GTO", style: TextStyle(
+            fontFamily: 'Black Han Sans',
+            fontSize: context.w(52), // 크기 약간 축소
+            color: Colors.white,
+            letterSpacing: 2.0,
+            height: 1.0,
+            shadows: [
+              const Shadow(color: Color(0xFF1E3A8A), offset: Offset(0, 3), blurRadius: 0),
+              Shadow(color: Colors.black.withOpacity(0.5), offset: const Offset(0, 6), blurRadius: 10),
+            ],
+          )),
+        ),
+
+        // LEAGUE 텍스트
+        Transform.translate(
+          offset: Offset(context.w(2), -context.w(6)), // 들여쓰기 + 간격 좁히기
+          child: ShaderMask(
             shaderCallback: (bounds) => const LinearGradient(
-              colors: [Color(0xFF93C5FD), Color(0xFF3B82F6)],
+              colors: [Color(0xFFFDE047), Color(0xFFF97316)],
               begin: Alignment.topCenter, end: Alignment.bottomCenter,
-              stops: [0.2, 1.0],
             ).createShader(bounds),
-            child: Text("GTO", style: TextStyle(
+            child: Text("LEAGUE", style: TextStyle(
               fontFamily: 'Black Han Sans',
-              fontSize: context.w(64),
+              fontSize: context.w(28), // 크기 약간 축소
               color: Colors.white,
-              letterSpacing: 2.0,
+              letterSpacing: 1.0,
               height: 1.0,
               shadows: [
-                const Shadow(color: Color(0xFF1E3A8A), offset: Offset(0, 3), blurRadius: 0),
-                Shadow(color: Colors.black.withOpacity(0.5), offset: const Offset(0, 6), blurRadius: 10),
+                const Shadow(color: Color(0xFF7C2D12), offset: Offset(0, 2), blurRadius: 0),
+                const Shadow(color: Color(0xFF7C2D12), offset: Offset(2, 2), blurRadius: 0),
+                const Shadow(color: Color(0xFF7C2D12), offset: Offset(-2, 2), blurRadius: 0),
+                Shadow(color: Colors.black.withOpacity(0.5), offset: const Offset(0, 5), blurRadius: 8),
               ],
             )),
           ),
+        ),
 
-          // LEAGUE 텍스트 - GTO 바로 아래에 자연스럽게 배치
-          Transform.translate(
-            offset: Offset(0, -context.w(8)), // 살짝 위로 당겨서 로고처럼 밀착
-            child: ShaderMask(
-              shaderCallback: (bounds) => const LinearGradient(
-                colors: [Color(0xFFFDE047), Color(0xFFF97316)],
-                begin: Alignment.topCenter, end: Alignment.bottomCenter,
-              ).createShader(bounds),
-              child: Text("LEAGUE", style: TextStyle(
-                fontFamily: 'Black Han Sans',
-                fontSize: context.w(36),
-                color: Colors.white,
-                letterSpacing: 1.0,
-                height: 1.0,
-                shadows: [
-                  const Shadow(color: Color(0xFF7C2D12), offset: Offset(0, 2), blurRadius: 0),
-                  const Shadow(color: Color(0xFF7C2D12), offset: Offset(2, 2), blurRadius: 0),
-                  const Shadow(color: Color(0xFF7C2D12), offset: Offset(-2, 2), blurRadius: 0),
-                  Shadow(color: Colors.black.withOpacity(0.5), offset: const Offset(0, 5), blurRadius: 8),
-                ],
-              )),
-            ),
-          ),
-
-          // Chip Tag
-          Transform.translate(
-            offset: Offset(0, -context.w(4)),
+        // Chip Tag
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Transform.translate(
+            offset: Offset(context.w(4), -context.w(2)),
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: context.w(10), vertical: context.w(4)),
+              padding: EdgeInsets.symmetric(horizontal: context.w(8), vertical: context.w(3)),
               decoration: BoxDecoration(
                 color: const Color(0xFF172554).withOpacity(0.8),
                 borderRadius: BorderRadius.circular(context.r(20)),
@@ -129,17 +136,12 @@ class GtoLobbyBody extends ConsumerWidget {
                 boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
               ),
               child: Text("홀덤 푸시폴드 배틀", style: TextStyle(
-                color: StitchColors.blue200, fontSize: context.sp(11), fontWeight: FontWeight.normal, letterSpacing: 0.5
+                color: StitchColors.blue200, fontSize: context.sp(10), fontWeight: FontWeight.normal, letterSpacing: 0.5
               )),
             ),
           ),
-          
-          SizedBox(height: context.w(12)),
-          
-          // League Rank Brief Panel
-          const _LeagueBriefPanel(),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

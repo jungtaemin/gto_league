@@ -35,20 +35,7 @@ class GtoBackground extends ConsumerWidget {
             child: _buildSoftCircle(const Color(0xFF9333EA), 400),
           ),
 
-          // 2. Main Character (Centered in Background)
-          Center(
-            child: Opacity(
-              opacity: 0.6,
-              child: Transform.scale(
-                scale: 1.5,
-                child: CharacterDisplayWidget(
-                  characterId: characterId,
-                  size: 300,
-                  isLocked: false,
-                ),
-              ),
-            ),
-          ),
+          // (Removed Main Character Silhouette from Background)
 
           // 3. Static Floating Icons (no AnimationController)
           Positioned(
