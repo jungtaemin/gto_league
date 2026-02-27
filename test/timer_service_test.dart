@@ -153,16 +153,16 @@ void main() {
     test('startWithCombo adjusts duration for combo >= 5', () {
       notifier.startWithCombo(5);
 
-      expect(notifier.currentDuration, 12.0);
-      expect(notifier.state.seconds, 12.0);
+      expect(notifier.currentDuration, 10.0);
+      expect(notifier.state.seconds, 10.0);
       expect(notifier.state.isRunning, true);
     });
 
     test('startWithCombo adjusts duration for combo >= 10', () {
       notifier.startWithCombo(10);
 
-      expect(notifier.currentDuration, 10.0);
-      expect(notifier.state.seconds, 10.0);
+      expect(notifier.currentDuration, 8.0);
+      expect(notifier.state.seconds, 8.0);
       expect(notifier.state.isRunning, true);
     });
 

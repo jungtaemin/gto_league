@@ -9,11 +9,20 @@ import 'package:holdem_allin_fold/core/theme/app_colors.dart';
 ///
 /// Animated gradient that crossfades when [currentLevel] changes (1–5).
 /// Level 5 special: pitch-black with pulsing red vignette edges.
+/// Hard mode: faster crossfade (1000ms), vignette on all levels, hard mode theme.
 class DeepRunBackground extends StatefulWidget {
   /// Current difficulty level (1–5).
   final int currentLevel;
 
-  const DeepRunBackground({super.key, required this.currentLevel});
+  /// Enable hard mode styling: faster crossfade (1000ms), vignette on all levels,
+  /// and hard mode color theme.
+  final bool isHardMode;
+
+  const DeepRunBackground({
+    super.key,
+    required this.currentLevel,
+    this.isHardMode = false,
+  });
 
   @override
   State<DeepRunBackground> createState() => _DeepRunBackgroundState();
@@ -22,7 +31,9 @@ class DeepRunBackground extends StatefulWidget {
 class _DeepRunBackgroundState extends State<DeepRunBackground> {
   @override
   Widget build(BuildContext context) {
-    final theme = AppColors.getLevelTheme(widget.currentLevel);
+    final theme = widget.isHardMode
+        ? AppColors.getHardModeLevelTheme(widget.currentLevel)
+        : AppColors.getLevelTheme(widget.currentLevel);
     final isLevel5 = widget.currentLevel == 5;
     final size = MediaQuery.of(context).size;
 
@@ -30,7 +41,7 @@ class _DeepRunBackgroundState extends State<DeepRunBackground> {
       children: [
         // ── Main gradient background with crossfade ───────────────────
         AnimatedContainer(
-          duration: const Duration(milliseconds: 1500),
+          duration: Duration(milliseconds: widget.isHardMode ? 1000 : 1500),
           curve: Curves.easeInOut,
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -54,7 +65,7 @@ class _DeepRunBackgroundState extends State<DeepRunBackground> {
           width: size.width * 0.5,
           height: size.height * 0.4,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 1500),
+            duration: Duration(milliseconds: widget.isHardMode ? 1000 : 1500),
             curve: Curves.easeInOut,
             decoration: BoxDecoration(
               color: theme.primary.withOpacity(0.25),
@@ -74,7 +85,7 @@ class _DeepRunBackgroundState extends State<DeepRunBackground> {
           width: size.width * 0.6,
           height: size.height * 0.45,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 1500),
+            duration: Duration(milliseconds: widget.isHardMode ? 1000 : 1500),
             curve: Curves.easeInOut,
             decoration: BoxDecoration(
               color: theme.accent.withOpacity(0.2),
@@ -88,7 +99,8 @@ class _DeepRunBackgroundState extends State<DeepRunBackground> {
         ),
 
         // ── Level 5 SPECIAL: pulsing red vignette edges ───────────────
-        if (isLevel5)
+        // ── Hard Mode: vignette on all levels with accent color ───────
+        if (isLevel5 || widget.isHardMode)
           Positioned.fill(
             child: IgnorePointer(
               child: Container(
@@ -98,7 +110,9 @@ class _DeepRunBackgroundState extends State<DeepRunBackground> {
                     radius: 0.9,
                     colors: [
                       Colors.transparent,
-                      AppColors.laserRed.withOpacity(0.6),
+                      widget.isHardMode
+                          ? theme.accent.withOpacity(0.5)
+                          : AppColors.laserRed.withOpacity(0.6),
                     ],
                     stops: const [0.4, 1.0],
                   ),

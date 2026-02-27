@@ -23,12 +23,16 @@ class LevelUpCutscene extends StatefulWidget {
   /// Whether this is the initial game start sequence.
   final bool isGameStart;
 
+  /// Whether this is a hard mode entry (shows "🔥 HARD MODE" instead of "STAGE UP!").
+  final bool isHardModeEntry;
+
   const LevelUpCutscene({
     super.key,
     required this.newLevel,
     required this.newBbLevel,
     required this.onComplete,
     this.isGameStart = false,
+    this.isHardModeEntry = false,
   });
 
   @override
@@ -162,25 +166,71 @@ class _LevelUpCutsceneState extends State<LevelUpCutscene>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // "🚨 STAGE UP!" or "🚨 GAME START!" with scale bounce + shake
-                        Transform.scale(
-                          scale: _stageScaleIn.value.clamp(0.0, 1.2),
-                          child: Text(
-                            widget.isGameStart ? '🚨 GAME START!' : '🚨 STAGE UP!',
-                            style: AppTextStyles.display(
-                              color: theme.accent,
+                        // Main text: "🚨 STAGE UP!", "🚨 GAME START!", or "🔥 HARD MODE"
+                        if (widget.isHardModeEntry)
+                          Transform.scale(
+                            scale: _stageScaleIn.value.clamp(0.0, 1.2),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '🔥 HARD MODE',
+                                  style: AppTextStyles.display(
+                                    color: AppColors.laserRed,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                )
+                                    .animate(
+                                      autoPlay: true,
+                                      delay: 200.ms,
+                                    )
+                                    .shake(
+                                      duration: 300.ms,
+                                      hz: 3,
+                                      offset: const Offset(5, 5),
+                                    )
+                                    .then()
+                                    .scale(
+                                      begin: const Offset(1.0, 1.0),
+                                      end: const Offset(1.05, 1.05),
+                                      duration: 600.ms,
+                                      curve: Curves.easeInOut,
+                                    ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  '목숨을 걸고 도전하라',
+                                  style: AppTextStyles.heading(
+                                    color: AppColors.laserRed,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                )
+                                    .animate(
+                                      autoPlay: true,
+                                      delay: 300.ms,
+                                    )
+                                    .fadeIn(duration: 400.ms),
+                              ],
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                        )
-                            .animate(
-                              autoPlay: true,
-                              delay: 200.ms,
-                            )
-                            .shake(
-                              duration: 300.ms,
-                              offset: const Offset(3, 3),
+                          )
+                        else
+                          Transform.scale(
+                            scale: _stageScaleIn.value.clamp(0.0, 1.2),
+                            child: Text(
+                              widget.isGameStart ? '🚨 GAME START!' : '🚨 STAGE UP!',
+                              style: AppTextStyles.display(
+                                color: theme.accent,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
+                          )
+                              .animate(
+                                autoPlay: true,
+                                delay: 200.ms,
+                              )
+                              .shake(
+                                duration: 300.ms,
+                                offset: const Offset(3, 3),
+                              ),
 
                         const SizedBox(height: 32),
 

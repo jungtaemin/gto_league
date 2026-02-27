@@ -15,6 +15,9 @@ enum DeepRunPhase {
   /// Level transition cutscene in progress.
   levelUp,
 
+  /// Hard mode transition (player entered hard mode).
+  hardModeTransition,
+
   /// Player lost all strikes — game over.
   gameOver,
 
@@ -63,6 +66,12 @@ class DeepRunState {
   /// Current game phase.
   final DeepRunPhase phase;
 
+  /// Whether hard mode is active.
+  final bool isHardMode;
+
+  /// Score achieved in normal mode (before hard mode transition).
+  final int normalModeScore;
+
   const DeepRunState({
     required this.currentLevel,
     required this.handInLevel,
@@ -75,6 +84,8 @@ class DeepRunState {
     required this.isVictory,
     required this.isLevelingUp,
     required this.phase,
+    required this.isHardMode,
+    required this.normalModeScore,
   });
 
   /// Initial state: level 1, hand 1, 3 strikes, score 0.
@@ -91,6 +102,8 @@ class DeepRunState {
       isVictory: false,
       isLevelingUp: false,
       phase: DeepRunPhase.playing,
+      isHardMode: false,
+      normalModeScore: 0,
     );
   }
 
@@ -128,6 +141,8 @@ class DeepRunState {
     bool? isVictory,
     bool? isLevelingUp,
     DeepRunPhase? phase,
+    bool? isHardMode,
+    int? normalModeScore,
   }) {
     return DeepRunState(
       currentLevel: currentLevel ?? this.currentLevel,
@@ -141,6 +156,8 @@ class DeepRunState {
       isVictory: isVictory ?? this.isVictory,
       isLevelingUp: isLevelingUp ?? this.isLevelingUp,
       phase: phase ?? this.phase,
+      isHardMode: isHardMode ?? this.isHardMode,
+      normalModeScore: normalModeScore ?? this.normalModeScore,
     );
   }
 
@@ -159,7 +176,9 @@ class DeepRunState {
           isGameOver == other.isGameOver &&
           isVictory == other.isVictory &&
           isLevelingUp == other.isLevelingUp &&
-          phase == other.phase;
+          phase == other.phase &&
+          isHardMode == other.isHardMode &&
+          normalModeScore == other.normalModeScore;
 
   @override
   int get hashCode =>
@@ -173,13 +192,15 @@ class DeepRunState {
       isGameOver.hashCode ^
       isVictory.hashCode ^
       isLevelingUp.hashCode ^
-      phase.hashCode;
+      phase.hashCode ^
+      isHardMode.hashCode ^
+      normalModeScore.hashCode;
 
   @override
   String toString() =>
       'DeepRunState(level: $currentLevel, hand: $handInLevel/$totalHands, '
       'strikes: $strikesRemaining, score: $score, combo: $combo, '
-      'streak: $currentStreak, phase: $phase)';
+      'streak: $currentStreak, hardMode: $isHardMode, normalScore: $normalModeScore, phase: $phase)';
 }
 
 // ── Deep Run Engine ────────────────────────────────────────────
@@ -274,15 +295,25 @@ class DeepRunEngine extends _$DeepRunEngine {
     final int newHandInLevel = state.handInLevel + 1;
     final int newTotalHands = state.totalHands + 1;
 
-    // Victory: completed all 50 hands.
+    // Victory or hard mode transition: completed all 50 hands.
     if (newTotalHands > _totalHands) {
-      state = state.copyWith(
-        totalHands: _totalHands,
-        isVictory: true,
-        isGameOver: true,
-        phase: DeepRunPhase.victory,
-      );
-      debugPrint('[DeepRunEngine] Victory — all $_totalHands hands completed');
+      if (state.isHardMode) {
+        // Hard mode complete — real victory
+        state = state.copyWith(
+          totalHands: _totalHands,
+          isVictory: true,
+          isGameOver: true,
+          phase: DeepRunPhase.victory,
+        );
+        debugPrint('[DeepRunEngine] Hard mode victory — all $_totalHands hard hands completed');
+      } else {
+        // Normal mode complete — transition to hard mode
+        state = state.copyWith(
+          totalHands: _totalHands,
+          phase: DeepRunPhase.hardModeTransition,
+        );
+        debugPrint('[DeepRunEngine] Normal mode complete — transitioning to hard mode');
+      }
       return;
     }
 
@@ -327,6 +358,38 @@ class DeepRunEngine extends _$DeepRunEngine {
       '[DeepRunEngine] Level $nextLevel started — '
       '${state.currentBbLevel}BB',
     );
+  }
+
+  /// Called when the hard mode transition cutscene ends.
+  ///
+  /// Preserves strikes and score from normal mode, resets level/hand/combo,
+  /// and starts hard mode play.
+  void startHardMode() {
+    if (state.phase != DeepRunPhase.hardModeTransition) return;
+
+    state = state.copyWith(
+      normalModeScore: state.score,
+      currentLevel: 1,
+      handInLevel: 1,
+      totalHands: 1,
+      combo: 0,
+      currentStreak: 0,
+      isHardMode: true,
+      isLevelingUp: false,
+      phase: DeepRunPhase.playing,
+    );
+
+    debugPrint(
+      '[DeepRunEngine] Hard mode started — '
+      'normalScore: ${state.normalModeScore}, strikes: ${state.strikesRemaining}',
+    );
+  }
+
+  /// Called to complete the hard mode transition and resume play.
+  ///
+  /// This is an alias for [startHardMode] — kept for API clarity.
+  void completeHardModeTransition() {
+    startHardMode();
   }
 
   /// Pause the game (app lifecycle).

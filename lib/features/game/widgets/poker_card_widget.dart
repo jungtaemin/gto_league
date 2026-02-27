@@ -34,10 +34,13 @@ class PokerCardWidget extends ConsumerWidget {
     return SizedBox.expand(
       child: ColoredBox(
         color: Colors.transparent, // 투명 배경으로 전체 영역 클릭/스와이프 감지
-        child: Center(
-          child: SizedBox(
-            height: stackHeight,
-            child: Stack(
+        child: Align(
+          alignment: Alignment.topCenter, // 여백을 최소한으로 줄이기 위해 상단 정렬
+          child: Padding(
+            padding: EdgeInsets.only(top: context.h(16)), // 카드 위 간격 최소화
+            child: SizedBox(
+              height: stackHeight,
+              child: Stack(
               alignment: Alignment.center,
               clipBehavior: Clip.none,
               children: [
@@ -74,6 +77,7 @@ class PokerCardWidget extends ConsumerWidget {
                   ),
                 ),
               ],
+              ),
             ),
           ),
         ),

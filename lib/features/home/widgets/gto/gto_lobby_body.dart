@@ -8,10 +8,13 @@ import 'gto_bottom_nav.dart';
 import 'gto_top_bar.dart';
 import 'stitch_colors.dart';
 import 'settings_dialog.dart'; // 추가됨
+import '../../../../providers/mailbox_provider.dart';
+import '../../../mailbox/mailbox_dialog.dart';
 import '../../../../data/models/league_player.dart';
 import '../../../../data/models/tier.dart';
 import '../../../../data/services/league_service.dart';
 import '../../../../data/services/supabase_service.dart';
+import '../../../../data/services/schedule_helper.dart';
 /// Stitch V2 Lobby Body
 /// 반응형: 모든 크기를 context.w() 기반으로 통일
 class GtoLobbyBody extends ConsumerWidget {
@@ -33,7 +36,7 @@ class GtoLobbyBody extends ConsumerWidget {
         SizedBox(height: context.w(2)),
 
         // 2. Logo (좌측 상단 컴팩트) + Side Menu (우측 오버레이)
-        _buildTopUI(context),
+        _buildTopUI(context, ref),
 
         // 3. 빈 공간 (기존 Hero Stage 자리) → 남은 공간 자동 차지하여 배경 영상 노출 극대화
         const Expanded(child: SizedBox()),
@@ -51,24 +54,31 @@ class GtoLobbyBody extends ConsumerWidget {
     );
   }
 
-  Widget _buildTopUI(BuildContext context) {
+  Widget _buildTopUI(BuildContext context, WidgetRef ref) {
+    // 우측 사이드 메뉴(3버튼)의 전체 높이: 버튼3개(42) + 간격2개(10) + 상단오프셋(6)
+    final sideMenuHeight = context.w(6) + context.w(42) * 3 + context.w(10) * 2;
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: context.w(16)),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // 좌측 상단: 로고 및 칩
-          Align(
-            alignment: Alignment.topLeft,
-            child: _buildLogoSection(context),
-          ),
-          // 우측 상단: 설정 / 우편함 등
-          Positioned(
-            right: 0,
-            top: context.w(6),
-            child: _buildRightSideMenu(context),
-          ),
-        ],
+      child: SizedBox(
+        // Stack hit-test 영역이 사이드 메뉴 전체를 포함하도록 최소 높이 보장
+        height: sideMenuHeight,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // 좌측 상단: 로고 및 칩
+            Align(
+              alignment: Alignment.topLeft,
+              child: _buildLogoSection(context),
+            ),
+            // 우측 상단: 설정 / 우편함 등
+            Positioned(
+              right: 0,
+              top: context.w(6),
+              child: _buildRightSideMenu(context, ref),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -201,7 +211,9 @@ class GtoLobbyBody extends ConsumerWidget {
           return;
         }
         if (context.mounted) {
-          Navigator.pushNamed(context, '/league').then((_) {
+          final schedule = GameModeSchedule();
+          final route = schedule.isDeepStackDay ? '/omni-swipe' : '/league';
+          Navigator.pushNamed(context, route).then((_) {
             MusicManager.ensurePlaying(MusicType.lobby);
           });
         }
@@ -279,7 +291,9 @@ class GtoLobbyBody extends ConsumerWidget {
     );
   }
 
-  Widget _buildRightSideMenu(BuildContext context) {
+  Widget _buildRightSideMenu(BuildContext context, WidgetRef ref) {
+    final unreadCount = ref.watch(mailboxProvider.select((s) =>
+        s.mails.where((m) => !m.isRead && !m.isExpired).length));
     return Column(
       children: [
         _buildSideButton(context, Icons.settings_rounded, "설정", StitchColors.slate400, onTap: () {
@@ -288,44 +302,79 @@ class GtoLobbyBody extends ConsumerWidget {
         SizedBox(height: context.w(10)),
         _buildSideButton(context, Icons.emoji_events_rounded, "업적", StitchColors.blue400),
         SizedBox(height: context.w(10)),
-        _buildSideButton(context, Icons.mail_rounded, "우편함", StitchColors.cyan400),
+        _buildSideButton(context, Icons.mail_rounded, "우편함", StitchColors.cyan400,
+          badgeCount: unreadCount,
+          onTap: () {
+            showDialog(context: context, builder: (_) => const MailboxDialog());
+          },
+        ),
       ],
     );
   }
 
-  Widget _buildSideButton(BuildContext context, IconData icon, String label, Color color, {VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: context.w(42), height: context.w(42),
-        clipBehavior: Clip.hardEdge,
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.horizontal(left: Radius.circular(context.r(12))),
-          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8)],
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              left: 0, top: 0, bottom: 0,
-              child: Container(width: 3, color: color),
+  Widget _buildSideButton(BuildContext context, IconData icon, String label, Color color, {VoidCallback? onTap, int? badgeCount}) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: context.w(42), height: context.w(42),
+            clipBehavior: Clip.hardEdge,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.horizontal(left: Radius.circular(context.r(12))),
+              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8)],
             ),
-            Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(icon, color: StitchColors.blue300, size: context.w(14)),
-                  Text(label, style: TextStyle(
-                    color: StitchColors.blue300, fontSize: context.sp(6), fontWeight: FontWeight.bold,
-                    height: 1.2,
-                    shadows: const [Shadow(color: Colors.black, blurRadius: 2)],
-                  )),
-                ],
+            child: Stack(
+              children: [
+                Positioned(
+                  left: 0, top: 0, bottom: 0,
+                  child: Container(width: 3, color: color),
+                ),
+                Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, color: StitchColors.blue300, size: context.w(14)),
+                      Text(label, style: TextStyle(
+                        color: StitchColors.blue300, fontSize: context.sp(6), fontWeight: FontWeight.bold,
+                        height: 1.2,
+                        shadows: const [Shadow(color: Colors.black, blurRadius: 2)],
+                      )),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (badgeCount != null && badgeCount > 0)
+          Positioned(
+            top: -context.w(3),
+            right: -context.w(3),
+            child: Container(
+              constraints: BoxConstraints(minWidth: context.w(16)),
+              padding: EdgeInsets.symmetric(horizontal: context.w(3)),
+              height: context.w(16),
+              decoration: BoxDecoration(
+                color: StitchColors.red400,
+                borderRadius: BorderRadius.circular(context.r(8)),
+                border: Border.all(color: const Color(0xFF0F172A), width: 1.5),
+              ),
+              child: Center(
+                child: Text(
+                  badgeCount > 99 ? '99+' : '$badgeCount',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: context.sp(7),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
-          ],
-        ),
-      ),
+          ),
+      ],
     ).animate().fadeIn(duration: 600.ms).slideX(begin: 1, end: 0, curve: Curves.easeOutBack);
   }
 }

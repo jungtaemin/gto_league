@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../data/services/supabase_service.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../providers/user_stats_provider.dart';
+import '../../../decorate/providers/decorate_provider.dart';
 import '../../../../core/widgets/bouncing_button.dart';
 import 'stitch_colors.dart';
 
@@ -14,6 +15,8 @@ class GtoTopBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final equippedCharacterUrl = ref.watch(equippedCharacterUrlProvider);
+
     return StreamBuilder<AuthState>(
       stream: SupabaseService.authStateChanges,
       builder: (context, snapshot) {
@@ -35,7 +38,7 @@ class GtoTopBar extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildProfileBadge(context, isLoggedIn, displayName, avatarUrl),
+                    _buildProfileBadge(context, isLoggedIn, displayName, avatarUrl, equippedCharacterUrl),
                   ],
                 ),
               ),
@@ -271,7 +274,7 @@ class GtoTopBar extends ConsumerWidget {
     );
   }
 
-  Widget _buildProfileBadge(BuildContext context, bool isLoggedIn, String displayName, String? avatarUrl) {
+  Widget _buildProfileBadge(BuildContext context, bool isLoggedIn, String displayName, String? avatarUrl, String? equippedCharacterUrl) {
     return BouncingButton(
       onTap: () {
         if (!isLoggedIn) {
@@ -328,11 +331,15 @@ class GtoTopBar extends ConsumerWidget {
                   color: isLoggedIn ? StitchColors.blue300 : StitchColors.slate500, 
                   width: 1.5
                 ),
-                image: (isLoggedIn && avatarUrl != null) 
-                    ? DecorationImage(image: NetworkImage(avatarUrl), fit: BoxFit.cover)
+                image: (isLoggedIn && (equippedCharacterUrl != null || avatarUrl != null)) 
+                    ? DecorationImage(
+                        image: equippedCharacterUrl != null 
+                            ? AssetImage(equippedCharacterUrl) as ImageProvider
+                            : NetworkImage(avatarUrl!), 
+                        fit: BoxFit.cover)
                     : null,
               ),
-              child: (isLoggedIn && avatarUrl != null) 
+              child: (isLoggedIn && (equippedCharacterUrl != null || avatarUrl != null)) 
                   ? null 
                   : Icon(
                       Icons.person_rounded, 

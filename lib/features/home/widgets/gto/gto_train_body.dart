@@ -25,7 +25,7 @@ class GtoTrainBody extends StatelessWidget {
 
           // Title
           Text(
-            '훈련 모드',
+            '학습 모드',
             style: TextStyle(
               fontFamily: 'Black Han Sans',
               fontSize: context.sp(32),

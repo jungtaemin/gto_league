@@ -20,6 +20,31 @@ class SoundManager {
   static bool _initialized = false;
   static final Map<SoundType, AudioPlayer> _players = {};
 
+  // ── Volume & Mute ──────────────────────────────────
+  static double _volume = 1.0;
+  static bool _enabled = true;
+
+  /// Current SFX volume (0.0 – 1.0).
+  static double get volume => _volume;
+
+  /// Whether SFX is enabled.
+  static bool get enabled => _enabled;
+
+  /// Set SFX volume — applied to all preloaded players.
+  static Future<void> setVolume(double v) async {
+    _volume = v.clamp(0.0, 1.0);
+    for (final player in _players.values) {
+      try {
+        await player.setVolume(_volume);
+      } catch (_) {}
+    }
+  }
+
+  /// Enable or disable SFX globally.
+  static void setEnabled(bool value) {
+    _enabled = value;
+  }
+
   /// Audio context that doesn't steal focus from BGM
   static final _sfxContext = AudioContext(
     android: AudioContextAndroid(
@@ -28,7 +53,7 @@ class SoundManager {
       stayAwake: false,
       contentType: AndroidContentType.sonification,
       usageType: AndroidUsageType.game,
-      audioFocus: AndroidAudioFocus.none, // Don't steal BGM focus!
+      audioFocus: AndroidAudioFocus.none,
     ),
     iOS: AudioContextIOS(
       category: AVAudioSessionCategory.playback,
@@ -44,7 +69,7 @@ class SoundManager {
           final player = AudioPlayer();
           await player.setAudioContext(_sfxContext);
           await player.setReleaseMode(ReleaseMode.stop);
-          await player.setVolume(1.0);
+          await player.setVolume(_volume);
           await player.setSource(AssetSource('sounds/${type.name}.wav'));
           _players[type] = player;
           debugPrint('🔊 Preloaded: ${type.name}');
@@ -63,21 +88,23 @@ class SoundManager {
 
   /// Plays a sound effect by type.
   static Future<void> play(SoundType type) async {
-    if (!_initialized) return;
+    if (!_initialized || !_enabled || _volume <= 0) return;
     
     try {
       final player = _players[type];
       if (player != null) {
-        await player.stop();
-        await player.seek(Duration.zero);
-        await player.resume();
+        try { await player.setVolume(_volume); } catch (_) {}
+        // Avoid calling stop() which triggers prepareAsync in bad state
+        try { await player.seek(Duration.zero); } catch (_) {}
+        try { await player.resume(); } catch (_) {}
       } else {
-        // Fallback: create new player
         final p = AudioPlayer();
         await p.setAudioContext(_sfxContext);
-        await p.setVolume(1.0);
+        await p.setVolume(_volume);
         await p.play(AssetSource('sounds/${type.name}.wav'));
-        p.onPlayerComplete.listen((_) => p.dispose());
+        p.onPlayerComplete.listen((_) {
+          try { p.dispose(); } catch (_) {}
+        });
       }
     } catch (e) {
       debugPrint('🔇 Error playing ${type.name}: $e');

@@ -363,7 +363,7 @@ class DecoratePreviewArea extends ConsumerWidget {
             ),
             child: ClipOval(
               child: CharacterDisplayWidget(
-                characterId: character?.id ?? 'char_f1', 
+                characterId: character?.id ?? 'char_robot', 
                 assetUrl: character?.assetUrl,
                 size: 60
               ),

@@ -52,7 +52,7 @@ class GtoBattleBottomNav extends StatelessWidget {
             ],
           ),
 
-          _buildNavItem(Icons.school_rounded, "훈련하기"),
+          _buildNavItem(Icons.school_rounded, "학습하기"),
           _buildNavItem(Icons.bar_chart_rounded, "랭킹"),
         ],
       ),

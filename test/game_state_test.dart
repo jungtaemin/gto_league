@@ -10,7 +10,7 @@ void main() {
 
     setUp(() {
       container = ProviderContainer();
-      notifier = container.read(gameStateNotifierProvider.notifier);
+      notifier = container.read(gameStateProvider.notifier);
     });
 
     tearDown(() {
@@ -18,9 +18,9 @@ void main() {
     });
 
     test('Initial state is correct', () {
-      final state = container.read(gameStateNotifierProvider);
+      final state = container.read(gameStateProvider);
       expect(state.score, 0);
-      expect(state.hearts, 5);
+      expect(state.hearts, 3);
       expect(state.combo, 0);
       expect(state.currentStreak, 0);
       expect(state.isFeverMode, false);
@@ -38,26 +38,26 @@ void main() {
       );
 
       notifier.processAnswer(result);
-      final state = container.read(gameStateNotifierProvider);
+      final state = container.read(gameStateProvider);
 
       expect(state.score, 10); // Base 10
       expect(state.combo, 1);
       expect(state.currentStreak, 1);
-      expect(state.hearts, 5); // Unchanged
+      expect(state.hearts, 3); // Unchanged
     });
 
     test('Combo bonus applied correctly', () {
       // First answer: base 10
       notifier.processAnswer(_correctResult());
-      expect(container.read(gameStateNotifierProvider).score, 10);
+      expect(container.read(gameStateProvider).score, 10);
 
       // Second answer: base 10 + combo 2 = 12
       notifier.processAnswer(_correctResult());
-      expect(container.read(gameStateNotifierProvider).score, 22);
+      expect(container.read(gameStateProvider).score, 22);
 
       // Third answer: base 10 + combo 4 = 14
       notifier.processAnswer(_correctResult());
-      expect(container.read(gameStateNotifierProvider).score, 36);
+      expect(container.read(gameStateProvider).score, 36);
     });
 
     test('Snap bonus applies 1.5x multiplier', () {
@@ -70,7 +70,7 @@ void main() {
       );
 
       notifier.processAnswer(snapResult);
-      final state = container.read(gameStateNotifierProvider);
+      final state = container.read(gameStateProvider);
 
       expect(state.score, 15); // 10 * 1.5 = 15
     });
@@ -79,7 +79,7 @@ void main() {
       // Build up combo first
       notifier.processAnswer(_correctResult());
       notifier.processAnswer(_correctResult());
-      expect(container.read(gameStateNotifierProvider).combo, 2);
+      expect(container.read(gameStateProvider).combo, 2);
 
       // Then get wrong answer
       const wrongResult = SwipeResult(
@@ -91,9 +91,9 @@ void main() {
       );
 
       notifier.processAnswer(wrongResult);
-      final state = container.read(gameStateNotifierProvider);
+      final state = container.read(gameStateProvider);
 
-      expect(state.hearts, 4); // 5 - 1 = 4
+      expect(state.hearts, 2); // 3 - 1 = 2
       expect(state.combo, 0); // Reset
       expect(state.currentStreak, 0); // Reset
     });
@@ -104,7 +104,7 @@ void main() {
         notifier.processAnswer(_correctResult());
       }
 
-      final state = container.read(gameStateNotifierProvider);
+      final state = container.read(gameStateProvider);
       expect(state.currentStreak, 15);
       expect(state.isFeverMode, true);
     });
@@ -118,38 +118,38 @@ void main() {
         factBombMessage: 'Wrong!',
       );
 
-      // Lose all 5 hearts
-      for (var i = 0; i < 5; i++) {
+      // Lose all 3 hearts
+      for (var i = 0; i < 3; i++) {
         notifier.processAnswer(wrongResult);
       }
 
       expect(notifier.isGameOver, true);
-      expect(container.read(gameStateNotifierProvider).hearts, 0);
+      expect(container.read(gameStateProvider).hearts, 0);
     });
 
     test('Cannot process answers when game is over', () {
       // Lose all hearts
-      for (var i = 0; i < 5; i++) {
+      for (var i = 0; i < 3; i++) {
         notifier.processAnswer(_wrongResult());
       }
 
-      final scoreBefore = container.read(gameStateNotifierProvider).score;
+      final scoreBefore = container.read(gameStateProvider).score;
 
       // Try to process answer when game over
       notifier.processAnswer(_correctResult());
 
-      final scoreAfter = container.read(gameStateNotifierProvider).score;
+      final scoreAfter = container.read(gameStateProvider).score;
       expect(scoreAfter, scoreBefore); // No change
     });
 
     test('useTimeBank decrements count', () {
       final success1 = notifier.useTimeBank();
       expect(success1, true);
-      expect(container.read(gameStateNotifierProvider).timeBankCount, 2);
+      expect(container.read(gameStateProvider).timeBankCount, 2);
 
       final success2 = notifier.useTimeBank();
       expect(success2, true);
-      expect(container.read(gameStateNotifierProvider).timeBankCount, 1);
+      expect(container.read(gameStateProvider).timeBankCount, 1);
     });
 
     test('useTimeBank fails when count is 0', () {
@@ -160,18 +160,17 @@ void main() {
 
       final success = notifier.useTimeBank();
       expect(success, false);
-      expect(container.read(gameStateNotifierProvider).timeBankCount, 0);
+      expect(container.read(gameStateProvider).timeBankCount, 0);
     });
 
-    test('refillHearts restores to 5', () {
+    test('refillHearts restores to max (3)', () {
       // Lose hearts
       notifier.processAnswer(_wrongResult());
       notifier.processAnswer(_wrongResult());
-      expect(container.read(gameStateNotifierProvider).hearts, 3);
-
+      expect(container.read(gameStateProvider).hearts, 1);
       // Refill
       notifier.refillHearts();
-      expect(container.read(gameStateNotifierProvider).hearts, 5);
+      expect(container.read(gameStateProvider).hearts, 3);
     });
 
     test('refillTimeBank adds 3 charges', () {
@@ -179,11 +178,11 @@ void main() {
       notifier.useTimeBank();
       notifier.useTimeBank();
       notifier.useTimeBank();
-      expect(container.read(gameStateNotifierProvider).timeBankCount, 0);
+      expect(container.read(gameStateProvider).timeBankCount, 0);
 
       // Refill
       notifier.refillTimeBank();
-      expect(container.read(gameStateNotifierProvider).timeBankCount, 3);
+      expect(container.read(gameStateProvider).timeBankCount, 3);
     });
 
     test('reset restores initial state', () {
@@ -195,9 +194,9 @@ void main() {
       // Reset
       notifier.reset();
 
-      final state = container.read(gameStateNotifierProvider);
+      final state = container.read(gameStateProvider);
       expect(state.score, 0);
-      expect(state.hearts, 5);
+      expect(state.hearts, 3);
       expect(state.combo, 0);
       expect(state.currentStreak, 0);
       expect(state.timeBankCount, 3);
@@ -210,12 +209,12 @@ void main() {
         notifier.processAnswer(_correctResult());
       }
 
-      final scoreBefore = container.read(gameStateNotifierProvider).score;
+      final scoreBefore = container.read(gameStateProvider).score;
 
       // Next answer should cap at 100 points
       notifier.processAnswer(_correctResult());
 
-      final scoreAfter = container.read(gameStateNotifierProvider).score;
+      final scoreAfter = container.read(gameStateProvider).score;
       final pointsEarned = scoreAfter - scoreBefore;
       expect(pointsEarned, lessThanOrEqualTo(100));
     });

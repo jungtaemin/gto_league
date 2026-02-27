@@ -6,6 +6,7 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:holdem_allin_fold/app.dart';
@@ -19,8 +20,7 @@ void main() {
       ),
     );
 
-    // Verify that splash screen is displayed
-    expect(find.text('HOLDEM'), findsOneWidget);
-    expect(find.text('ALL-IN FOLD'), findsOneWidget);
+    // Verify that splash screen is displayed (image-based splash)
+    expect(find.byType(Image), findsOneWidget);
   });
 }

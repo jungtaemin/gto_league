@@ -9,6 +9,8 @@ import '../../core/utils/music_manager.dart';
 import '../../data/services/league_service.dart';
 import '../../data/models/tier.dart';
 import 'widgets/gto/league/league_result_dialog.dart';
+import 'widgets/gto/lobby_video_background.dart';
+import '../academy/screens/academy_map_screen.dart';
 
 /// GTO League Home Screen – Stitch V1 layout
 class GtoHomeScreen extends StatefulWidget {
@@ -84,8 +86,10 @@ class _GtoHomeScreenState extends State<GtoHomeScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Layer 0: Full-screen background (Persistent)
-          const Positioned.fill(child: GtoBackground()),
+          // Layer 0: Full-screen background (Persistent or Video for Lobby)
+          Positioned.fill(
+            child: _navIndex == 2 ? const LobbyVideoBackground() : const GtoBackground(),
+          ),
 
           // Layer 1: Body Content (Switchable)
           Positioned.fill(
@@ -98,7 +102,7 @@ class _GtoHomeScreenState extends State<GtoHomeScreen> {
                   DecoratePage(), // 1: Decorate
                   GtoLobbyBody(), // 2: Home
                   GtoLeagueBody(), // 3: Ranking
-                  GtoTrainBody(), // 4: Training (Deep Run)
+                  AcademyMapScreen(), // 4: 학습하기 (Saga Map)
                 ],
               ),
             ),
@@ -111,10 +115,6 @@ class _GtoHomeScreenState extends State<GtoHomeScreen> {
               selectedIndex: _navIndex,
               onTap: (index) {
                 setState(() { _navIndex = index; });
-                // If special handling needs to push route instead of tab switch?
-                // User requirement: "below menu layout maintain... touch and scroll comfortably"
-                // Tab switching is best for this.
-                // However, Play Button in LobbyBody still pushes '/game'.
               },
             ),
           ),

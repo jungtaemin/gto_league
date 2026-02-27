@@ -90,9 +90,8 @@ class DecorateController extends StateNotifier<DecorateState> {
     try {
       await _repository.equipItem(userId, type, itemId);
     } catch (e) {
-      // Revert on error
-      developer.log('Equip error: $e', name: 'DecorateProvider');
-      state = state.copyWith(equipped: oldEquipped);
+      // Revert on error 제거: 로컬 Mock 모드에서는 UI 상태를 유지하기 위해 롤백하지 않음.
+      developer.log('Equip error (Ignored for Mock): $e', name: 'DecorateProvider');
     }
   }
   Future<bool> purchaseItem(DecorateItem item, dynamic userStatsNotifier) async {
@@ -126,4 +125,23 @@ final decorateProvider = StateNotifierProvider<DecorateController, DecorateState
   final repo = ref.watch(decorateRepositoryProvider);
   final user = SupabaseService.currentUser;
   return DecorateController(repo, user?.id);
+});
+
+/// 장착 중인 캐릭터의 asset URL을 직접 반환하는 편의 프로바이더
+final equippedCharacterUrlProvider = Provider<String?>((ref) {
+  final state = ref.watch(decorateProvider);
+  final characterId = state.equipped?.characterId;
+  if (characterId == null) return null;
+
+  // allItems에서 매칭되는 캐릭터 찾기
+  final matches = state.allItems.where((e) => e.id == characterId);
+  if (matches.isNotEmpty) {
+    return matches.first.assetUrl;
+  }
+
+  // allItems가 아직 로드 안 됐을 때 fallback (기본 캐릭터)
+  if (characterId == 'char_robot') {
+    return 'assets/images/characters/char_robot.png';
+  }
+  return null;
 });

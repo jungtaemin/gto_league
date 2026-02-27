@@ -93,6 +93,44 @@ class AppColors {
   static const Color level5TextPrimary = Color(0xFFFFCDD2);  // Pale Red
   static const Color level5ProgressBar = Color(0xFFB71C1C);  // Crimson Pulse
 
+  // ---------------------------------------------------------------------------
+  // Hard Mode Level Themes (5 Levels: 15BB → 5BB) — DARKER & MORE SATURATED
+  // ---------------------------------------------------------------------------
+  // Hard Level 1 (15BB) — Dark Navy + Neon Cyan: Cold Battlefield
+  static const Color hardLevel1Primary = Color(0xFF0A2A5E);      // Darker Navy
+  static const Color hardLevel1Background = Color(0xFF050F1F);   // Near-Void Dark
+  static const Color hardLevel1Accent = neonCyan;                // Max Neon Cyan
+  static const Color hardLevel1TextPrimary = Color(0xFFB3E5FC);  // Ice Blue
+  static const Color hardLevel1ProgressBar = Color(0xFF00BCD4);  // Cyan
+
+  // Hard Level 2 (12BB) — Dark Purple + Neon Magenta: Venomous Pressure
+  static const Color hardLevel2Primary = Color(0xFF4A0072);      // Darker Purple
+  static const Color hardLevel2Background = Color(0xFF1A0030);   // Void Purple
+  static const Color hardLevel2Accent = stitchPink;              // Neon Magenta
+  static const Color hardLevel2TextPrimary = Color(0xFFE1BEE7);  // Pale Violet
+  static const Color hardLevel2ProgressBar = neonPurple;         // Neon Purple
+
+  // Hard Level 3 (10BB) — Dark Amber + Neon Orange: Magma Heat
+  static const Color hardLevel3Primary = Color(0xFF7A4000);      // Dark Amber
+  static const Color hardLevel3Background = Color(0xFF2D1500);   // Char Brown
+  static const Color hardLevel3Accent = hotOrange;               // Blazing Orange
+  static const Color hardLevel3TextPrimary = Color(0xFFFFE0B2);  // Pale Amber
+  static const Color hardLevel3ProgressBar = Color(0xFFFF6D00);  // Deep Orange
+
+  // Hard Level 4 (7BB) — Dark Crimson + Neon Red: Blood-Boiling Battle
+  static const Color hardLevel4Primary = Color(0xFF7F0000);      // Dark Crimson
+  static const Color hardLevel4Background = Color(0xFF1A0000);   // Blood Void
+  static const Color hardLevel4Accent = laserRed;                // Laser Red
+  static const Color hardLevel4TextPrimary = Color(0xFFFFCDD2);  // Pale Red
+  static const Color hardLevel4ProgressBar = Color(0xFFD50000);  // Pure Red
+
+  // Hard Level 5 (5BB) — Char Black + Neon Green: Matrix/Life-Death Boundary
+  static const Color hardLevel5Primary = Color(0xFF001A00);      // Void Green-Black
+  static const Color hardLevel5Background = Color(0xFF000500);   // Near-Void
+  static const Color hardLevel5Accent = acidGreen;               // Acid Green
+  static const Color hardLevel5TextPrimary = Color(0xFFB9F6CA);  // Pale Green
+  static const Color hardLevel5ProgressBar = Color(0xFF00C853);  // Bright Green
+
   static const _levelThemes = [
     LevelTheme(
       primary: level1Primary,
@@ -131,10 +169,54 @@ class AppColors {
     ),
   ];
 
+  static const _hardLevelThemes = [
+    LevelTheme(
+      primary: hardLevel1Primary,
+      background: hardLevel1Background,
+      accent: hardLevel1Accent,
+      textPrimary: hardLevel1TextPrimary,
+      progressBarColor: hardLevel1ProgressBar,
+    ),
+    LevelTheme(
+      primary: hardLevel2Primary,
+      background: hardLevel2Background,
+      accent: hardLevel2Accent,
+      textPrimary: hardLevel2TextPrimary,
+      progressBarColor: hardLevel2ProgressBar,
+    ),
+    LevelTheme(
+      primary: hardLevel3Primary,
+      background: hardLevel3Background,
+      accent: hardLevel3Accent,
+      textPrimary: hardLevel3TextPrimary,
+      progressBarColor: hardLevel3ProgressBar,
+    ),
+    LevelTheme(
+      primary: hardLevel4Primary,
+      background: hardLevel4Background,
+      accent: hardLevel4Accent,
+      textPrimary: hardLevel4TextPrimary,
+      progressBarColor: hardLevel4ProgressBar,
+    ),
+    LevelTheme(
+      primary: hardLevel5Primary,
+      background: hardLevel5Background,
+      accent: hardLevel5Accent,
+      textPrimary: hardLevel5TextPrimary,
+      progressBarColor: hardLevel5ProgressBar,
+    ),
+  ];
+
   /// Get level theme by level number (1-5)
   static LevelTheme getLevelTheme(int level) {
     final index = (level - 1).clamp(0, 4);
     return _levelThemes[index];
+  }
+
+  /// Get hard mode level theme by level number (1-5)
+  static LevelTheme getHardModeLevelTheme(int level) {
+    final index = (level - 1).clamp(0, 4);
+    return _hardLevelThemes[index];
   }
 
   /// Get all level themes
@@ -164,6 +246,22 @@ class AppColors {
     ];
   }
 
+  /// Poker table realistic glow effect — softer than neon, more realistic
+  static List<BoxShadow> pokerTableGlow(Color color, {double intensity = 0.5}) {
+    return [
+      BoxShadow(
+        color: color.withValues(alpha: intensity),
+        blurRadius: 12,
+        spreadRadius: 2,
+      ),
+      BoxShadow(
+        color: color.withValues(alpha: intensity * 0.4),
+        blurRadius: 30,
+        spreadRadius: 6,
+      ),
+    ];
+  }
+
   /// NEW: Helper for animated breathing glow
   static List<BoxShadow> animatedGlow(Color color, double animationValue) {
     return neonGlow(color, intensity: 0.4 + (animationValue * 0.4));
@@ -184,6 +282,41 @@ class AppColors {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
+  
+  // ---------------------------------------------------------------------------
+  // Poker Table Theme (30BB Mode)
+  // ---------------------------------------------------------------------------
+  // Felt surface
+  static const Color pokerTableFelt = Color(0xFF8B0000);          // Deep crimson felt
+  static const Color pokerTableFeltHighlight = Color(0xFFA31515);  // Felt highlight (lighter)
+  static const Color pokerTableFeltShadow = Color(0xFF5C0000);     // Felt shadow (darker)
+  
+  // Table structure
+  static const Color pokerTableWoodBorder = Color(0xFF5D3A1A);     // Walnut wood border
+  static const Color pokerTableWoodLight = Color(0xFF7D5A3C);      // Wood highlight
+  static const Color pokerTableBg = Color(0xFF0F0A1A);             // Deep dark background
+  
+  // Chips
+  static const Color pokerTableChipRed = Color(0xFFDC2626);        // Red chip
+  static const Color pokerTableChipBlue = Color(0xFF2563EB);       // Blue chip
+  static const Color pokerTableChipGreen = Color(0xFF16A34A);      // Green chip
+  static const Color pokerTableChipGold = Color(0xFFCA8A04);       // Gold chip (high value)
+  static const Color pokerTableChipWhite = Color(0xFFF1F5F9);      // White chip (low value)
+  
+  // Player states
+  static const Color pokerTableFoldGray = Color(0xFF6B7280);       // Folded player gray
+  static const Color pokerTableActiveGlow = Color(0xFF22D3EE);     // Active/hero turn glow
+  
+  // Timer
+  static const Color pokerTableTimerSafe = Color(0xFF22C55E);      // Timer safe (>10s)
+  static const Color pokerTableTimerWarning = Color(0xFFFBBF24);   // Timer warning (5-10s)
+  static const Color pokerTableTimerDanger = Color(0xFFEF4444);    // Timer danger (<5s)
+  
+  // Action buttons
+  static const Color pokerTableActionFold = Color(0xFF374151);     // Fold button (dark gray)
+  static const Color pokerTableActionCall = Color(0xFF1D4ED8);     // Call button (blue)
+  static const Color pokerTableActionRaise = Color(0xFF854D0E);    // Raise button (amber/gold)
+  static const Color pokerTableActionAllin = Color(0xFF991B1B);    // All-in button (deep red)
 }
 
 

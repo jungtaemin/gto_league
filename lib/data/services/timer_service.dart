@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 // ---------------------------------------------------------------------------
@@ -139,6 +140,10 @@ class TimerNotifier extends StateNotifier<TimerState> {
   /// Adjusted by combo streak via [startWithCombo].
   double _currentDuration = TimerState.defaultDuration;
 
+  /// Current base duration for timer. Defaults to [TimerState.defaultDuration].
+  /// Can be changed via [setBaseDuration] for hard mode (12.0s).
+  double _baseDuration = TimerState.defaultDuration;
+
   // -------------------------------------------------------------------------
   // Public API
   // -------------------------------------------------------------------------
@@ -234,6 +239,15 @@ class TimerNotifier extends StateNotifier<TimerState> {
   /// Useful for UI progress bar normalization.
   double get currentDuration => _currentDuration;
 
+  /// Set the base duration for the timer.
+  ///
+  /// Call with 12.0 for hard mode, or [TimerState.defaultDuration] (15.0) for normal mode.
+  /// Does NOT affect the [TimerState.defaultDuration] constant.
+  void setBaseDuration(double duration) {
+    _baseDuration = duration;
+    debugPrint('[TimerNotifier] Base duration set to ${duration}s');
+  }
+
   // -------------------------------------------------------------------------
   // Disposal
   // -------------------------------------------------------------------------
@@ -294,11 +308,18 @@ class TimerNotifier extends StateNotifier<TimerState> {
     _timer = null;
   }
 
-  /// Resolve effective duration from combo streak.
-  static double _durationForCombo(int combo) {
-    if (combo >= 10) return 10.0;
-    if (combo >= 5) return 12.0;
-    return TimerState.defaultDuration; // 15.0
+  /// Returns the timer duration for the given combo count.
+  ///
+  /// Uses ratio-based scaling from [_baseDuration]:
+  /// - combo < 5: full base duration
+  /// - combo >= 5: base × (10/15) ratio
+  /// - combo >= 10: base × (8/15) ratio
+  /// - combo >= 15: 0.0 (fever mode — timer paused)
+  double _durationForCombo(int combo) {
+    if (combo >= 15) return 0.0; // Fever mode
+    if (combo >= 10) return _baseDuration * (8.0 / 15.0);
+    if (combo >= 5) return _baseDuration * (10.0 / 15.0);
+    return _baseDuration;
   }
 }
 

@@ -140,9 +140,9 @@ void main() {
 
     // ── Level Progression ───────────────────────────────────────
 
-    test('Level up after 20 hands', () {
-      // Play 20 correct hands
-      for (var i = 0; i < 20; i++) {
+    test('Level up after 10 hands', () {
+      // Play 10 correct hands
+      for (var i = 0; i < 10; i++) {
         engine.answerQuestion(isCorrect: true, isMixed: false, question: _makeQuestion());
       }
 
@@ -153,8 +153,8 @@ void main() {
     });
 
     test('completeLevelUp advances to next level', () {
-      // Play 20 hands
-      for (var i = 0; i < 20; i++) {
+      // Play 10 hands
+      for (var i = 0; i < 10; i++) {
         engine.answerQuestion(isCorrect: true, isMixed: false, question: _makeQuestion());
       }
       expect(container.read(deepRunEngineProvider).phase, DeepRunPhase.levelUp);
@@ -177,8 +177,8 @@ void main() {
             reason: 'Level ${level + 1} should be ${expectedBb[level]}BB');
 
         if (level < 4) {
-          // Play 20 hands to advance
-          for (var i = 0; i < 20; i++) {
+          // Play 10 hands to advance
+          for (var i = 0; i < 10; i++) {
             engine.answerQuestion(isCorrect: true, isMixed: false, question: _makeQuestion());
           }
           engine.completeLevelUp();
@@ -188,10 +188,10 @@ void main() {
 
     // ── Victory ──────────────────────────────────────────────────
 
-    test('Victory after completing all 100 hands', () {
-      // Play through all 5 levels × 20 hands
+    test('Victory after completing all 100 hands (normal + hard)', () {
+      // Play through normal mode: 5 levels × 10 hands = 50
       for (var level = 0; level < 5; level++) {
-        for (var hand = 0; hand < 20; hand++) {
+        for (var hand = 0; hand < 10; hand++) {
           engine.answerQuestion(isCorrect: true, isMixed: false, question: _makeQuestion());
         }
         if (level < 4) {
@@ -199,10 +199,171 @@ void main() {
         }
       }
 
+      // Normal mode complete → hardModeTransition
+      expect(container.read(deepRunEngineProvider).phase, DeepRunPhase.hardModeTransition);
+
+      // Start hard mode and play 50 more hands
+      engine.startHardMode();
+      for (var level = 0; level < 5; level++) {
+        for (var hand = 0; hand < 10; hand++) {
+          engine.answerQuestion(isCorrect: true, isMixed: false, question: _makeQuestion());
+        }
+        if (level < 4) {
+          engine.completeLevelUp();
+        }
+      }
       final state = container.read(deepRunEngineProvider);
       expect(state.isVictory, true);
       expect(state.isGameOver, true);
       expect(state.phase, DeepRunPhase.victory);
+      expect(state.isHardMode, true);
+    });
+
+    // ── Hard Mode ─────────────────────────────────────────────
+
+    test('isHardMode is false in initial state', () {
+      final state = container.read(deepRunEngineProvider);
+      expect(state.isHardMode, false);
+      expect(state.normalModeScore, 0);
+    });
+
+    test('Normal mode clear triggers hardModeTransition phase', () {
+      // Play through all 5 levels × 10 hands (50 total)
+      for (var level = 0; level < 5; level++) {
+        for (var hand = 0; hand < 10; hand++) {
+          engine.answerQuestion(isCorrect: true, isMixed: false, question: _makeQuestion());
+        }
+        if (level < 4) engine.completeLevelUp();
+      }
+
+      final state = container.read(deepRunEngineProvider);
+      expect(state.phase, DeepRunPhase.hardModeTransition);
+      expect(state.isHardMode, false);
+      expect(state.isGameOver, false);
+      expect(state.isVictory, false);
+    });
+
+    test('startHardMode transitions to hard mode play', () {
+      for (var level = 0; level < 5; level++) {
+        for (var hand = 0; hand < 10; hand++) {
+          engine.answerQuestion(isCorrect: true, isMixed: false, question: _makeQuestion());
+        }
+        if (level < 4) engine.completeLevelUp();
+      }
+      expect(container.read(deepRunEngineProvider).phase, DeepRunPhase.hardModeTransition);
+
+      engine.startHardMode();
+
+      final state = container.read(deepRunEngineProvider);
+      expect(state.isHardMode, true);
+      expect(state.phase, DeepRunPhase.playing);
+      expect(state.currentLevel, 1);
+      expect(state.handInLevel, 1);
+      expect(state.totalHands, 1);
+      expect(state.combo, 0);
+      expect(state.currentStreak, 0);
+    });
+
+    test('startHardMode preserves strikes from normal mode', () {
+      engine.answerQuestion(isCorrect: false, isMixed: false, question: _makeQuestion());
+      expect(container.read(deepRunEngineProvider).strikesRemaining, 2);
+
+      for (var level = 0; level < 5; level++) {
+        for (var hand = 0; hand < 10; hand++) {
+          engine.answerQuestion(isCorrect: true, isMixed: false, question: _makeQuestion());
+        }
+        if (level < 4) engine.completeLevelUp();
+      }
+      engine.startHardMode();
+
+      expect(container.read(deepRunEngineProvider).strikesRemaining, 2);
+    });
+
+    test('startHardMode saves normalModeScore', () {
+      engine.answerQuestion(isCorrect: true, isMixed: false, question: _makeQuestion());
+      engine.answerQuestion(isCorrect: true, isMixed: false, question: _makeQuestion());
+      final scoreBeforeHardMode = container.read(deepRunEngineProvider).score;
+      expect(scoreBeforeHardMode, greaterThan(0));
+
+      for (var level = 0; level < 5; level++) {
+        for (var hand = 0; hand < 10; hand++) {
+          engine.answerQuestion(isCorrect: true, isMixed: false, question: _makeQuestion());
+        }
+        if (level < 4) engine.completeLevelUp();
+      }
+      engine.startHardMode();
+
+      final state = container.read(deepRunEngineProvider);
+      expect(state.normalModeScore, greaterThan(0));
+      expect(state.score, state.normalModeScore);
+    });
+
+    test('startHardMode is no-op if not in hardModeTransition phase', () {
+      engine.answerQuestion(isCorrect: true, isMixed: false, question: _makeQuestion());
+      expect(container.read(deepRunEngineProvider).phase, DeepRunPhase.playing);
+
+      engine.startHardMode();
+
+      final state = container.read(deepRunEngineProvider);
+      expect(state.isHardMode, false);
+      expect(state.phase, DeepRunPhase.playing);
+    });
+
+    test('Hard mode victory after completing all 50 hard hands', () {
+      for (var level = 0; level < 5; level++) {
+        for (var hand = 0; hand < 10; hand++) {
+          engine.answerQuestion(isCorrect: true, isMixed: false, question: _makeQuestion());
+        }
+        if (level < 4) engine.completeLevelUp();
+      }
+      engine.startHardMode();
+
+      for (var level = 0; level < 5; level++) {
+        for (var hand = 0; hand < 10; hand++) {
+          engine.answerQuestion(isCorrect: true, isMixed: false, question: _makeQuestion());
+        }
+        if (level < 4) engine.completeLevelUp();
+      }
+
+      final state = container.read(deepRunEngineProvider);
+      expect(state.isVictory, true);
+      expect(state.isGameOver, true);
+      expect(state.phase, DeepRunPhase.victory);
+      expect(state.isHardMode, true);
+    });
+
+    test('Hard mode game over ends game', () {
+      for (var level = 0; level < 5; level++) {
+        for (var hand = 0; hand < 10; hand++) {
+          engine.answerQuestion(isCorrect: true, isMixed: false, question: _makeQuestion());
+        }
+        if (level < 4) engine.completeLevelUp();
+      }
+      engine.startHardMode();
+
+      engine.answerQuestion(isCorrect: false, isMixed: false, question: _makeQuestion());
+      engine.answerQuestion(isCorrect: false, isMixed: false, question: _makeQuestion());
+      engine.answerQuestion(isCorrect: false, isMixed: false, question: _makeQuestion());
+
+      final state = container.read(deepRunEngineProvider);
+      expect(state.isGameOver, true);
+      expect(state.phase, DeepRunPhase.gameOver);
+      expect(state.isHardMode, true);
+    });
+
+    test('completeHardModeTransition is alias for startHardMode', () {
+      for (var level = 0; level < 5; level++) {
+        for (var hand = 0; hand < 10; hand++) {
+          engine.answerQuestion(isCorrect: true, isMixed: false, question: _makeQuestion());
+        }
+        if (level < 4) engine.completeLevelUp();
+      }
+
+      engine.completeHardModeTransition();
+
+      final state = container.read(deepRunEngineProvider);
+      expect(state.isHardMode, true);
+      expect(state.phase, DeepRunPhase.playing);
     });
 
     // ── Reset ────────────────────────────────────────────────────

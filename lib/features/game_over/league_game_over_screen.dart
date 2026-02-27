@@ -340,6 +340,44 @@ class _LeagueGameOverScreenState extends ConsumerState<LeagueGameOverScreen> {
             ),
           ),
           
+          
+          // Hard Mode Badge (League)
+          if (ref.read(leagueEngineProvider).isHardMode || ref.read(leagueEngineProvider).normalModeScore > 0) ...[
+            SizedBox(height: context.h(16)),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: context.w(16), vertical: context.h(10)),
+              decoration: BoxDecoration(
+                color: AppColors.laserRed.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(context.r(12)),
+                border: Border.all(color: AppColors.laserRed.withOpacity(0.6), width: 1.5),
+                boxShadow: AppColors.neonGlow(AppColors.laserRed, intensity: 0.2),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    '🔥 HARD MODE 도달!',
+                    style: AppTextStyles.heading(color: AppColors.laserRed),
+                  ),
+                  SizedBox(height: context.h(10)),
+                  Text(
+                    '일반모드: ${ref.read(leagueEngineProvider).normalModeScore}점',
+                    style: AppTextStyles.bodySmall(color: AppColors.pureWhite.withOpacity(0.8)),
+                  ),
+                  SizedBox(height: context.h(4)),
+                  Text(
+                    '하드모드: ${ref.read(leagueEngineProvider).score - ref.read(leagueEngineProvider).normalModeScore}점',
+                    style: AppTextStyles.bodySmall(color: AppColors.laserRed),
+                  ),
+                  SizedBox(height: context.h(4)),
+                  Text(
+                    '총점: ${ref.read(leagueEngineProvider).score}점',
+                    style: AppTextStyles.body(color: AppColors.leaguePromotionGold),
+                  ),
+                ],
+              ),
+            ).animate(delay: 600.ms).scale(duration: 400.ms, curve: Curves.easeOutBack).fadeIn(),
+          ],
+
           SizedBox(height: context.h(16)),
 
           // 셔플링 애니메이션 디테일 (업데이트 암시)

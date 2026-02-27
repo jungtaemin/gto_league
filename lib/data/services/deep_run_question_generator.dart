@@ -35,6 +35,9 @@ class DeepRunQuestionGenerator {
     required int bbLevel,
     required List<GtoScenario> scenarios,
     int? seed,
+    double? evDiffBbThreshold,
+    int? overridePushCount,
+    int? overrideDefenseCount,
   }) {
     final random = Random(seed);
 
@@ -49,20 +52,31 @@ class DeepRunQuestionGenerator {
       return [];
     }
 
+    // 1.5. Apply evDiffBb filter with progressive fallback (if threshold provided)
+    List<GtoScenario> filteredScenarios = levelScenarios;
+    if (evDiffBbThreshold != null) {
+      filteredScenarios = _filterByEvDiffBb(levelScenarios, evDiffBbThreshold);
+    }
+
     // 2. Separate into open_push, defense_single, defense_multi pools
     final pushPool =
-        levelScenarios.where((s) => s.scenarioType == 'open_push').toList();
-    final defenseSinglePool = levelScenarios
+        filteredScenarios.where((s) => s.scenarioType == 'open_push').toList();
+    final defenseSinglePool = filteredScenarios
         .where((s) => s.scenarioType == 'defense_single')
         .toList();
-    final defenseMultiPool = levelScenarios
+    final defenseMultiPool = filteredScenarios
         .where((s) => s.scenarioType == 'defense_multi')
         .toList();
 
     // 3. Determine actual counts — push stays at 14, defense 6 (5 single + 1 multi)
-    int pushCount = _targetPushCount;
+    int pushCount = overridePushCount ?? _targetPushCount;
     int singleCount = _targetDefenseSingleCount;
     int multiCount = _targetDefenseMultiCount;
+    // If overrideDefenseCount provided, recalculate single/multi split
+    if (overrideDefenseCount != null) {
+      multiCount = (overrideDefenseCount / 3).round().clamp(1, overrideDefenseCount);
+      singleCount = overrideDefenseCount - multiCount;
+    }
 
     // Adjust if pools are too small
     if (defenseMultiPool.length < multiCount) {
@@ -109,6 +123,48 @@ class DeepRunQuestionGenerator {
     _applyAntiStreak(deck);
 
     return deck;
+  }
+
+  /// Filter scenarios by evDiffBb threshold with progressive fallback.
+  ///
+  /// Tries [threshold], then 1.0, then 1.5 if insufficient scenarios found.
+  /// 'Insufficient' means push < [_targetPushCount] OR defense < [_targetDefenseCount].
+  List<GtoScenario> _filterByEvDiffBb(
+    List<GtoScenario> scenarios,
+    double threshold,
+  ) {
+    final thresholds = [threshold, 1.0, 1.5];
+
+    for (final t in thresholds) {
+      final filtered = scenarios.where((s) => s.evDiffBb.abs() < t).toList();
+
+      final pushCount =
+          filtered.where((s) => s.scenarioType == 'open_push').length;
+      final defenseCount = filtered
+          .where(
+            (s) =>
+                s.scenarioType == 'defense_single' ||
+                s.scenarioType == 'defense_multi',
+          )
+          .length;
+
+      if (pushCount >= _targetPushCount && defenseCount >= _targetDefenseCount) {
+        if (t > threshold) {
+          debugPrint(
+            '[DeepRunQuestionGenerator] evDiffBb fallback: '
+            'threshold $threshold insufficient, using $t',
+          );
+        }
+        return filtered;
+      }
+    }
+
+    // Last resort: return all scenarios (no filter)
+    debugPrint(
+      '[DeepRunQuestionGenerator] evDiffBb filter: all thresholds insufficient, '
+      'returning unfiltered pool',
+    );
+    return scenarios;
   }
 
   /// Select [count] scenarios from [pool] respecting constraints:

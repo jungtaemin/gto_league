@@ -72,6 +72,7 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
   double _lastEvDiff = 0.0;
   double _dragProgress = 0.0;
   bool _showStartCutscene = true;
+  bool _showHardModeCutscene = false;
   DateTime? _cardShownTime;
   SwipeResult? _lastResult;
   CardQuestion? _lastQuestion;
@@ -105,9 +106,13 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
       final engine = ref.read(leagueEngineProvider);
       final bbLevel = engine.currentBbLevel;
       final cache = await ref.read(gtoBbLevelProvider(bbLevel).future);
+      final isHardMode = engine.isHardMode;
       final deck = _questionGenerator.generateDeck(
         bbLevel: bbLevel,
         scenarios: cache.scenarios,
+        evDiffBbThreshold: isHardMode ? 0.7 : null,
+        overridePushCount: isHardMode ? 7 : null,
+        overrideDefenseCount: isHardMode ? 3 : null,
       );
 
       if (!mounted) return;
@@ -288,12 +293,24 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
       return;
     }
 
+    if (engineState.phase == LeaguePhase.hardModeTransition) {
+      ref.read(timerProvider.notifier).stop();
+      setState(() => _showHardModeCutscene = true);
+      return;
+    }
     // Normal progression — restart timer for next card.
     _restartTimerForNextCard();
   }
 
   void _onLevelUpComplete() {
     ref.read(leagueEngineProvider.notifier).completeLevelUp();
+    _loadDeckForCurrentLevel();
+  }
+
+  void _onHardModeCutsceneComplete() {
+    setState(() => _showHardModeCutscene = false);
+    ref.read(leagueEngineProvider.notifier).startHardMode();
+    ref.read(timerProvider.notifier).setBaseDuration(12.0);
     _loadDeckForCurrentLevel();
   }
 
@@ -377,7 +394,7 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
       return Scaffold(
         body: Stack(
           children: [
-            DeepRunBackground(currentLevel: engineState.currentLevel),
+            DeepRunBackground(currentLevel: engineState.currentLevel, isHardMode: engineState.isHardMode),
             const Center(child: CircularProgressIndicator()),
           ],
         ),
@@ -406,7 +423,7 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
       body: Stack(
         children: [
           // 0. Dynamic Background
-          DeepRunBackground(currentLevel: engineState.currentLevel),
+          DeepRunBackground(currentLevel: engineState.currentLevel, isHardMode: engineState.isHardMode),
 
           SafeArea(
             child: Column(
@@ -414,13 +431,14 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
                 // 1. League HUD (Heart + Progress + TimeChip)
                 LeagueHud(
                   strikesRemaining: engineState.strikesRemaining,
-                  totalHands: engineState.totalHands,
+                  score: engineState.score,
+                  combo: engineState.combo,
                   currentLevel: engineState.currentLevel,
-                  position: currentQ.position,
                   bbLevel: engineState.currentBbLevel,
                   timeChipsRemaining: engineState.timeChipsRemaining,
                   isTimerCritical: isTimerCritical,
                   onUseTimeChip: _onUseTimeChip,
+                  isHardMode: engineState.isHardMode,
                 ),
 
                 // 2. Timer Bar
@@ -526,6 +544,13 @@ class _LeagueScreenState extends ConsumerState<LeagueScreen> {
               newLevel: engineState.currentLevel + 1,
               newBbLevel: _bbLevelForLevel(engineState.currentLevel + 1),
               onComplete: _onLevelUpComplete,
+            )
+          else if (_showHardModeCutscene)
+            LevelUpCutscene(
+              newLevel: 1,
+              newBbLevel: 15,
+              isHardModeEntry: true,
+              onComplete: _onHardModeCutsceneComplete,
             ),
         ],
       ),

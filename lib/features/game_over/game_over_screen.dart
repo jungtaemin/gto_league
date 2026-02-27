@@ -10,6 +10,9 @@ import '../../providers/game_providers.dart';
 import '../../data/models/tier.dart';
 import '../../data/services/ad_service.dart';
 import '../../core/utils/responsive.dart';
+import '../../data/services/deep_run_engine.dart';
+import '../../core/utils/sound_manager.dart';
+import '../../core/utils/haptic_manager.dart';
 
 class GameOverScreen extends ConsumerStatefulWidget {
   const GameOverScreen({super.key});
@@ -48,6 +51,11 @@ class _GameOverScreenState extends ConsumerState<GameOverScreen> {
     final gameState = ref.read(gameStateProvider);
     final displayScore = gameState.score;
     final tierColor = _getTierColor(gameState.currentTier);
+
+
+    // Deep Run hard mode info
+    final deepRunState = ref.read(deepRunEngineProvider);
+    final reachedHardMode = deepRunState.isHardMode || deepRunState.normalModeScore > 0;
 
     return Scaffold(
       backgroundColor: AppColors.deepBlack,
@@ -97,6 +105,44 @@ class _GameOverScreenState extends ConsumerState<GameOverScreen> {
                     ],
                   ).animate(delay: 100.ms).slideY(begin: 0.2, end: 0, duration: 500.ms, curve: Curves.easeOutBack).fadeIn(),
 
+
+                  // Hard Mode Badge (Deep Run)
+                  if (reachedHardMode) ...[
+                    SizedBox(height: context.h(16)),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: context.w(20), vertical: context.h(12)),
+                      decoration: BoxDecoration(
+                        color: AppColors.laserRed.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(context.r(12)),
+                        border: Border.all(color: AppColors.laserRed.withOpacity(0.6), width: 1.5),
+                        boxShadow: AppColors.neonGlow(AppColors.laserRed, intensity: 0.2),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            '🔥 HARD MODE 도달!',
+                            style: AppTextStyles.heading(color: AppColors.laserRed),
+                          ),
+                          SizedBox(height: context.h(12)),
+                          Text(
+                            '일반모드: ${deepRunState.normalModeScore}점',
+                            style: AppTextStyles.bodySmall(color: AppColors.pureWhite.withOpacity(0.8)),
+                          ),
+                          SizedBox(height: context.h(4)),
+                          Text(
+                            '하드모드: ${deepRunState.score - deepRunState.normalModeScore}점',
+                            style: AppTextStyles.bodySmall(color: AppColors.laserRed),
+                          ),
+                          SizedBox(height: context.h(4)),
+                          Text(
+                            '총점: ${deepRunState.score}점',
+                            style: AppTextStyles.body(color: AppColors.acidYellow),
+                          ),
+                        ],
+                      ),
+                    ).animate(delay: 150.ms).scale(duration: 400.ms, curve: Curves.easeOutBack).fadeIn(),
+                  ],
+
                   SizedBox(height: context.h(24)),
 
                   // Tier Badge
@@ -144,8 +190,11 @@ class _GameOverScreenState extends ConsumerState<GameOverScreen> {
                     color: AppColors.acidYellow,
                     textColor: AppColors.pureBlack,
                     onPressed: () {
+                      HapticManager.snap();
+                      SoundManager.play(SoundType.chipStack);
                       ref.read(gameStateProvider.notifier).reset();
-                      Navigator.of(context).pushReplacementNamed('/game');
+                      ref.read(deepRunEngineProvider.notifier).startGame();
+                      Navigator.of(context).pushReplacementNamed('/deep-run');
                     },
                   ).animate(delay: 500.ms).slideY(begin: 0.5, end: 0, duration: 400.ms, curve: Curves.easeOutBack).fadeIn(),
 
@@ -163,7 +212,7 @@ class _GameOverScreenState extends ConsumerState<GameOverScreen> {
                           onRewardEarned: () {
                             ref.read(gameStateProvider.notifier).refillHearts();
                             if (context.mounted) {
-                              Navigator.of(context).pushReplacementNamed('/game');
+                              Navigator.of(context).pushReplacementNamed('/deep-run');
                             }
                           },
                           onAdDismissed: () {

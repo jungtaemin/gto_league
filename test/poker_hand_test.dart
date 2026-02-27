@@ -80,14 +80,14 @@ void main() {
 
   group('Position', () {
     test('displayName returns Korean names', () {
-      expect(Position.btn.displayName, '버튼');
+      expect(Position.bu.displayName, '버튼');
       expect(Position.sb.displayName, '스몰블라인드');
       expect(Position.bb.displayName, '빅블라인드');
       expect(Position.utg.displayName, '언더더건');
     });
 
     test('shortName returns abbreviations', () {
-      expect(Position.btn.shortName, 'BTN');
+      expect(Position.bu.shortName, 'BU');
       expect(Position.sb.shortName, 'SB');
       expect(Position.bb.shortName, 'BB');
       expect(Position.utg.shortName, 'UTG');
@@ -95,8 +95,8 @@ void main() {
     });
 
     test('fromShortName parses correctly', () {
-      expect(Position.fromShortName('BTN'), Position.btn);
-      expect(Position.fromShortName('btn'), Position.btn);
+      expect(Position.fromShortName('BTN'), Position.bu);
+      expect(Position.fromShortName('btn'), Position.bu);
       expect(Position.fromShortName('SB'), Position.sb);
       expect(Position.fromShortName('UTG'), Position.utg);
       expect(Position.fromShortName('UTG+1'), Position.utg1);

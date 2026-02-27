@@ -6,18 +6,16 @@ import 'core/utils/sound_manager.dart';
 import 'core/utils/music_manager.dart';
 import 'data/services/database_helper.dart';
 import 'data/services/supabase_service.dart';
+import 'features/home/widgets/gto/settings_dialog.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.initialize();
   await SoundManager.preloadAll();
   await MusicManager.init();
-  // Test: play a sound 2 seconds after launch to verify audio works
-  Future.delayed(const Duration(seconds: 2), () {
-    SoundManager.play(SoundType.correct);
-  });
+  await applyStoredSettings(); // 저장된 설정값 복원
   await DatabaseHelper.instance.initDatabase();
-  await SupabaseService.initialize(); // Initialize Supabase
+  await SupabaseService.initialize();
 
   runApp(
     const ProviderScope(

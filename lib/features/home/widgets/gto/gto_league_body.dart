@@ -9,6 +9,8 @@ import '../../../../data/models/tier.dart';
 import '../../../../data/services/league_service.dart';
 import '../../../../data/services/season_helper.dart';
 import '../../../../data/services/supabase_service.dart';
+import '../../../../data/services/schedule_helper.dart';
+import 'schedule_mode_banner.dart';
 import '../../../../providers/game_providers.dart';
 import '../../../../providers/game_state_notifier.dart';
 import 'league/league_header.dart';
@@ -31,6 +33,7 @@ class _GtoLeagueBodyState extends ConsumerState<GtoLeagueBody> {
   DateTime? _lastFetchTime;
   List<LeaguePlayer>? _cachedPlayers;
   String? _cachedGroupId;
+  final GameModeSchedule _schedule = GameModeSchedule();
   @override
   void initState() {
     super.initState();
@@ -110,6 +113,12 @@ class _GtoLeagueBodyState extends ConsumerState<GtoLeagueBody> {
                 if (SupabaseService.isLoggedIn && _groupId == null && _players.isEmpty)
                   SliverFillRemaining(child: _buildUnassignedView(context))
                 else ...[
+                  SliverToBoxAdapter(
+                    child: ScheduleModeBanner(
+                      isDeepStackDay: _schedule.isDeepStackDay,
+                      todayWeekday: _schedule.todayWeekday,
+                    ),
+                  ),
                    SliverToBoxAdapter(
                      child: LeagueHeader(
                        seasonId: seasonId,
@@ -197,9 +206,12 @@ class _GtoLeagueBodyState extends ConsumerState<GtoLeagueBody> {
               style: TextStyle(fontSize: context.sp(14), color: Colors.white54)),
           SizedBox(height: context.w(32)),
           ElevatedButton(
-            onPressed: () => Navigator.pushNamed(context, '/league').then((_) {
-              MusicManager.ensurePlaying(MusicType.lobby);
-            }),
+            onPressed: () {
+              final route = _schedule.isDeepStackDay ? '/omni-swipe' : '/league';
+              Navigator.pushNamed(context, route).then((_) {
+                MusicManager.ensurePlaying(MusicType.lobby);
+              });
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.leaguePromotionGold,
               foregroundColor: Colors.black,

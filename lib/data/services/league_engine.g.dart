@@ -92,7 +92,7 @@ final class LeagueEngineProvider
   }
 }
 
-String _$leagueEngineHash() => r'95daeff708fea57b4d881f991c1b1a42d2f711e6';
+String _$leagueEngineHash() => r'8b8cae02396c5c5fde6f6b6ebc60987d634b6a0b';
 
 /// League 50-Hand Survival game loop engine.
 ///

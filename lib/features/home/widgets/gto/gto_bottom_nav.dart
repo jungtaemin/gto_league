@@ -50,7 +50,7 @@ class GtoBottomNav extends StatelessWidget {
                     _buildNavItem(context, 1, Icons.palette_rounded, "꾸미기"),
                     _buildHomeButton(context),
                     _buildNavItem(context, 3, Icons.bar_chart_rounded, "리그"),
-                    _buildNavItem(context, 4, Icons.school_rounded, "훈련하기"),
+                    _buildNavItem(context, 4, Icons.school_rounded, "학습하기"),
                   ],
                 ),
               ),

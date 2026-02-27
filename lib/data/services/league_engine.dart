@@ -15,6 +15,9 @@ enum LeaguePhase {
   /// Level transition cutscene in progress.
   levelUp,
 
+  /// Hard mode transition (player entered hard mode).
+  hardModeTransition,
+
   /// Player lost their single life — game over.
   gameOver,
 
@@ -67,6 +70,12 @@ class LeagueState {
   /// Current game phase.
   final LeaguePhase phase;
 
+  /// Whether hard mode is active.
+  final bool isHardMode;
+
+  /// Score achieved in normal mode (before hard mode transition).
+  final int normalModeScore;
+
   const LeagueState({
     required this.currentLevel,
     required this.handInLevel,
@@ -80,6 +89,8 @@ class LeagueState {
     required this.isVictory,
     required this.isLevelingUp,
     required this.phase,
+    required this.isHardMode,
+    required this.normalModeScore,
   });
 
   /// Initial state: level 1, hand 1, 1 strike, 3 time chips, score 0.
@@ -97,6 +108,8 @@ class LeagueState {
       isVictory: false,
       isLevelingUp: false,
       phase: LeaguePhase.playing,
+      isHardMode: false,
+      normalModeScore: 0,
     );
   }
 
@@ -135,6 +148,8 @@ class LeagueState {
     bool? isVictory,
     bool? isLevelingUp,
     LeaguePhase? phase,
+    bool? isHardMode,
+    int? normalModeScore,
   }) {
     return LeagueState(
       currentLevel: currentLevel ?? this.currentLevel,
@@ -149,6 +164,8 @@ class LeagueState {
       isVictory: isVictory ?? this.isVictory,
       isLevelingUp: isLevelingUp ?? this.isLevelingUp,
       phase: phase ?? this.phase,
+      isHardMode: isHardMode ?? this.isHardMode,
+      normalModeScore: normalModeScore ?? this.normalModeScore,
     );
   }
 
@@ -168,7 +185,9 @@ class LeagueState {
           isGameOver == other.isGameOver &&
           isVictory == other.isVictory &&
           isLevelingUp == other.isLevelingUp &&
-          phase == other.phase;
+          phase == other.phase &&
+          isHardMode == other.isHardMode &&
+          normalModeScore == other.normalModeScore;
 
   @override
   int get hashCode =>
@@ -183,13 +202,15 @@ class LeagueState {
       isGameOver.hashCode ^
       isVictory.hashCode ^
       isLevelingUp.hashCode ^
-      phase.hashCode;
+      phase.hashCode ^
+      isHardMode.hashCode ^
+      normalModeScore.hashCode;
 
   @override
   String toString() =>
       'LeagueState(level: $currentLevel, hand: $handInLevel/$totalHands, '
       'strikes: $strikesRemaining, chips: $timeChipsRemaining, '
-      'score: $score, combo: $combo, phase: $phase)';
+      'score: $score, combo: $combo, hardMode: $isHardMode, normalScore: $normalModeScore, phase: $phase)';
 }
 
 // ── League Engine ─────────────────────────────────────────────
@@ -313,15 +334,25 @@ class LeagueEngine extends _$LeagueEngine {
     final int newHandInLevel = state.handInLevel + 1;
     final int newTotalHands = state.totalHands + 1;
 
-    // Victory: completed all 50 hands.
+    // Victory or hard mode transition: completed all 50 hands.
     if (newTotalHands > _totalHands) {
-      state = state.copyWith(
-        totalHands: _totalHands,
-        isVictory: true,
-        isGameOver: true,
-        phase: LeaguePhase.victory,
-      );
-      debugPrint('[LeagueEngine] Victory — all $_totalHands hands completed');
+      if (state.isHardMode) {
+        // Hard mode complete — real victory
+        state = state.copyWith(
+          totalHands: _totalHands,
+          isVictory: true,
+          isGameOver: true,
+          phase: LeaguePhase.victory,
+        );
+        debugPrint('[LeagueEngine] Hard mode victory — all $_totalHands hard hands completed');
+      } else {
+        // Normal mode complete — transition to hard mode
+        state = state.copyWith(
+          totalHands: _totalHands,
+          phase: LeaguePhase.hardModeTransition,
+        );
+        debugPrint('[LeagueEngine] Normal mode complete — transitioning to hard mode');
+      }
       return;
     }
 
@@ -367,6 +398,40 @@ class LeagueEngine extends _$LeagueEngine {
       '[LeagueEngine] Level $nextLevel started — '
       '${state.currentBbLevel}BB',
     );
+  }
+
+  /// Called when the hard mode transition cutscene ends.
+  ///
+  /// Preserves strikes, time chips, and score from normal mode.
+  /// Resets level/hand/combo and starts hard mode play.
+  void startHardMode() {
+    if (state.phase != LeaguePhase.hardModeTransition) return;
+
+    state = state.copyWith(
+      normalModeScore: state.score,
+      currentLevel: 1,
+      handInLevel: 1,
+      totalHands: 1,
+      combo: 0,
+      currentStreak: 0,
+      isHardMode: true,
+      isLevelingUp: false,
+      phase: LeaguePhase.playing,
+    );
+
+    debugPrint(
+      '[LeagueEngine] Hard mode started — '
+      'normalScore: ${state.normalModeScore}, '
+      'strikes: ${state.strikesRemaining}, '
+      'timeChips: ${state.timeChipsRemaining}',
+    );
+  }
+
+  /// Called to complete the hard mode transition and resume play.
+  ///
+  /// This is an alias for [startHardMode] — kept for API clarity.
+  void completeHardModeTransition() {
+    startHardMode();
   }
 
   /// Pause the game (app lifecycle).

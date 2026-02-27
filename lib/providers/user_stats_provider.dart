@@ -20,6 +20,8 @@ class UserStats {
   final int maxEnergy;
   final Tier tier;
   final DateTime? lastEnergySync; // 마지막 에너지 변경 시점 (서버 기준)
+  final int xp;
+  final int level;
 
   static const int recoveryRate = 20; // 분 단위
 
@@ -29,6 +31,8 @@ class UserStats {
     this.maxEnergy = 10,
     this.tier = Tier.fish,
     this.lastEnergySync,
+    this.xp = 0,
+    this.level = 1,
   });
 
   UserStats copyWith({
@@ -37,6 +41,8 @@ class UserStats {
     int? maxEnergy,
     Tier? tier,
     DateTime? lastEnergySync,
+    int? xp,
+    int? level,
   }) {
     return UserStats(
       chips: chips ?? this.chips,
@@ -44,6 +50,8 @@ class UserStats {
       maxEnergy: maxEnergy ?? this.maxEnergy,
       tier: tier ?? this.tier,
       lastEnergySync: lastEnergySync ?? this.lastEnergySync,
+      xp: xp ?? this.xp,
+      level: level ?? this.level,
     );
   }
 
@@ -105,7 +113,7 @@ class UserStatsNotifier extends StateNotifier<UserStats> {
       final userId = SupabaseService.currentUser!.id;
       final data = await SupabaseService.client
           .from('profiles')
-          .select('chips, energy, max_energy, tier, last_energy_sync')
+          .select('chips, energy, max_energy, tier, last_energy_sync, xp, level')
           .eq('id', userId)
           .single();
 
@@ -117,6 +125,8 @@ class UserStatsNotifier extends StateNotifier<UserStats> {
         lastEnergySync: data['last_energy_sync'] != null
             ? DateTime.parse(data['last_energy_sync'])
             : DateTime.now(),
+        xp: (data['xp'] as int?) ?? 0,
+        level: (data['level'] as int?) ?? 1,
       );
     } catch (e) {
       debugPrint('UserStats load failed: $e');
@@ -208,6 +218,34 @@ class UserStatsNotifier extends StateNotifier<UserStats> {
             .eq('id', SupabaseService.currentUser!.id);
       } catch (e) {
         debugPrint('Chips update failed: $e');
+      }
+    }
+  }
+
+  /// XP 보상 획득 및 레벨업 체크
+  Future<void> addXp(int amount) async {
+    int newXp = state.xp + amount;
+    int newLevel = state.level;
+    
+    // 단순한 레벨업 로직 (예: 100XP당 1레벨업)
+    while (newXp >= 100) {
+      newLevel++;
+      newXp -= 100;
+    }
+
+    state = state.copyWith(xp: newXp, level: newLevel);
+    await _syncXpLevel(newXp, newLevel);
+  }
+
+  Future<void> _syncXpLevel(int xp, int level) async {
+    if (SupabaseService.isLoggedIn) {
+      try {
+        await SupabaseService.client
+            .from('profiles')
+            .update({'xp': xp, 'level': level})
+            .eq('id', SupabaseService.currentUser!.id);
+      } catch (e) {
+        debugPrint('XP/Level update failed: $e');
       }
     }
   }

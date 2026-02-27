@@ -4,9 +4,21 @@ import 'package:flutter/services.dart';
 /// Manages haptic feedback for the game.
 /// Provides different haptic patterns for various game events.
 class HapticManager {
+  // ── Enable / Disable ──────────────────────────────
+  static bool _enabled = true;
+
+  /// Whether haptic feedback is enabled.
+  static bool get enabled => _enabled;
+
+  /// Enable or disable haptic feedback globally.
+  static void setEnabled(bool value) {
+    _enabled = value;
+    debugPrint('📳 Haptic ${value ? "enabled" : "disabled"}');
+  }
+
   /// Light selection click haptic feedback.
-  /// Used for UI interactions like swiping.
   static Future<void> swipe() async {
+    if (!_enabled) return;
     try {
       await HapticFeedback.selectionClick();
     } catch (e) {
@@ -14,9 +26,9 @@ class HapticManager {
     }
   }
 
-  /// Light impact haptic feedback.
-  /// Used for positive game events like correct decisions.
+  /// Light impact haptic feedback — correct decisions.
   static Future<void> correct() async {
+    if (!_enabled) return;
     try {
       await HapticFeedback.lightImpact();
     } catch (e) {
@@ -24,9 +36,9 @@ class HapticManager {
     }
   }
 
-  /// Heavy impact haptic feedback.
-  /// Used for negative game events like wrong decisions.
+  /// Heavy impact haptic feedback — wrong decisions.
   static Future<void> wrong() async {
+    if (!_enabled) return;
     try {
       await HapticFeedback.heavyImpact();
     } catch (e) {
@@ -34,9 +46,9 @@ class HapticManager {
     }
   }
 
-  /// Medium impact haptic feedback.
-  /// Used for snap/bonus events.
+  /// Medium impact haptic feedback — snap/bonus.
   static Future<void> snap() async {
+    if (!_enabled) return;
     try {
       await HapticFeedback.mediumImpact();
     } catch (e) {
@@ -45,8 +57,8 @@ class HapticManager {
   }
 
   /// Heavy impact haptic feedback for timer warnings.
-  /// Can be called repeatedly for urgent notifications.
   static Future<void> timerWarning() async {
+    if (!_enabled) return;
     try {
       await HapticFeedback.heavyImpact();
     } catch (e) {
@@ -55,9 +67,8 @@ class HapticManager {
   }
 
   /// Crescendo haptic pattern for level-up events.
-  /// Plays light → medium → heavy impacts with 100ms delays.
-  /// Used during level-up cutscene between 20-hand blocks.
   static Future<void> levelUp() async {
+    if (!_enabled) return;
     try {
       await HapticFeedback.lightImpact();
       await Future.delayed(const Duration(milliseconds: 100));
@@ -69,10 +80,9 @@ class HapticManager {
     }
   }
 
-  /// Impact + echo haptic pattern for heart loss events.
-  /// Plays heavy impact followed by medium impact with 50ms delay.
-  /// Used when a heart/life is lost (wrong answer).
+  /// Impact + echo haptic pattern for heart loss.
   static Future<void> heartShatter() async {
+    if (!_enabled) return;
     try {
       await HapticFeedback.heavyImpact();
       await Future.delayed(const Duration(milliseconds: 50));
@@ -82,10 +92,9 @@ class HapticManager {
     }
   }
 
-  /// Ominous triple thud haptic pattern for game over events.
-  /// Plays three heavy impacts with 150ms delays between each.
-  /// Used when all 3 strikes are used.
+  /// Ominous triple thud for game over.
   static Future<void> gameOver() async {
+    if (!_enabled) return;
     try {
       await HapticFeedback.heavyImpact();
       await Future.delayed(const Duration(milliseconds: 150));

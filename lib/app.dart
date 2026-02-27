@@ -4,11 +4,11 @@ import 'features/splash/splash_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/home/gto_home_screen.dart';
-import 'features/game/game_screen.dart';
 import 'features/game_over/game_over_screen.dart';
 import 'features/privacy/privacy_screen.dart';
 import 'features/game/deep_run_screen.dart';
 import 'features/game/league_screen.dart';
+import 'features/game/poker_table_screen.dart';
 import 'features/game_over/league_game_over_screen.dart';
 
 class App extends StatelessWidget {
@@ -25,12 +25,12 @@ class App extends StatelessWidget {
         '/onboarding': (context) => const OnboardingScreen(),
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const GtoHomeScreen(),
-        '/game': (context) => const GameScreen(),
         '/game-over': (context) => const GameOverScreen(),
         '/league-game-over': (context) => const LeagueGameOverScreen(),
         '/privacy': (context) => const PrivacyScreen(),
         '/deep-run': (context) => const DeepRunScreen(),
         '/league': (context) => const LeagueScreen(),
+        '/omni-swipe': (context) => const PokerTableScreen(),
       },
     );
   }

@@ -138,19 +138,26 @@ class GtoBattleHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
       children: [
-        // 점수 숫자
-        Text(
-          "$currentScore",
-          style: TextStyle(
-            fontFamily: 'Black Han Sans',
-            fontSize: 28,
-            color: Colors.white,
-            letterSpacing: -1,
-            shadows: [
-              Shadow(color: _getTierGlowColor().withOpacity(0.6), blurRadius: 12),
-              const Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(0, 2)),
-            ],
-          ),
+        // 점수 숫자 (카운트업 애니메이션 적용)
+        TweenAnimationBuilder<double>(
+          tween: Tween<double>(end: currentScore.toDouble()),
+          duration: const Duration(milliseconds: 1200),
+          curve: Curves.easeOutExpo,
+          builder: (context, value, child) {
+            return Text(
+              "${value.toInt()}",
+              style: TextStyle(
+                fontFamily: 'Black Han Sans',
+                fontSize: 28,
+                color: Colors.white,
+                letterSpacing: -1,
+                shadows: [
+                  Shadow(color: _getTierGlowColor().withOpacity(0.6), blurRadius: 12),
+                  const Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(0, 2)),
+                ],
+              ),
+            );
+          },
         ),
         const SizedBox(width: 2),
         // P 단위 (작게)

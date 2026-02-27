@@ -34,6 +34,7 @@ import 'widgets/answer_result_overlay.dart';
 import 'widgets/defense_alert_banner.dart';
 import 'widgets/fact_bomb_bottom_sheet.dart';
 import 'widgets/table_position_view.dart';
+import 'widgets/combo_strike_overlay.dart';
 
 /// 50-Hand Deep Run Survival mode screen.
 ///
@@ -61,12 +62,14 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
   int _currentCardIndex = 0;
   bool _isDisabled = false;
   bool _showAnswerResult = false;
+  bool _showFloatingScore = false;
   bool _lastAnswerCorrect = true;
   bool _lastWasFold = false;
   bool _showEvDiff = false;
   double _lastEvDiff = 0.0;
   double _dragProgress = 0.0;
   bool _showStartCutscene = true;
+  bool _showHardModeCutscene = false;
   DateTime? _cardShownTime;
   SwipeResult? _lastResult;
   CardQuestion? _lastQuestion;
@@ -100,9 +103,13 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
       final engine = ref.read(deepRunEngineProvider);
       final bbLevel = engine.currentBbLevel;
       final cache = await ref.read(gtoBbLevelProvider(bbLevel).future);
+      final isHardMode = engine.isHardMode;
       final deck = _questionGenerator.generateDeck(
         bbLevel: bbLevel,
         scenarios: cache.scenarios,
+        evDiffBbThreshold: isHardMode ? 0.7 : null,
+        overridePushCount: isHardMode ? 7 : null,
+        overrideDefenseCount: isHardMode ? 3 : null,
       );
 
       if (!mounted) return;
@@ -165,6 +172,7 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
       _lastWasFold = (direction == CardSwiperDirection.left);
       _lastResult = result;
       _lastQuestion = question;
+      _showFloatingScore = isCorrect;
     });
 
     if (isSnap && isCorrect) {
@@ -234,7 +242,10 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
   // ── Answer Result Flow ────────────────────────────────────────
 
   void _onAnswerResultComplete() {
-    setState(() => _showAnswerResult = false);
+    setState(() {
+      _showAnswerResult = false;
+      _showFloatingScore = false;
+    });
 
     final result = _lastResult;
     final question = _lastQuestion;
@@ -277,12 +288,25 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
       return;
     }
 
+    if (engineState.phase == DeepRunPhase.hardModeTransition) {
+      ref.read(timerProvider.notifier).stop();
+      setState(() => _showHardModeCutscene = true);
+      return;
+    }
+
     // Normal progression — restart timer for next card.
     _restartTimerForNextCard();
   }
 
   void _onLevelUpComplete() {
     ref.read(deepRunEngineProvider.notifier).completeLevelUp();
+    _loadDeckForCurrentLevel();
+  }
+
+  void _onHardModeCutsceneComplete() {
+    setState(() => _showHardModeCutscene = false);
+    ref.read(deepRunEngineProvider.notifier).startHardMode();
+    ref.read(timerProvider.notifier).setBaseDuration(12.0);
     _loadDeckForCurrentLevel();
   }
 
@@ -360,7 +384,7 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
       return Scaffold(
         body: Stack(
           children: [
-            DeepRunBackground(currentLevel: engineState.currentLevel),
+            DeepRunBackground(currentLevel: engineState.currentLevel, isHardMode: engineState.isHardMode),
             const Center(child: CircularProgressIndicator()),
           ],
         ),
@@ -388,7 +412,7 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
       body: Stack(
         children: [
           // 0. Dynamic Background
-          DeepRunBackground(currentLevel: engineState.currentLevel),
+          DeepRunBackground(currentLevel: engineState.currentLevel, isHardMode: engineState.isHardMode),
 
           SafeArea(
             child: Column(
@@ -396,10 +420,11 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
                 // 1. Deep Run HUD (Hearts + Progress + Status)
                 DeepRunHud(
                   strikesRemaining: engineState.strikesRemaining,
-                  totalHands: engineState.totalHands,
+                  score: engineState.score,
+                  combo: engineState.combo,
                   currentLevel: engineState.currentLevel,
-                  position: currentQ.position,
                   bbLevel: engineState.currentBbLevel,
+                  isHardMode: engineState.isHardMode,
                 ),
 
                 // 2. Timer Bar
@@ -475,6 +500,16 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
                         isVisible: _showEvDiff,
                         onComplete: _onEvDiffComplete,
                       ),
+
+                      // K-Casual Exploding Combo Overlay
+                      if (_showFloatingScore)
+                        ComboStrikeOverlay(
+                          isVisible: _showFloatingScore,
+                          combo: engineState.combo,
+                          earnedPoints: 0,
+                          isFever: false,
+                          isSnap: false,
+                        ),
                     ],
                   ),
                 ),
@@ -505,6 +540,13 @@ class _DeepRunScreenState extends ConsumerState<DeepRunScreen> {
               newLevel: engineState.currentLevel + 1,
               newBbLevel: _bbLevelForLevel(engineState.currentLevel + 1),
               onComplete: _onLevelUpComplete,
+            )
+          else if (_showHardModeCutscene)
+            LevelUpCutscene(
+              newLevel: 1,
+              newBbLevel: 15,
+              isHardModeEntry: true,
+              onComplete: _onHardModeCutsceneComplete,
             ),
         ],
       ),

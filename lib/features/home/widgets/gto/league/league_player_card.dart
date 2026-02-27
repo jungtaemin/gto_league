@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/utils/responsive.dart';
 import '../../../../../data/models/league_player.dart';
 import '../../../../../data/services/league_service.dart';
+import '../../../../decorate/providers/decorate_provider.dart';
 
 /// Unified player card for the league ranking list.
 ///
@@ -12,7 +14,7 @@ import '../../../../../data/services/league_service.dart';
 /// - **promotion** (rank 1-3) → gold tint
 /// - **demotion** (rank 11-15) → red tint + '강등' badge
 /// - **normal** → subtle white
-class LeaguePlayerCard extends StatelessWidget {
+class LeaguePlayerCard extends ConsumerWidget {
   const LeaguePlayerCard({
     super.key,
     required this.player,
@@ -25,8 +27,8 @@ class LeaguePlayerCard extends StatelessWidget {
   final Widget? trailingBadge;
 
   @override
-  Widget build(BuildContext context) {
-    if (isMe) return _buildMeCard(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (isMe) return _buildMeCard(context, ref);
     if (LeagueService.isPromotion(player.rank)) return _buildPromotionCard(context);
     if (LeagueService.isDemotion(player.rank)) return _buildDemotionCard(context);
     return _buildNormalCard(context);
@@ -35,10 +37,11 @@ class LeaguePlayerCard extends StatelessWidget {
   // ---------------------------------------------------------------------------
   // Me Card — cyan highlight, neon glow
   // ---------------------------------------------------------------------------
-  Widget _buildMeCard(BuildContext context) {
+  Widget _buildMeCard(BuildContext context, WidgetRef ref) {
     final zoneLabel = LeagueService.getZoneLabel(player.rank);
     final isPromo = LeagueService.isPromotion(player.rank);
     final zoneColor = isPromo ? AppColors.leaguePromotionGold : AppColors.leagueDemotionRed;
+    final equippedUrl = ref.watch(equippedCharacterUrlProvider);
     return Container(
       margin: EdgeInsets.symmetric(vertical: context.w(4)),
       decoration: BoxDecoration(
@@ -63,13 +66,21 @@ class LeaguePlayerCard extends StatelessWidget {
             width: context.w(44), height: context.w(44),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: const LinearGradient(colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)]),
+              gradient: equippedUrl == null
+                  ? const LinearGradient(colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)])
+                  : null,
+              color: equippedUrl != null ? Colors.transparent : null,
               border: Border.all(color: Colors.white, width: 2),
+              image: equippedUrl != null
+                  ? DecorationImage(image: AssetImage(equippedUrl), fit: BoxFit.cover)
+                  : null,
             ),
-            child: Center(child: Text(
-              player.nickname.isNotEmpty ? player.nickname[0] : '?',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: context.sp(16)),
-            )),
+            child: equippedUrl != null
+                ? null
+                : Center(child: Text(
+                    player.nickname.isNotEmpty ? player.nickname[0] : '?',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: context.sp(16)),
+                  )),
           ),
           Positioned(top: -4, left: -4, child: Container(
             width: context.w(18), height: context.w(18),
