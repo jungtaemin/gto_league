@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/utils/haptic_manager.dart';
 import '../providers/lesson_engine_provider.dart';
-import '../data/level1_mock_data.dart';
+import '../models/lesson.dart';
 import '../widgets/lesson_progress_bar.dart';
 import '../widgets/lesson_bottom_sheet.dart';
 import '../widgets/question_renderer.dart';
+import '../widgets/rank_bar_widget.dart';
 
 class AcademyScreen extends ConsumerStatefulWidget {
-  const AcademyScreen({super.key});
+  const AcademyScreen({super.key, required this.lesson});
+
+  final Lesson lesson;
 
   @override
   ConsumerState<AcademyScreen> createState() => _AcademyScreenState();
@@ -22,7 +24,7 @@ class _AcademyScreenState extends ConsumerState<AcademyScreen> {
     super.initState();
     // 화면 진입 시 레슨 시작
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(lessonEngineProvider.notifier).startLesson(level1Mock);
+      ref.read(lessonEngineProvider.notifier).startLesson(widget.lesson);
     });
   }
 
@@ -153,6 +155,12 @@ class _AcademyScreenState extends ConsumerState<AcademyScreen> {
                     ],
                   ),
                 ),
+                // 1.5. 카드 서열 바 (Phase 2 전용)
+                if (state.activeLesson?.id == 'P2')
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    child: RankBarWidget(),
+                  ),
                 // 2. 문제 바디 영역 (위젯 스위칭)
                 Expanded(
                   child: AnimatedSwitcher(

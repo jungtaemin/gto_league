@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../providers/user_stats_provider.dart';
 import '../models/map_node_data.dart';
 import '../widgets/saga_map_background.dart';
 import '../widgets/map_node_widget.dart';
 import 'academy_screen.dart'; // 실제 학습 뷰
+import '../data/lesson_registry.dart';
 import '../../home/widgets/gto/gto_train_body.dart'; // 훈련하기 화면
 
 class AcademyMapScreen extends ConsumerStatefulWidget {
@@ -228,11 +228,19 @@ class _AcademyMapScreenState extends ConsumerState<AcademyMapScreen> {
               // 캐주얼한 "학습 시작" 젤리 버튼
               GestureDetector(
                 onTap: () {
+                  final lesson = lessonForLevel(node.level);
+                  if (lesson == null) {
+                    Navigator.of(context).pop(); // 바텀시트 닫기
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('준비 중입니다! 곧 만나요 🎴')),
+                    );
+                    return;
+                  }
                   Navigator.of(context).pop(); // 바텀시트 닫기
                   // 아카데미 진입
                   Navigator.of(context).push(
                     PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) => const AcademyScreen(),
+                      pageBuilder: (context, animation, secondaryAnimation) => AcademyScreen(lesson: lesson),
                       transitionsBuilder: (context, animation, secondaryAnimation, child) {
                         return FadeTransition(
                           opacity: animation,
@@ -440,54 +448,5 @@ class _AcademyMapScreenState extends ConsumerState<AcademyMapScreen> {
         ),
       ],
     );
-  }
-}
-
-/// 노드 연결선 페인터 (베지어 곡선)
-class _PathPainter extends CustomPainter {
-  final double startX, startY, endX, endY;
-  final bool isLocked;
-
-  _PathPainter({
-    required this.startX,
-    required this.startY,
-    required this.endX,
-    required this.endY,
-    required this.isLocked,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // 캐주얼한 두툼한 라인
-    final paint = Paint()
-      ..color = isLocked ? const Color(0xFFE5E5E5) : const Color(0xFF58CC02)
-      ..strokeWidth = 14
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-
-    // 약간 더 입체감을 위해 선에 그림자 효과 추가
-    final shadowPaint = Paint()
-      ..color = isLocked ? const Color(0xFFD0D0D0) : const Color(0xFF46A302)
-      ..strokeWidth = 14
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-
-    final path = Path();
-    path.moveTo(size.width / 2 + startX, startY);
-    final controlX = size.width / 2 + (startX + endX) / 2;
-    path.quadraticBezierTo(controlX, (startY + endY) / 2, size.width / 2 + endX, endY);
-
-    // 그림자 선 먼저 (살짝 아래쪽)
-    final shadowPath = path.shift(const Offset(0, 6));
-    canvas.drawPath(shadowPath, shadowPaint);
-    // 메인 선
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _PathPainter oldDelegate) {
-    return oldDelegate.isLocked != isLocked ||
-           oldDelegate.startX != startX ||
-           oldDelegate.endX != endX;
   }
 }
