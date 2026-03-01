@@ -3,6 +3,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:playing_cards/playing_cards.dart';
 import '../models/question.dart';
 import '../../../core/utils/haptic_manager.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_text_styles.dart';
+import 'npc_speech_bubble.dart';
 
 class MultipleChoiceQuestionWidget extends StatefulWidget {
   final MultipleChoiceQuestion question;
@@ -21,6 +24,23 @@ class MultipleChoiceQuestionWidget extends StatefulWidget {
 class _MultipleChoiceQuestionWidgetState extends State<MultipleChoiceQuestionWidget> {
   int? _selectedIndex;
   bool _hasSubmitted = false;
+  String? _currentNpcDialogue;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentNpcDialogue = widget.question.npcDialogue;
+  }
+
+  @override
+  void didUpdateWidget(covariant MultipleChoiceQuestionWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.question.id != widget.question.id) {
+      _selectedIndex = null;
+      _hasSubmitted = false;
+      _currentNpcDialogue = widget.question.npcDialogue;
+    }
+  }
 
   void _handleOptionTap(int index) {
     if (_hasSubmitted) return;
@@ -39,6 +59,14 @@ class _MultipleChoiceQuestionWidgetState extends State<MultipleChoiceQuestionWid
     });
 
     final isCorrect = _selectedIndex == widget.question.correctOptionIndex;
+    
+    // Update NPC dialogue based on correctness
+    if (isCorrect && widget.question.npcFeedbackCorrect != null) {
+      setState(() { _currentNpcDialogue = widget.question.npcFeedbackCorrect; });
+    } else if (!isCorrect && widget.question.npcFeedbackWrong != null) {
+      setState(() { _currentNpcDialogue = widget.question.npcFeedbackWrong; });
+    }
+    
     widget.onSelectAnswer(isCorrect);
   }
 
@@ -48,15 +76,22 @@ class _MultipleChoiceQuestionWidgetState extends State<MultipleChoiceQuestionWid
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 16),
+        
+        // NPC Speech Bubble (if dialogue exists)
+        if (_currentNpcDialogue != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: NpcSpeechBubble(
+              imagePath: 'assets/images/characters/char_2.png',
+              dialogue: _currentNpcDialogue!,
+            ),
+          ),
+        
         // 질문 텍스트
         Text(
           widget.question.instructionText,
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-          ),
+          style: AppTextStyles.headingSmall(),
         ).animate().fadeIn().slideY(begin: -0.2),
 
         const Spacer(flex: 1),
@@ -73,7 +108,7 @@ class _MultipleChoiceQuestionWidgetState extends State<MultipleChoiceQuestionWid
               
               if (widget.question.displayCardRight != null) ...[
                 const SizedBox(width: 24),
-                const Text('VS', style: TextStyle(color: Colors.amber, fontSize: 32, fontStyle: FontStyle.italic, fontWeight: FontWeight.w900))
+                Text('VS', style: AppTextStyles.heading(color: Colors.amber))
                   .animate().scale(delay: 200.ms, curve: Curves.elasticOut),
                 const SizedBox(width: 24),
                 SizedBox(
@@ -108,11 +143,9 @@ class _MultipleChoiceQuestionWidgetState extends State<MultipleChoiceQuestionWid
                 child: Center(
                   child: Text(
                     widget.question.options[index],
-                    style: TextStyle(
-                      color: isSelected ? Colors.blueAccent : Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
+                      style: AppTextStyles.body(
+                        color: isSelected ? Colors.blueAccent : Colors.white,
+                      ),
                   ),
                 ),
               ),
@@ -134,7 +167,7 @@ class _MultipleChoiceQuestionWidgetState extends State<MultipleChoiceQuestionWid
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
               onPressed: _selectedIndex != null ? _submit : null,
-              child: const Text('확인', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+              child: Text('확인', style: AppTextStyles.button(color: AppColors.pureWhite)),
             ),
           ),
         ),

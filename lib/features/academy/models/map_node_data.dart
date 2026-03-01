@@ -27,12 +27,12 @@ class MapNodeData {
 // Level 1 ~ 10 가상 데이터 (듀오링고식 지그재그 xOffset 적용)
 const List<MapNodeData> dummyMapNodes = [
   MapNodeData(
-    level: 1, title: '홀덤 첫걸음', description: '기본 규칙과 카드 강도', 
-    topics: ['텍사스 홀덤이란?', '카드 무늬와 색상', '카드 숫자(Rank)의 강도'], 
+    level: 1, title: '웰컴 투 텍사스', description: '텍사스 홀덤의 기본 규칙', 
+    topics: ['내 패(핸드)', '바닥 카드(공용 카드)', '최강의 5장(족보)', '미니 퀴즈'], 
     xpReward: 50, xOffset: 0.0),
   MapNodeData(
-    level: 2, title: '족보 마스터', description: '하이카드부터 로티플까지', 
-    topics: ['원페어 ~ 트리플', '스트레이트 & 플러쉬', '풀하우스 이상 고급 족보'], 
+    level: 2, title: '무조건 큰 놈이 이긴다', description: '카드 서열과 하이카드', 
+    topics: ['왕족 카드 (A,K,Q,J)', '숫자 카드 (10~2)', '하이카드 승부'], 
     xpReward: 50, xOffset: -0.4),
   MapNodeData(
     level: 3, title: '포지션의 이해', description: '버튼과 블라인드 족보', 
