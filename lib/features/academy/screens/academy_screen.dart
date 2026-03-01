@@ -187,8 +187,9 @@ class _AcademyScreenState extends ConsumerState<AcademyScreen> {
                     ),
                   ),
                 ),
-                // 하단 바텀시트가 올라올 공간 확보
-                const SizedBox(height: 120),
+                // 더 이상 120px 공백을 고정으로 두지 않음. 
+                // 대신 padding을 약간 주어 하단 베젤과 버튼 사이에 최소한의 여백만 확보.
+                const SizedBox(height: 16),
               ],
             ),
 

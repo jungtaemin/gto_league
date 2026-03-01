@@ -6,6 +6,7 @@ import '../../../core/utils/haptic_manager.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import 'npc_speech_bubble.dart';
+import 'playing_card_animation_area.dart';
 
 class MultipleChoiceQuestionWidget extends StatefulWidget {
   final MultipleChoiceQuestion question;
@@ -51,7 +52,7 @@ class _MultipleChoiceQuestionWidgetState extends State<MultipleChoiceQuestionWid
     });
   }
 
-  void _submit() {
+  void _submit() async {
     if (_selectedIndex == null || _hasSubmitted) return;
 
     setState(() {
@@ -66,16 +67,29 @@ class _MultipleChoiceQuestionWidgetState extends State<MultipleChoiceQuestionWid
     } else if (!isCorrect && widget.question.npcFeedbackWrong != null) {
       setState(() { _currentNpcDialogue = widget.question.npcFeedbackWrong; });
     }
-    
+
+    if (isCorrect) {
+      HapticManager.success();
+    } else {
+      HapticManager.wrong();
+    }
+
+    // 도장(O/X) 찍히는 연출을 감상할 수 있도록 1.2초 대기
+    await Future.delayed(const Duration(milliseconds: 1200));
+
     widget.onSelectAnswer(isCorrect);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    final bool isCorrect = _selectedIndex == widget.question.correctOptionIndex;
+
+    return Stack(
+      alignment: Alignment.center,
       children: [
-        const SizedBox(height: 16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
         
         // NPC Speech Bubble (if dialogue exists)
         if (_currentNpcDialogue != null)
@@ -87,17 +101,20 @@ class _MultipleChoiceQuestionWidgetState extends State<MultipleChoiceQuestionWid
             ),
           ),
         
-        // 질문 텍스트
-        Text(
-          widget.question.instructionText,
-          textAlign: TextAlign.center,
-          style: AppTextStyles.headingSmall(),
-        ).animate().fadeIn().slideY(begin: -0.2),
+        // 질문 텍스트 (NPC 대사가 없을 때만 표시)
+        if (_currentNpcDialogue == null)
+          Text(
+            widget.question.instructionText,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.headingSmall(),
+          ).animate().fadeIn().slideY(begin: -0.2),
 
         const Spacer(flex: 1),
 
-        // 시각 보조 (카드 표시)
-        if (widget.question.displayCardLeft != null)
+        // 시각 보조 (카드 표시 또는 애니메이션 뷰)
+        if (widget.question.animationKey != null)
+          PlayingCardAnimationArea(animationKey: widget.question.animationKey!)
+        else if (widget.question.displayCardLeft != null)
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -133,7 +150,7 @@ class _MultipleChoiceQuestionWidgetState extends State<MultipleChoiceQuestionWid
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.blueAccent.withOpacity(0.2) : Colors.white10,
+                  color: isSelected ? Colors.blueAccent.withValues(alpha: 0.2) : Colors.white10,
                   border: Border.all(
                     color: isSelected ? Colors.blueAccent : Colors.transparent,
                     width: isSelected ? 3 : 1,
@@ -157,21 +174,51 @@ class _MultipleChoiceQuestionWidgetState extends State<MultipleChoiceQuestionWid
         
         // 제출 버튼
         AnimatedOpacity(
-          opacity: _selectedIndex != null ? 1.0 : 0.4,
+          opacity: _selectedIndex != null && !_hasSubmitted ? 1.0 : 0.4,
           duration: const Duration(milliseconds: 200),
           child: SizedBox(
-            height: 56,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: _selectedIndex != null ? Colors.blueAccent : Colors.grey[800],
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
-              onPressed: _selectedIndex != null ? _submit : null,
+              onPressed: (_selectedIndex != null && !_hasSubmitted) ? _submit : null,
               child: Text('확인', style: AppTextStyles.button(color: AppColors.pureWhite)),
             ),
           ),
         ),
       ],
-    );
+    ),
+    
+    // O/X 정답 도장 연출 (제출 후에만 표시)
+    if (_hasSubmitted && _selectedIndex != null)
+      Positioned(
+        top: MediaQuery.of(context).size.height * 0.25,
+        child: IgnorePointer(
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: (isCorrect ? Colors.greenAccent : Colors.redAccent).withValues(alpha: 0.4),
+                  blurRadius: 40,
+                  spreadRadius: 20,
+                )
+              ]
+            ),
+            child: Icon(
+              isCorrect ? Icons.check_circle_outline : Icons.cancel_outlined,
+              size: 200,
+              color: isCorrect ? Colors.greenAccent : Colors.redAccent,
+            ),
+          ).animate()
+           .scale(begin: const Offset(2.0, 2.0), end: const Offset(1.0, 1.0), duration: 400.ms, curve: Curves.easeOutBack)
+           .fadeIn(duration: 200.ms)
+           .shake(hz: isCorrect ? 0 : 6, curve: Curves.elasticOut), // 틀렸을 때만 심하게 흔들림
+        ),
+      ),
+    ],
+   );
   }
 }

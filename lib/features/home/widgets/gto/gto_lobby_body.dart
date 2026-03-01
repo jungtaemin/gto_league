@@ -15,6 +15,7 @@ import '../../../../data/models/tier.dart';
 import '../../../../data/services/league_service.dart';
 import '../../../../data/services/supabase_service.dart';
 import '../../../../data/services/schedule_helper.dart';
+
 /// Stitch V2 Lobby Body
 /// 반응형: 모든 크기를 context.w() 기반으로 통일
 class GtoLobbyBody extends ConsumerWidget {

@@ -36,6 +36,19 @@ class HapticManager {
     }
   }
 
+  /// Success haptic feedback (usually a pleasant feeling)
+  static Future<void> success() async {
+    if (!_enabled) return;
+    try {
+      // Light impact then medium impact creates a "success" feel
+      await HapticFeedback.lightImpact();
+      await Future.delayed(const Duration(milliseconds: 100));
+      await HapticFeedback.mediumImpact();
+    } catch (e) {
+      debugPrint('Error playing success haptic: $e');
+    }
+  }
+
   /// Heavy impact haptic feedback — wrong decisions.
   static Future<void> wrong() async {
     if (!_enabled) return;

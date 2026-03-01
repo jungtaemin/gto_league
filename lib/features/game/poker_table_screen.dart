@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -49,9 +50,26 @@ class _PokerTableScreenState extends ConsumerState<PokerTableScreen> {
     }
   }
 
+  /// 화면 포지션명 → DB 포지션명 역변환
+  static String _toDbPosition(String displayPos) {
+    switch (displayPos) {
+      case 'UTG+1': return 'UTG1';
+      case 'UTG+2': return 'UTG2';
+      case 'BU': return 'BTN';
+      default: return displayPos;
+    }
+  }
+
+  /// BTN 로테이션 순서 (히어로 포지션이 이 순서로 순환)
+  /// BTN → CO → HJ → LJ → UTG+2 → UTG+1 → UTG → BB → SB → (repeat)
+  static const _rotationOrder = [
+    'BU', 'CO', 'HJ', 'LJ', 'UTG+2', 'UTG+1', 'UTG', 'BB', 'SB'
+  ];
+
   // Scenario state
   List<DeepStackScenario> _scenarios = [];
   int _currentCardIndex = 0;
+  int _rotationIndex = 0; // 현재 로테이션 위치 (0 = BTN)
 
   // Turn state
   bool _isMyTurn = false;
@@ -90,16 +108,37 @@ class _PokerTableScreenState extends ConsumerState<PokerTableScreen> {
 
   void _startGame() {
     ref.read(omniSwipeEngineProvider.notifier).startGame();
-    _loadScenarios();
+    _rotationIndex = 0; // BTN부터 시작
+    _loadScenariosForCurrentRotation();
   }
 
-  Future<void> _loadScenarios() async {
+  /// 현재 로테이션 포지션에 맞는 시나리오를 로드
+  Future<void> _loadScenariosForCurrentRotation() async {
     try {
       final cache = await ref.read(deepStackDataProvider.future);
       if (!mounted) return;
-      final scenarios = ScenarioLoader.loadBalancedScenarios(cache);
+
+      final heroDisplayPos = _rotationOrder[_rotationIndex % _rotationOrder.length];
+      final heroDbPos = _toDbPosition(heroDisplayPos);
+
+      // 현재 포지션에서 밸런스된 시나리오 1개만 로드 (매 핸드마다 포지션 회전)
+      final scenarios = ScenarioLoader.loadBalancedScenariosForPosition(
+        cache,
+        position: heroDbPos,
+        count: 1,
+      );
+
+      if (scenarios.isEmpty) {
+        // 해당 포지션에 시나리오가 없으면 다음 포지션으로 넘어감
+        debugPrint('No scenarios for $heroDbPos, skipping...');
+        _rotationIndex++;
+        _loadScenariosForCurrentRotation();
+        return;
+      }
+
       setState(() {
         _scenarios = scenarios;
+        _currentCardIndex = 0;
       });
       _loadCurrentHand();
     } catch (e) {
@@ -146,6 +185,7 @@ class _PokerTableScreenState extends ConsumerState<PokerTableScreen> {
         
         final bets = BetAmountHelper.derivePlayerBets(partialHistory);
         final pot = BetAmountHelper.derivePotSize(partialHistory);
+        
         setState(() {
           _seatActions[step.position] = step.action;
           _seatBets = bets;
@@ -218,12 +258,10 @@ class _PokerTableScreenState extends ConsumerState<PokerTableScreen> {
       return;
     }
     ref.read(omniSwipeEngineProvider.notifier).nextHand();
-    if (_currentCardIndex < _scenarios.length - 1) {
-      setState(() {
-        _currentCardIndex++;
-      });
-      _loadCurrentHand();
-    }
+
+    // 매 핸드마다 BTN 한 칸 이동 (실제 홀덤과 동일)
+    _rotationIndex++;
+    _loadScenariosForCurrentRotation();
   }
 
   // ── Build ──────────────────────────────────────────────────────

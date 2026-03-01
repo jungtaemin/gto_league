@@ -25,6 +25,8 @@ class ConceptQuestion extends Question {
   final String? animationKey;
   final String? npcDialogue;
   final String? npcImageAsset;
+  final String? customButtonText; // 커스텀 버튼 텍스트 필드
+  final String? videoAsset; // 영상 재생용 경로 (예: assets/videos/jack_bj.mp4)
 
   ConceptQuestion({
     required super.id,
@@ -33,6 +35,8 @@ class ConceptQuestion extends Question {
     this.animationKey,
     this.npcDialogue,
     this.npcImageAsset,
+    this.customButtonText,
+    this.videoAsset,
     super.timeLimitSeconds = 0, // 시간 제한 없음
   }) : super(type: QuestionType.concept);
 }
@@ -47,6 +51,13 @@ class MultipleChoiceQuestion extends Question {
   final String? npcDialogue;
   final String? npcFeedbackCorrect;
   final String? npcFeedbackWrong;
+  final String? customButtonText; // 커스텀 버튼 텍스트 필드
+  
+  // 시각 자료를 그려주기 위한(빈 화면 방지) 애니메이션 키 
+  final String? animationKey;
+
+  // K-Casual: 연속 정답 시 콤보 파티클 등 특수 연출 플래그
+  final bool showComboEffect;
 
   MultipleChoiceQuestion({
     required super.id,
@@ -58,6 +69,9 @@ class MultipleChoiceQuestion extends Question {
     this.npcDialogue,
     this.npcFeedbackCorrect,
     this.npcFeedbackWrong,
+    this.customButtonText,
+    this.animationKey,
+    this.showComboEffect = false,
     super.timeLimitSeconds = 10,
   }) : super(type: QuestionType.multipleChoice);
 }
@@ -67,6 +81,9 @@ class BattleQuestion extends Question {
   final List<PlayingCard> aiHoleCards;
   final List<PlayingCard> communityCards; // 옵셔널 (빈 배열이면 프리플랍)
   final bool isUserWinner; // 반드시 이겨야 하는 연출 등을 위해 플래그 추가
+  
+  // K-Casual: 리버 극적 승전 등 '역전의 명수' 연출 플래그
+  final bool isReversal;
 
   BattleQuestion({
     required super.id,
@@ -75,6 +92,7 @@ class BattleQuestion extends Question {
     required this.aiHoleCards,
     this.communityCards = const [],
     required this.isUserWinner,
+    this.isReversal = false,
     super.timeLimitSeconds = 10,
   }) : super(type: QuestionType.battle);
 }

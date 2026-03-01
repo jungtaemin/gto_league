@@ -29,7 +29,7 @@ const List<MapNodeData> dummyMapNodes = [
   MapNodeData(
     level: 1, title: '웰컴 투 텍사스', description: '텍사스 홀덤의 기본 규칙', 
     topics: ['내 패(핸드)', '바닥 카드(공용 카드)', '최강의 5장(족보)', '미니 퀴즈'], 
-    xpReward: 50, xOffset: 0.0),
+    xpReward: 100, xOffset: 0.0),
   MapNodeData(
     level: 2, title: '무조건 큰 놈이 이긴다', description: '카드 서열과 하이카드', 
     topics: ['왕족 카드 (A,K,Q,J)', '숫자 카드 (10~2)', '하이카드 승부'], 

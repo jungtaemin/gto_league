@@ -190,6 +190,7 @@ class DecorateItemGrid extends ConsumerWidget {
       return Center(
         child: CharacterDisplayWidget(
           characterId: item.id,
+          assetUrl: item.assetUrl,
           size: 80,
           isLocked: !isOwned,
         ),

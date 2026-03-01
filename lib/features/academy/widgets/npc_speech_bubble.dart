@@ -95,8 +95,6 @@ class NpcSpeechBubble extends StatelessWidget {
                   ),
                   child: Text(
                     dialogue,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.body(color: AppColors.pureBlack),
                   ),
                 ),

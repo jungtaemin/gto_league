@@ -21,6 +21,7 @@ class BattleQuestionWidget extends StatefulWidget {
 class _BattleQuestionWidgetState extends State<BattleQuestionWidget> {
   bool _isBattleStarted = false;
   bool _showAiCards = false;
+  bool _showReversal = false;
 
   void _startBattle() async {
     if (_isBattleStarted) return;
@@ -39,8 +40,18 @@ class _BattleQuestionWidgetState extends State<BattleQuestionWidget> {
     });
     HapticManager.snap();
 
-    // 3. 우승 결과 대기 (1.2초)
-    await Future.delayed(const Duration(milliseconds: 1200));
+    // 역전승 연출 체크!
+    if (widget.question.isUserWinner && widget.question.isReversal) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      HapticManager.success(); // 강한 햅틱
+      setState(() {
+        _showReversal = true;
+      });
+      await Future.delayed(const Duration(milliseconds: 1500)); // 보면서 환호할 시간
+    } else {
+      // 3. 일반적인 우승 결과 대기 (1.2초)
+      await Future.delayed(const Duration(milliseconds: 1200));
+    }
     
     // 4. 콜백 호출
     widget.onBattleComplete(widget.question.isUserWinner);
@@ -51,6 +62,23 @@ class _BattleQuestionWidgetState extends State<BattleQuestionWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // 역전승 텍스트 오버레이 느낌
+        if (_showReversal)
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: [Colors.redAccent, Colors.orangeAccent]),
+              borderRadius: BorderRadius.circular(16)
+            ),
+            child: const Text('⚡ 리버 극적 역전승! ⚡', 
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.white, fontStyle: FontStyle.italic)
+            ).animate()
+              .scale(begin: const Offset(0.1, 0.1), end: const Offset(1.1, 1.1), duration: 600.ms, curve: Curves.elasticOut)
+              .shimmer(duration: 1.seconds, color: Colors.yellow),
+          ),
+          
         const SizedBox(height: 16),
         // 지시문 텍스트
         Text(
@@ -91,7 +119,7 @@ class _BattleQuestionWidgetState extends State<BattleQuestionWidget> {
           Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(

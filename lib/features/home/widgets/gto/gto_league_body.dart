@@ -10,9 +10,10 @@ import '../../../../data/services/league_service.dart';
 import '../../../../data/services/season_helper.dart';
 import '../../../../data/services/supabase_service.dart';
 import '../../../../data/services/schedule_helper.dart';
-import 'schedule_mode_banner.dart';
 import '../../../../providers/game_providers.dart';
 import '../../../../providers/game_state_notifier.dart';
+import '../../../../providers/user_stats_provider.dart';
+import 'mode_carousel_selector.dart';
 import 'league/league_header.dart';
 import 'league/league_player_card.dart';
 import 'league/rival_badge.dart';
@@ -83,6 +84,79 @@ class _GtoLeagueBodyState extends ConsumerState<GtoLeagueBody> {
     return me?.tier ?? _players.first.tier;
   }
 
+  Future<void> _playGame(CarouselModeType mode) async {
+    final schedule = GameModeSchedule();
+    final isDeepOpen = schedule.isDeepStackDay;
+    
+    if (mode == CarouselModeType.league && isDeepOpen) {
+      _showLockedDialog('클래식 리그는 일, 월, 화요일에만 오픈됩니다.');
+      return;
+    }
+    if (mode == CarouselModeType.omniSwipe && !isDeepOpen) {
+      _showLockedDialog('딥스택 마스터즈는 수, 목, 금, 토요일에만 오픈됩니다.');
+      return;
+    }
+
+    final notifier = ref.read(userStatsProvider.notifier);
+    final success = await notifier.consumeEnergy();
+    if (!success) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: const Color(0xFF1A1A2E),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.bolt_rounded, color: Colors.amber, size: 28),
+              SizedBox(width: 8),
+              Text('에너지 부족!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: const Text('에너지가 부족합니다!\n상점 메뉴에서 충전해주세요.', style: TextStyle(color: Colors.white70)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('확인', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    if (mounted) {
+      final route = mode == CarouselModeType.omniSwipe ? '/omni-swipe' : '/league';
+      Navigator.pushNamed(context, route).then((_) {
+        MusicManager.ensurePlaying(MusicType.lobby);
+      });
+    }
+  }
+
+  void _showLockedDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.lock_rounded, color: Colors.white70, size: 28),
+            SizedBox(width: 8),
+            Text('입장 불가', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Text(message, style: const TextStyle(color: Colors.white70, fontSize: 15)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('확인', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final remaining = SeasonHelper.getRemainingDuration(DateTime.now());
@@ -110,15 +184,19 @@ class _GtoLeagueBodyState extends ConsumerState<GtoLeagueBody> {
           : CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
               slivers: [
-                if (SupabaseService.isLoggedIn && _groupId == null && _players.isEmpty)
-                  SliverFillRemaining(child: _buildUnassignedView(context))
-                else ...[
-                  SliverToBoxAdapter(
-                    child: ScheduleModeBanner(
-                      isDeepStackDay: _schedule.isDeepStackDay,
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: context.w(12)),
+                    child: ModeCarouselSelector(
                       todayWeekday: _schedule.todayWeekday,
+                      onModeChanged: (mode) {},
+                      onPlayPressed: _playGame,
                     ),
                   ),
+                ),
+                if (SupabaseService.isLoggedIn && _groupId == null && _players.isEmpty)
+                  SliverFillRemaining(hasScrollBody: false, child: _buildUnassignedView(context))
+                else ...[
                    SliverToBoxAdapter(
                      child: LeagueHeader(
                        seasonId: seasonId,
@@ -218,9 +296,12 @@ class _GtoLeagueBodyState extends ConsumerState<GtoLeagueBody> {
               padding: EdgeInsets.symmetric(horizontal: context.w(32), vertical: context.w(16)),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.r(16))),
             ),
-            child: Text('배치고사 보러가기',
+            child: Text('배치고사 시작하기',
                 style: TextStyle(fontSize: context.sp(16), fontWeight: FontWeight.bold)),
           ),
+          SizedBox(height: context.w(16)),
+          Text('※ 상단의 모드 카드를 스와이프하여 다른 모드도 확인해보세요!',
+              style: TextStyle(fontSize: context.sp(12), color: Colors.white30)),
         ],
       ),
     );

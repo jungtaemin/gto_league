@@ -143,5 +143,8 @@ final equippedCharacterUrlProvider = Provider<String?>((ref) {
   if (characterId == 'char_robot') {
     return 'assets/images/characters/char_robot.png';
   }
+  if (characterId == 'char_texas_jack') {
+    return 'assets/images/characters/char_2.png';
+  }
   return null;
 });
