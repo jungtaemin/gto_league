@@ -23,12 +23,16 @@ abstract class Question {
 class ConceptQuestion extends Question {
   final String? imageAsset;
   final String? animationKey;
+  final String? npcDialogue;
+  final String? npcImageAsset;
 
   ConceptQuestion({
     required super.id,
     required super.instructionText,
     this.imageAsset,
     this.animationKey,
+    this.npcDialogue,
+    this.npcImageAsset,
     super.timeLimitSeconds = 0, // 시간 제한 없음
   }) : super(type: QuestionType.concept);
 }
@@ -40,6 +44,9 @@ class MultipleChoiceQuestion extends Question {
   // 카드를 보여주며 퀴즈를 낼 때 옵셔널로 사용
   final PlayingCard? displayCardLeft;
   final PlayingCard? displayCardRight;
+  final String? npcDialogue;
+  final String? npcFeedbackCorrect;
+  final String? npcFeedbackWrong;
 
   MultipleChoiceQuestion({
     required super.id,
@@ -48,6 +55,9 @@ class MultipleChoiceQuestion extends Question {
     required this.correctOptionIndex,
     this.displayCardLeft,
     this.displayCardRight,
+    this.npcDialogue,
+    this.npcFeedbackCorrect,
+    this.npcFeedbackWrong,
     super.timeLimitSeconds = 10,
   }) : super(type: QuestionType.multipleChoice);
 }
