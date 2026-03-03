@@ -20,6 +20,34 @@ class _AcademyMapScreenState extends ConsumerState<AcademyMapScreen> {
   final ScrollController _scrollController = ScrollController();
 
   @override
+  void initState() {
+    super.initState();
+    // 화면 빌드 후 사용자의 현재 레벨(가장 마지막에 열린 챕터) 위치로 스크롤 이동
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToCurrentLevel();
+    });
+  }
+
+  void _scrollToCurrentLevel() {
+    if (!mounted || !_scrollController.hasClients) return;
+    
+    final userCurrentLevel = ref.read(userStatsProvider).level;
+    final totalNodes = dummyMapNodes.length;
+    // reverse: true 이므로, 배열 상의 인덱스는 (totalNodes - level)이 됩니다.
+    // 각 노드의 높이를 대략 160(SizedBox height) + 80(상하 padding/여백 고려) 정도로 잡고 계산
+    // 정확한 오프셋보단 대략적인 중앙 배치를 위해 오프셋을 계산합니다.
+    final targetIndex = totalNodes - userCurrentLevel;
+    
+    // 리스트뷰 아이템 하나의 예상 높이 (160)
+    const itemHeight = 160.0;
+    
+    // 타겟 오프셋 계산 (화면 중앙쯤 오도록 살짝 보정)
+    final targetOffset = (targetIndex * itemHeight).clamp(0.0, _scrollController.position.maxScrollExtent);
+
+    _scrollController.jumpTo(targetOffset);
+  }
+
+  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();

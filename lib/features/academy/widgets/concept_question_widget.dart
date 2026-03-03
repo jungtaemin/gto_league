@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:playing_cards/playing_cards.dart';
 import 'package:video_player/video_player.dart';
@@ -50,16 +50,17 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
     }
 
     if (widget.question.videoAsset != null) {
-      _videoController = VideoPlayerController.asset(widget.question.videoAsset!)
-        ..initialize().then((_) {
-          if (mounted) {
-            setState(() {
-              _isVideoInitialized = true;
+      _videoController =
+          VideoPlayerController.asset(widget.question.videoAsset!)
+            ..initialize().then((_) {
+              if (mounted) {
+                setState(() {
+                  _isVideoInitialized = true;
+                });
+                _videoController!.setLooping(false);
+                _videoController!.play();
+              }
             });
-            _videoController!.setLooping(false);
-            _videoController!.play();
-          }
-        });
     }
   }
 
@@ -114,8 +115,7 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
                   decoration: BoxDecoration(
                     color: AppColors.darkGray,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: Colors.white24, width: 1),
+                    border: Border.all(color: Colors.white24, width: 1),
                   ),
                   child: Text(
                     question.instructionText,
@@ -176,14 +176,16 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
       if (_isVideoInitialized && _videoController != null) {
         return ConstrainedBox(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.45, // 기존 0.55에서 0.45로 줄여서 확실히 오버플로우 방지
+            maxHeight: MediaQuery.of(context).size.height *
+                0.45, // 기존 0.55에서 0.45로 줄여서 확실히 오버플로우 방지
           ),
           child: AspectRatio(
             aspectRatio: _videoController!.value.aspectRatio,
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.acidYellow.withOpacity(0.5), width: 2),
+                border: Border.all(
+                    color: AppColors.acidYellow.withOpacity(0.5), width: 2),
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.acidYellow.withOpacity(0.3),
@@ -198,7 +200,10 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
               ),
             ),
           ),
-        ).animate().fadeIn(duration: 500.ms).scale(begin: const Offset(0.9, 0.9));
+        )
+            .animate()
+            .fadeIn(duration: 500.ms)
+            .scale(begin: const Offset(0.9, 0.9));
       } else {
         return const SizedBox(
           height: 200,
@@ -223,17 +228,11 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
         children: [
           const Icon(Icons.rectangle, size: 60, color: Colors.orange)
               .animate()
-              .slideY(
-                  begin: 1.0,
-                  duration: 400.ms,
-                  curve: Curves.easeOutBack),
+              .slideY(begin: 1.0, duration: 400.ms, curve: Curves.easeOutBack),
           const SizedBox(width: 8),
           const Icon(Icons.rectangle, size: 60, color: Colors.orange)
               .animate()
-              .slideY(
-                  begin: 1.0,
-                  duration: 450.ms,
-                  curve: Curves.easeOutBack),
+              .slideY(begin: 1.0, duration: 450.ms, curve: Curves.easeOutBack),
           const SizedBox(width: 24),
           const Icon(Icons.arrow_forward_rounded,
               color: Colors.white, size: 32),
@@ -246,8 +245,7 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
                       size: 40, color: Colors.greenAccent)
                   .animate()
                   .scale(
-                      delay: (200 + index * 100).ms,
-                      curve: Curves.elasticOut),
+                      delay: (200 + index * 100).ms, curve: Curves.elasticOut),
             ),
           ),
         ],
@@ -281,9 +279,15 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
 
     // --- NEW P2: kicker_explain_view (무승부 설명) ---
     if (question.animationKey == 'kicker_explain_view') {
-      final myCards = [PlayingCard(Suit.spades, CardValue.ace), PlayingCard(Suit.hearts, CardValue.two)];
-      final oppCards = [PlayingCard(Suit.diamonds, CardValue.ace), PlayingCard(Suit.clubs, CardValue.king)];
-      
+      final myCards = [
+        PlayingCard(Suit.spades, CardValue.ace),
+        PlayingCard(Suit.hearts, CardValue.two)
+      ];
+      final oppCards = [
+        PlayingCard(Suit.diamonds, CardValue.ace),
+        PlayingCard(Suit.clubs, CardValue.king)
+      ];
+
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -293,16 +297,36 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
               // 나 (A, 2)
               Column(
                 children: [
-                  const Text("나 (A, 2)", style: TextStyle(color: Colors.white, fontSize: 14)),
+                  const Text("나 (A, 2)",
+                      style: TextStyle(color: Colors.white, fontSize: 14)),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      SizedBox(width: 50, height: 70, child: PlayingCardView(card: myCards[0]))
-                          .animate().slideX(begin: 1.0, duration: 400.ms, curve: Curves.easeIn)
+                      SizedBox(
+                              width: 50,
+                              height: 70,
+                              child: PlayingCardView(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4.0)),
+                                  card: myCards[0]))
+                          .animate()
+                          .slideX(
+                              begin: 1.0,
+                              duration: 400.ms,
+                              curve: Curves.easeIn)
                           .shakeX(delay: 500.ms, hz: 4), // A 부딪힘
                       const SizedBox(width: 4),
-                      SizedBox(width: 50, height: 70, child: PlayingCardView(card: myCards[1]))
-                          .animate().scale(delay: 1.2.seconds, curve: Curves.elasticOut), // 2 부각
+                      SizedBox(
+                              width: 50,
+                              height: 70,
+                              child: PlayingCardView(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4.0)),
+                                  card: myCards[1]))
+                          .animate()
+                          .scale(
+                              delay: 1.2.seconds,
+                              curve: Curves.elasticOut), // 2 부각
                     ],
                   ),
                 ],
@@ -314,17 +338,37 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
               // 상대 (A, K)
               Column(
                 children: [
-                  const Text("상대 (A, K)", style: TextStyle(color: Colors.white, fontSize: 14)),
+                  const Text("상대 (A, K)",
+                      style: TextStyle(color: Colors.white, fontSize: 14)),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      SizedBox(width: 50, height: 70, child: PlayingCardView(card: oppCards[0]))
-                          .animate().slideX(begin: -1.0, duration: 400.ms, curve: Curves.easeIn)
+                      SizedBox(
+                              width: 50,
+                              height: 70,
+                              child: PlayingCardView(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4.0)),
+                                  card: oppCards[0]))
+                          .animate()
+                          .slideX(
+                              begin: -1.0,
+                              duration: 400.ms,
+                              curve: Curves.easeIn)
                           .shakeX(delay: 500.ms, hz: 4), // A 부딪힘
                       const SizedBox(width: 4),
-                      SizedBox(width: 50, height: 70, child: PlayingCardView(card: oppCards[1]))
-                          .animate().scale(delay: 1.2.seconds, curve: Curves.elasticOut)
-                          .shimmer(delay: 1.5.seconds, color: Colors.amber), // K 승리 부각
+                      SizedBox(
+                              width: 50,
+                              height: 70,
+                              child: PlayingCardView(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4.0)),
+                                  card: oppCards[1]))
+                          .animate()
+                          .scale(delay: 1.2.seconds, curve: Curves.elasticOut)
+                          .shimmer(
+                              delay: 1.5.seconds,
+                              color: Colors.amber), // K 승리 부각
                     ],
                   ),
                 ],
@@ -336,34 +380,51 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
     }
 
     // --- NEW: Single Giant Cards for A, K, Q, J ---
-    if (['single_card_A', 'single_card_K', 'single_card_Q', 'single_card_J'].contains(question.animationKey)) {
+    if (['single_card_A', 'single_card_K', 'single_card_Q', 'single_card_J']
+        .contains(question.animationKey)) {
       CardValue value;
       Suit suit;
       switch (question.animationKey) {
-        case 'single_card_A': value = CardValue.ace; suit = Suit.spades; break;
-        case 'single_card_K': value = CardValue.king; suit = Suit.hearts; break;
-        case 'single_card_Q': value = CardValue.queen; suit = Suit.diamonds; break;
-        case 'single_card_J': value = CardValue.jack; suit = Suit.clubs; break;
-        default: value = CardValue.ace; suit = Suit.spades;
+        case 'single_card_A':
+          value = CardValue.ace;
+          suit = Suit.spades;
+          break;
+        case 'single_card_K':
+          value = CardValue.king;
+          suit = Suit.hearts;
+          break;
+        case 'single_card_Q':
+          value = CardValue.queen;
+          suit = Suit.diamonds;
+          break;
+        case 'single_card_J':
+          value = CardValue.jack;
+          suit = Suit.clubs;
+          break;
+        default:
+          value = CardValue.ace;
+          suit = Suit.spades;
       }
       return Center(
         child: SizedBox(
           width: 140, // 기존 카드들(60~70)보다 훨씬 큰 임팩트용 사이즈
           height: 196,
           child: PlayingCardView(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4.0)),
             card: PlayingCard(suit, value),
             showBack: false,
           ),
         )
-        .animate()
-        .scale(
-          begin: const Offset(0.3, 0.3),
-          end: const Offset(1.0, 1.0),
-          curve: Curves.elasticOut,
-          duration: 800.ms,
-        )
-        .shimmer(delay: 800.ms, duration: 1.seconds)
-        .shake(delay: 1.8.seconds, hz: 3, curve: Curves.easeInOut),
+            .animate()
+            .scale(
+              begin: const Offset(0.3, 0.3),
+              end: const Offset(1.0, 1.0),
+              curve: Curves.elasticOut,
+              duration: 800.ms,
+            )
+            .shimmer(delay: 800.ms, duration: 1.seconds)
+            .shake(delay: 1.8.seconds, hz: 3, curve: Curves.easeInOut),
       );
     }
 
@@ -383,10 +444,11 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
             child: SizedBox(
               width: 60,
               height: 84,
-              child: PlayingCardView(card: faceCards[i]),
-            )
-                .animate()
-                .scale(
+              child: PlayingCardView(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4.0)),
+                  card: faceCards[i]),
+            ).animate().scale(
                   delay: (i * 200).ms,
                   curve: Curves.easeOutBack,
                 ),
@@ -408,7 +470,7 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
         CardValue.three,
         CardValue.two,
       ];
-      
+
       // 화면 너비를 고려해 카드가 조금씩 겹치면서 아래로 내려가는 진정한 계단식 연출
       return Container(
         height: 180, // 계단이 내려갈 충분한 세로 공간 확보
@@ -428,20 +490,22 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
                     width: 50,
                     height: 70,
                     child: PlayingCardView(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4.0)),
                       card: PlayingCard(Suit.hearts, numberValues[i]),
                       showBack: false,
                       elevation: 4.0, // 겹칠 때 입체감 부여
                     ),
                   )
-                  .animate()
-                  .slideY(
-                    begin: -1.0, 
-                    end: 0, 
-                    curve: Curves.bounceOut, 
-                    duration: 600.ms, 
-                    delay: (i * 150).ms // 하나씩 순차적으로 떨어짐
-                  )
-                  .fadeIn(duration: 300.ms, delay: (i * 150).ms),
+                      .animate()
+                      .slideY(
+                          begin: -1.0,
+                          end: 0,
+                          curve: Curves.bounceOut,
+                          duration: 600.ms,
+                          delay: (i * 150).ms // 하나씩 순차적으로 떨어짐
+                          )
+                      .fadeIn(duration: 300.ms, delay: (i * 150).ms),
                 );
               }),
             ),
@@ -497,42 +561,49 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
                 )
               ],
             ),
-          ).animate(onPlay: (controller) => controller.repeat(reverse: true))
-           .scale(begin: const Offset(0.9, 0.9), end: const Offset(1.1, 1.1), duration: 2.seconds),
-           
+          )
+              .animate(onPlay: (controller) => controller.repeat(reverse: true))
+              .scale(
+                  begin: const Offset(0.9, 0.9),
+                  end: const Offset(1.1, 1.1),
+                  duration: 2.seconds),
+
           // Left Deck (가장자리에서 중앙으로 슬라이드)
           ...List.generate(leftDeck.length, (i) {
             return Positioned(
               child: SizedBox(
                 width: 50,
                 height: 70,
-                child: PlayingCardView(card: leftDeck[i], showBack: true),
+                child: PlayingCardView(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4.0)),
+                    card: leftDeck[i],
+                    showBack: true),
               )
-              .animate(onPlay: (controller) => controller.repeat(reverse: true))
-              // 시작: 완쪽 바깥에 살짝 기울어진 뭉치
-              .slideX(
-                begin: -2.0, 
-                end: 0,
-                duration: 400.ms, 
-                delay: (i * 80).ms, // 한 장씩 드르륵 겹치며 진입
-                curve: Curves.easeInQuint
-              )
-              .rotate(
-                begin: -0.2,
-                end: 0,
-                duration: 400.ms,
-                delay: (i * 80).ms,
-              )
-              // 중앙 병합 후 잠깐 대기
-              .then(delay: 500.ms)
-              // 다시 스쿼시 & 스트레치로 섞이는 느낌
-              .scale(
-                begin: const Offset(1, 1),
-                end: const Offset(0.8, 1.1),
-                duration: 200.ms
-              )
-              // 끝: 사라짐
-              .fadeOut(duration: 200.ms),
+                  .animate(
+                      onPlay: (controller) => controller.repeat(reverse: true))
+                  // 시작: 완쪽 바깥에 살짝 기울어진 뭉치
+                  .slideX(
+                      begin: -2.0,
+                      end: 0,
+                      duration: 400.ms,
+                      delay: (i * 80).ms, // 한 장씩 드르륵 겹치며 진입
+                      curve: Curves.easeInQuint)
+                  .rotate(
+                    begin: -0.2,
+                    end: 0,
+                    duration: 400.ms,
+                    delay: (i * 80).ms,
+                  )
+                  // 중앙 병합 후 잠깐 대기
+                  .then(delay: 500.ms)
+                  // 다시 스쿼시 & 스트레치로 섞이는 느낌
+                  .scale(
+                      begin: const Offset(1, 1),
+                      end: const Offset(0.8, 1.1),
+                      duration: 200.ms)
+                  // 끝: 사라짐
+                  .fadeOut(duration: 200.ms),
             );
           }),
 
@@ -542,34 +613,37 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
               child: SizedBox(
                 width: 50,
                 height: 70,
-                child: PlayingCardView(card: rightDeck[i], showBack: true),
+                child: PlayingCardView(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4.0)),
+                    card: rightDeck[i],
+                    showBack: true),
               )
-              .animate(onPlay: (controller) => controller.repeat(reverse: true))
-              // 시작: 오른쪽 바깥에 살짝 기울어진 뭉치
-              .slideX(
-                begin: 2.0, 
-                end: 0,
-                duration: 400.ms, 
-                // 왼쪽 패와 교차(인터리빙) 되도록 타이밍 살짝 어긋나게
-                delay: (i * 80 + 40).ms, 
-                curve: Curves.easeInQuint
-              )
-              .rotate(
-                begin: 0.2,
-                end: 0,
-                duration: 400.ms,
-                delay: (i * 80 + 40).ms,
-              )
-              // 중앙 병합 후 잠깐 대기 (마지막 카드 끝나는 타이밍 맞춤)
-              .then(delay: (500 - 40).ms)
-              // 다시 스쿼시 & 스트레치로 섞이는 느낌
-              .scale(
-                begin: const Offset(1, 1),
-                end: const Offset(0.8, 1.1),
-                duration: 200.ms
-              )
-              // 끝: 사라짐
-              .fadeOut(duration: 200.ms),
+                  .animate(
+                      onPlay: (controller) => controller.repeat(reverse: true))
+                  // 시작: 오른쪽 바깥에 살짝 기울어진 뭉치
+                  .slideX(
+                      begin: 2.0,
+                      end: 0,
+                      duration: 400.ms,
+                      // 왼쪽 패와 교차(인터리빙) 되도록 타이밍 살짝 어긋나게
+                      delay: (i * 80 + 40).ms,
+                      curve: Curves.easeInQuint)
+                  .rotate(
+                    begin: 0.2,
+                    end: 0,
+                    duration: 400.ms,
+                    delay: (i * 80 + 40).ms,
+                  )
+                  // 중앙 병합 후 잠깐 대기 (마지막 카드 끝나는 타이밍 맞춤)
+                  .then(delay: (500 - 40).ms)
+                  // 다시 스쿼시 & 스트레치로 섞이는 느낌
+                  .scale(
+                      begin: const Offset(1, 1),
+                      end: const Offset(0.8, 1.1),
+                      duration: 200.ms)
+                  // 끝: 사라짐
+                  .fadeOut(duration: 200.ms),
             );
           }),
         ],
@@ -605,16 +679,19 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
               child: SizedBox(
                 width: 45,
                 height: 63,
-                child: PlayingCardView(card: communityCards[i], showBack: false),
+                child: PlayingCardView(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4.0)),
+                    card: communityCards[i],
+                    showBack: false),
               )
-              .animate()
-              .scale(
-                delay: (800 + i * 150).ms, 
-                curve: Curves.elasticOut,
-                begin: const Offset(0, 0),
-                end: const Offset(1, 1)
-              )
-              .shimmer(delay: 2000.ms, duration: 1.seconds),
+                  .animate()
+                  .scale(
+                      delay: (800 + i * 150).ms,
+                      curve: Curves.elasticOut,
+                      begin: const Offset(0, 0),
+                      end: const Offset(1, 1))
+                  .shimmer(delay: 2000.ms, duration: 1.seconds),
             );
           }),
         ),
@@ -628,22 +705,24 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
               child: SizedBox(
                 width: 70,
                 height: 98,
-                child: PlayingCardView(card: holeCards[i], showBack: false),
+                child: PlayingCardView(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4.0)),
+                    card: holeCards[i],
+                    showBack: false),
               )
-              .animate()
-              .slideY(
-                begin: 2.0, 
-                duration: 600.ms, 
-                curve: Curves.easeOutBack,
-                delay: (i * 200).ms
-              )
-              .rotate(
-                begin: i == 0 ? -0.1 : 0.1, 
-                end: 0, 
-                duration: 400.ms, 
-                delay: (i * 200).ms
-              )
-              .shimmer(delay: 2000.ms, duration: 1.seconds),
+                  .animate()
+                  .slideY(
+                      begin: 2.0,
+                      duration: 600.ms,
+                      curve: Curves.easeOutBack,
+                      delay: (i * 200).ms)
+                  .rotate(
+                      begin: i == 0 ? -0.1 : 0.1,
+                      end: 0,
+                      duration: 400.ms,
+                      delay: (i * 200).ms)
+                  .shimmer(delay: 2000.ms, duration: 1.seconds),
             );
           }),
         ),
@@ -669,6 +748,8 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
             width: 70,
             height: 98,
             child: PlayingCardView(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4.0)),
               card: c,
               showBack: !_holeCardsFlipped,
             ),
@@ -706,6 +787,8 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
             width: 55,
             height: 77,
             child: PlayingCardView(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4.0)),
               card: cards[i],
               showBack: true,
             ),
@@ -749,6 +832,8 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
               width: 50,
               height: 70,
               child: PlayingCardView(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4.0)),
                 card: cards[i],
                 showBack: false,
               ),

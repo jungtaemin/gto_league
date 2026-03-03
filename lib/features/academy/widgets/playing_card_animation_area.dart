@@ -42,11 +42,15 @@ class PlayingCardAnimationArea extends StatelessWidget {
           child: SizedBox(
             width: 70,
             height: 98,
-            child: PlayingCardView(card: c, showBack: false),
+            child: PlayingCardView(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4.0)),
+                card: c,
+                showBack: false),
           )
-          .animate()
-          .slideY(begin: -2.0, duration: 400.ms, curve: Curves.easeOutBack)
-          .rotate(begin: -0.1, end: 0, delay: 200.ms, duration: 200.ms),
+              .animate()
+              .slideY(begin: -2.0, duration: 400.ms, curve: Curves.easeOutBack)
+              .rotate(begin: -0.1, end: 0, delay: 200.ms, duration: 200.ms),
         );
       }).toList(),
     );
@@ -69,16 +73,17 @@ class PlayingCardAnimationArea extends StatelessWidget {
           child: SizedBox(
             width: 55,
             height: 77,
-            child: PlayingCardView(card: cards[i], showBack: false),
-          )
-          .animate()
-          .scale(
-            delay: (i * 100).ms, 
-            duration: 400.ms, 
-            curve: Curves.elasticOut,
-            begin: const Offset(0, 0),
-            end: const Offset(1, 1)
-          ),
+            child: PlayingCardView(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4.0)),
+                card: cards[i],
+                showBack: false),
+          ).animate().scale(
+              delay: (i * 100).ms,
+              duration: 400.ms,
+              curve: Curves.elasticOut,
+              begin: const Offset(0, 0),
+              end: const Offset(1, 1)),
         );
       }),
     );
@@ -109,15 +114,16 @@ class PlayingCardAnimationArea extends StatelessWidget {
               child: SizedBox(
                 width: 35,
                 height: 49,
-                child: PlayingCardView(card: communityCards[i], showBack: false),
-              )
-              .animate()
-              .scale(
-                delay: (i * 100).ms, 
-                curve: Curves.elasticOut,
-                begin: const Offset(0, 0),
-                end: const Offset(1, 1)
-              ),
+                child: PlayingCardView(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4.0)),
+                    card: communityCards[i],
+                    showBack: false),
+              ).animate().scale(
+                  delay: (i * 100).ms,
+                  curve: Curves.elasticOut,
+                  begin: const Offset(0, 0),
+                  end: const Offset(1, 1)),
             );
           }),
         ),
@@ -131,21 +137,23 @@ class PlayingCardAnimationArea extends StatelessWidget {
               child: SizedBox(
                 width: 55,
                 height: 77,
-                child: PlayingCardView(card: holeCards[i], showBack: false),
+                child: PlayingCardView(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4.0)),
+                    card: holeCards[i],
+                    showBack: false),
               )
-              .animate()
-              .slideY(
-                begin: 1.0, 
-                duration: 600.ms, 
-                curve: Curves.easeOutBack,
-                delay: (500 + i * 200).ms
-              )
-              .rotate(
-                begin: i == 0 ? -0.1 : 0.1, 
-                end: 0, 
-                duration: 400.ms, 
-                delay: (500 + i * 200).ms
-              ),
+                  .animate()
+                  .slideY(
+                      begin: 1.0,
+                      duration: 600.ms,
+                      curve: Curves.easeOutBack,
+                      delay: (500 + i * 200).ms)
+                  .rotate(
+                      begin: i == 0 ? -0.1 : 0.1,
+                      end: 0,
+                      duration: 400.ms,
+                      delay: (500 + i * 200).ms),
             );
           }),
         ),
@@ -157,24 +165,40 @@ class PlayingCardAnimationArea extends StatelessWidget {
   // Phase 2: Kicker Battle View (J, 9 vs J, 4)
   // ===================================================================
   Widget _buildKickerBattleView() {
-    final myCards = [PlayingCard(Suit.hearts, CardValue.jack), PlayingCard(Suit.spades, CardValue.nine)];
-    final oppCards = [PlayingCard(Suit.diamonds, CardValue.jack), PlayingCard(Suit.clubs, CardValue.four)];
-    return _build2vs2CardView("나 (J, 9)", myCards, "상대 (J, 4)", oppCards, highlightMySecond: true);
+    final myCards = [
+      PlayingCard(Suit.hearts, CardValue.jack),
+      PlayingCard(Suit.spades, CardValue.nine)
+    ];
+    final oppCards = [
+      PlayingCard(Suit.diamonds, CardValue.jack),
+      PlayingCard(Suit.clubs, CardValue.four)
+    ];
+    return _build2vs2CardView("나 (J, 9)", myCards, "상대 (J, 4)", oppCards,
+        highlightMySecond: true);
   }
 
   // ===================================================================
   // Phase 2: Ace Dominant View (A, 2 vs K, Q)
   // ===================================================================
   Widget _buildAceDominantView() {
-    final myCards = [PlayingCard(Suit.spades, CardValue.ace), PlayingCard(Suit.hearts, CardValue.two)];
-    final oppCards = [PlayingCard(Suit.hearts, CardValue.king), PlayingCard(Suit.diamonds, CardValue.queen)];
-    return _build2vs2CardView("나 (A, 2)", myCards, "상대 (K, Q)", oppCards, myFirstScaleBounce: true);
+    final myCards = [
+      PlayingCard(Suit.spades, CardValue.ace),
+      PlayingCard(Suit.hearts, CardValue.two)
+    ];
+    final oppCards = [
+      PlayingCard(Suit.hearts, CardValue.king),
+      PlayingCard(Suit.diamonds, CardValue.queen)
+    ];
+    return _build2vs2CardView("나 (A, 2)", myCards, "상대 (K, Q)", oppCards,
+        myFirstScaleBounce: true);
   }
 
   // ===================================================================
   // Helper for 2 vs 2 Player/Opponent battles
   // ===================================================================
-  Widget _build2vs2CardView(String myLabel, List<PlayingCard> myCards, String oppLabel, List<PlayingCard> oppCards, {bool highlightMySecond = false, bool myFirstScaleBounce = false}) {
+  Widget _build2vs2CardView(String myLabel, List<PlayingCard> myCards,
+      String oppLabel, List<PlayingCard> oppCards,
+      {bool highlightMySecond = false, bool myFirstScaleBounce = false}) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -184,40 +208,98 @@ class PlayingCardAnimationArea extends StatelessWidget {
             // 나
             Column(
               children: [
-                Text(myLabel, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                Text(myLabel,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    SizedBox(width: 45, height: 63, child: PlayingCardView(card: myCards[0], showBack: false))
-                      .animate()
-                      .slideX(begin: -1.0, duration: 400.ms, curve: Curves.easeIn)
-                      .shimmer(delay: myFirstScaleBounce ? 800.ms : 0.ms, color: myFirstScaleBounce ? Colors.amber : null)
-                      .scale(delay: myFirstScaleBounce ? 600.ms : 0.ms, end: myFirstScaleBounce ? const Offset(1.3, 1.3) : const Offset(1,1), curve: Curves.elasticOut), 
+                    SizedBox(
+                            width: 45,
+                            height: 63,
+                            child: PlayingCardView(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4.0)),
+                                card: myCards[0],
+                                showBack: false))
+                        .animate()
+                        .slideX(
+                            begin: -1.0, duration: 400.ms, curve: Curves.easeIn)
+                        .shimmer(
+                            delay: myFirstScaleBounce ? 800.ms : 0.ms,
+                            color: myFirstScaleBounce ? Colors.amber : null)
+                        .scale(
+                            delay: myFirstScaleBounce ? 600.ms : 0.ms,
+                            end: myFirstScaleBounce
+                                ? const Offset(1.3, 1.3)
+                                : const Offset(1, 1),
+                            curve: Curves.elasticOut),
                     const SizedBox(width: 4),
-                    SizedBox(width: 45, height: 63, child: PlayingCardView(card: myCards[1], showBack: false))
-                      .animate().slideY(begin: 1.0, duration: 400.ms, delay: 200.ms)
-                      .shimmer(delay: highlightMySecond ? 1.seconds : 0.ms, color: highlightMySecond ? Colors.amber : null)
-                      .scale(delay: highlightMySecond ? 800.ms : 0.ms, begin: const Offset(1,1), end: highlightMySecond ? const Offset(1.2, 1.2) : const Offset(1,1)), 
+                    SizedBox(
+                            width: 45,
+                            height: 63,
+                            child: PlayingCardView(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4.0)),
+                                card: myCards[1],
+                                showBack: false))
+                        .animate()
+                        .slideY(begin: 1.0, duration: 400.ms, delay: 200.ms)
+                        .shimmer(
+                            delay: highlightMySecond ? 1.seconds : 0.ms,
+                            color: highlightMySecond ? Colors.amber : null)
+                        .scale(
+                            delay: highlightMySecond ? 800.ms : 0.ms,
+                            begin: const Offset(1, 1),
+                            end: highlightMySecond
+                                ? const Offset(1.2, 1.2)
+                                : const Offset(1, 1)),
                   ],
                 ),
               ],
             ),
             const SizedBox(width: 16),
             // VS
-            const Text("VS").animate().fadeIn(delay: 600.ms).scale(curve: Curves.elasticOut),
+            const Text("VS")
+                .animate()
+                .fadeIn(delay: 600.ms)
+                .scale(curve: Curves.elasticOut),
             const SizedBox(width: 16),
             // 상대
             Column(
               children: [
-                Text(oppLabel, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                Text(oppLabel,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    SizedBox(width: 45, height: 63, child: PlayingCardView(card: oppCards[0], showBack: false))
-                      .animate().slideX(begin: 1.0, duration: 400.ms, curve: Curves.easeIn),
+                    SizedBox(
+                            width: 45,
+                            height: 63,
+                            child: PlayingCardView(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4.0)),
+                                card: oppCards[0],
+                                showBack: false))
+                        .animate()
+                        .slideX(
+                            begin: 1.0, duration: 400.ms, curve: Curves.easeIn),
                     const SizedBox(width: 4),
-                    SizedBox(width: 45, height: 63, child: PlayingCardView(card: oppCards[1], showBack: false))
-                      .animate().slideY(begin: 1.0, duration: 400.ms, delay: 200.ms),
+                    SizedBox(
+                            width: 45,
+                            height: 63,
+                            child: PlayingCardView(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4.0)),
+                                card: oppCards[1],
+                                showBack: false))
+                        .animate()
+                        .slideY(begin: 1.0, duration: 400.ms, delay: 200.ms),
                   ],
                 ),
               ],

@@ -21,7 +21,8 @@ class LessonProgressBar extends StatelessWidget {
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutCubic,
-            width: MediaQuery.of(context).size.width * progress, // 단순히 전체 width 대비. 실제 상위 제약에 맞출 필요가 있음.
+            width: MediaQuery.of(context).size.width *
+                progress, // 단순히 전체 width 대비. 실제 상위 제약에 맞출 필요가 있음.
             decoration: BoxDecoration(
               color: Colors.greenAccent,
               borderRadius: BorderRadius.circular(8),

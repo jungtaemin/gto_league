@@ -8,7 +8,19 @@ class RankBarWidget extends StatelessWidget {
   const RankBarWidget({super.key, this.highlightedRanks});
 
   static const _ranks = [
-    'A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2',
+    'A',
+    'K',
+    'Q',
+    'J',
+    '10',
+    '9',
+    '8',
+    '7',
+    '6',
+    '5',
+    '4',
+    '3',
+    '2',
   ];
 
   @override
@@ -29,18 +41,15 @@ class RankBarWidget extends StatelessWidget {
                 width: 28,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: isHighlighted
-                      ? AppColors.acidYellow
-                      : AppColors.darkGray,
+                  color:
+                      isHighlighted ? AppColors.acidYellow : AppColors.darkGray,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   rank,
                   style: AppTextStyles.caption(
-                    color: isHighlighted
-                        ? AppColors.pureBlack
-                        : Colors.white70,
+                    color: isHighlighted ? AppColors.pureBlack : Colors.white70,
                   ),
                 ),
               ),

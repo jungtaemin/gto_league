@@ -31,7 +31,7 @@ class _MapNodeWidgetState extends State<MapNodeWidget> {
 
   void _handleTapUp(TapUpDetails details) {
     if (widget.status == NodeStatus.locked) {
-      HapticManager.wrong(); 
+      HapticManager.wrong();
     } else {
       setState(() => _isPressed = false);
       HapticManager.correct();
@@ -132,7 +132,8 @@ class _MapNodeWidgetState extends State<MapNodeWidget> {
                   // 아이콘
                   Padding(
                     padding: EdgeInsets.only(bottom: shadowHeight * 0.5),
-                    child: Icon(iconData, color: Colors.white, size: 38 * sizeMult),
+                    child: Icon(iconData,
+                        color: Colors.white, size: 38 * sizeMult),
                   ),
                 ],
               ),
@@ -143,20 +144,26 @@ class _MapNodeWidgetState extends State<MapNodeWidget> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: widget.status == NodeStatus.locked ? Colors.black.withValues(alpha: 0.2) : Colors.white,
+              color: widget.status == NodeStatus.locked
+                  ? Colors.black.withValues(alpha: 0.2)
+                  : Colors.white,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: widget.status == NodeStatus.locked ? [] : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  offset: const Offset(0, 3),
-                  blurRadius: 4,
-                ),
-              ],
+              boxShadow: widget.status == NodeStatus.locked
+                  ? []
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        offset: const Offset(0, 3),
+                        blurRadius: 4,
+                      ),
+                    ],
             ),
             child: Text(
               widget.node.title,
               style: TextStyle(
-                color: widget.status == NodeStatus.locked ? Colors.white70 : const Color(0xFF4B4B4B),
+                color: widget.status == NodeStatus.locked
+                    ? Colors.white70
+                    : const Color(0xFF4B4B4B),
                 fontWeight: FontWeight.w900,
                 fontSize: 14,
               ),
@@ -168,8 +175,13 @@ class _MapNodeWidgetState extends State<MapNodeWidget> {
 
     // 숨쉬는 애니메이션 (Current 한정)
     if (widget.status == NodeStatus.current && !_isPressed) {
-      nodeButton = nodeButton.animate(onPlay: (c) => c.repeat(reverse: true))
-          .scale(begin: const Offset(1.0, 1.0), end: const Offset(1.04, 1.04), duration: 1.seconds, curve: Curves.easeInOut);
+      nodeButton = nodeButton
+          .animate(onPlay: (c) => c.repeat(reverse: true))
+          .scale(
+              begin: const Offset(1.0, 1.0),
+              end: const Offset(1.04, 1.04),
+              duration: 1.seconds,
+              curve: Curves.easeInOut);
     }
 
     return nodeButton;

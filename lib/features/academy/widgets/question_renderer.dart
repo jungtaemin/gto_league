@@ -41,7 +41,7 @@ class QuestionRenderer extends StatelessWidget {
         onBattleComplete: (bool isWin) => onAnswerSubmit(isWin),
       );
     }
-    
+
     return const Center(child: Text('Unknown Question Type'));
   }
 }

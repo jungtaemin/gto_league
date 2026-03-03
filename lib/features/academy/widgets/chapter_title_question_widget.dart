@@ -16,10 +16,12 @@ class ChapterTitleQuestionWidget extends StatefulWidget {
   });
 
   @override
-  State<ChapterTitleQuestionWidget> createState() => _ChapterTitleQuestionWidgetState();
+  State<ChapterTitleQuestionWidget> createState() =>
+      _ChapterTitleQuestionWidgetState();
 }
 
-class _ChapterTitleQuestionWidgetState extends State<ChapterTitleQuestionWidget> {
+class _ChapterTitleQuestionWidgetState
+    extends State<ChapterTitleQuestionWidget> {
   @override
   void initState() {
     super.initState();
@@ -38,7 +40,8 @@ class _ChapterTitleQuestionWidgetState extends State<ChapterTitleQuestionWidget>
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.85),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.acidYellow.withOpacity(0.3), width: 1),
+        border:
+            Border.all(color: AppColors.acidYellow.withOpacity(0.3), width: 1),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
       child: Column(
@@ -63,15 +66,18 @@ class _ChapterTitleQuestionWidgetState extends State<ChapterTitleQuestionWidget>
               ),
             ),
           )
-          .animate()
-          .scale(
-            begin: const Offset(3.0, 3.0),
-            end: const Offset(1.0, 1.0),
-            duration: 600.ms,
-            curve: Curves.easeOutBack, // 튕기는 모션
-          )
-          .fadeIn(duration: 400.ms)
-          .shake(delay: 500.ms, hz: 4, curve: Curves.easeInOut), // 쾅 찍힌 직후의 반동(화면 흔들림)
+              .animate()
+              .scale(
+                begin: const Offset(3.0, 3.0),
+                end: const Offset(1.0, 1.0),
+                duration: 600.ms,
+                curve: Curves.easeOutBack, // 튕기는 모션
+              )
+              .fadeIn(duration: 400.ms)
+              .shake(
+                  delay: 500.ms,
+                  hz: 4,
+                  curve: Curves.easeInOut), // 쾅 찍힌 직후의 반동(화면 흔들림)
 
           const SizedBox(height: 24),
 
@@ -84,7 +90,10 @@ class _ChapterTitleQuestionWidgetState extends State<ChapterTitleQuestionWidget>
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
-            ).animate().fadeIn(delay: 1.2.seconds, duration: 600.ms).slideY(begin: 0.5),
+            )
+                .animate()
+                .fadeIn(delay: 1.2.seconds, duration: 600.ms)
+                .slideY(begin: 0.5),
 
           const SizedBox(height: 60),
 
@@ -96,14 +105,16 @@ class _ChapterTitleQuestionWidgetState extends State<ChapterTitleQuestionWidget>
                 backgroundColor: AppColors.acidYellow,
                 foregroundColor: Colors.black,
                 padding: const EdgeInsets.symmetric(vertical: 18),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
                 elevation: 8,
               ),
               onPressed: () {
                 HapticManager.swipe();
                 widget.onContinue();
               },
-              child: const Text('계속하기', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              child: const Text('계속하기',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ),
           ).animate().fadeIn(delay: 2.seconds).scale(curve: Curves.easeOutBack),
         ],
