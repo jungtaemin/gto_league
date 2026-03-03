@@ -11,27 +11,27 @@ final phase2Data = Lesson(
     // Q0: 본격적인 승부의 시작 (챕터 1 리마인드 & 방향 제시)
     ConceptQuestion(
       id: 'P2_Q0',
-      instructionText: "일단 족보를 만들기 전에, 각각 카드의 힘부터 알아야 돼.",
-      animationKey: 'intro_seven_cards_epic', // 챕터 1에서 썼던 7장 연출 재활용
-      npcDialogue: "저번 시간에 배운 거 기억나지? 7장 조합으로 최고의 5장을 만드는 거! 이번엔 가장 기초적인 전투력인 '카드 서열'에 대해 알아보자고.",
+      instructionText: "자, 이제 기본은 배웠으니 진짜 무기, '족보'를 배워볼 차례야.",
+      animationKey: 'intro_seven_cards_epic',
+      npcDialogue: "카드 5장으로 승부하는 건 알겠지? 이제 어떤 카드가 더 센지, 서열부터 확실히 짚고 가자고.",
       npcImageAsset: 'assets/images/characters/char_2.webp',
-      customButtonText: '카드 서열 배우기',
+      customButtonText: '준비 완료!',
     ),
     // Q1-A: Ace 카드 설명
     ConceptQuestion(
       id: 'P2_Q1_A',
-      instructionText: "숫자 1처럼 생겼지만, 사실 끝판왕이지. 에이스라고 불러.",
+      instructionText: "제일 센 카드는 무조건 A(에이스).",
       animationKey: 'single_card_A',
-      npcDialogue: "어이 애송이, 카드에 적힌 알파벳 보고 당황했나? 이놈들이 바로 이 판의 귀족들이야. 먼저 'A'부터 보실까?",
+      npcDialogue: "가장 높은 놈은 'A', 에이스(Ace)야. 숫자 1처럼 생겼지만 이 바닥 끝판왕이지. 에이스 한 장 뜨면 판이 뒤집힌다!",
       npcImageAsset: 'assets/images/characters/char_2.webp',
-      customButtonText: '오호, 끝판왕!',
+      customButtonText: '에이스 접수!',
     ),
     // Q1-K: King 카드 설명
     ConceptQuestion(
       id: 'P2_Q1_K',
       instructionText: "수염 난 이 아저씨는 킹. 왕이니까 당연히 세겠지?",
       animationKey: 'single_card_K',
-      npcDialogue: "그다음은 'K'. 왕(King)이지. 에이스 다음으로 무서운 영감탱이야.",
+      npcDialogue: "그다음은 'K', 킹(King)이야. 왕관 쓴 영감탱이지. 에이스 다음으로 무자비한 놈이니까 무시하면 큰일 난다고.",
       npcImageAsset: 'assets/images/characters/char_2.webp',
     ),
     // Q1-Q: Queen 카드 설명
@@ -39,7 +39,7 @@ final phase2Data = Lesson(
       id: 'P2_Q1_Q',
       instructionText: "이쪽은 퀸. 왕비님이야. 킹 다음으로 높다고.",
       animationKey: 'single_card_Q',
-      npcDialogue: "이 아름다운 아가씨는 'Q', 여왕(Queen)이시다. 왕 다음으로 높은 분이지.",
+      npcDialogue: "이 아리따운 아가씨는 'Q', 여왕(Queen)이시다. 영감탱이 킹 바로 다음 서열을 잡고 있지.",
       npcImageAsset: 'assets/images/characters/char_2.webp',
     ),
     // Q1-J: Jack 카드 설명
@@ -47,33 +47,29 @@ final phase2Data = Lesson(
       id: 'P2_Q1_J',
       instructionText: "마지막은 잭. 나랑 이름이 같네? 기사님이라고 생각하면 돼.",
       animationKey: 'single_card_J',
-      npcDialogue: "마지막 귀족은 'J', 기사(Jack)야. 뭐, 내 이름인 '잭'이랑 똑같아서 내가 제일 좋아하는 놈이지. 하하!",
+      npcDialogue: "마지막 귀족은 'J', 기사(Jack)야. 뭐, 내 이름인 '잭'이랑 똑같아서 내가 좀 아끼는 놈이지. 하하! 이 네 놈이 판을 쥐고 흔든다고 보면 돼.",
       npcImageAsset: 'assets/images/characters/char_2.webp',
       customButtonText: '알파벳 순서 완벽 이해!',
     ),
     // Q2: 나머지 숫자 카드 (10~2)
     ConceptQuestion(
       id: 'P2_Q2',
-      instructionText:
-          "딱 하나만 기억해. A > K > Q > J > 10 ... > 2 순서야. 쉽지?",
+      instructionText: "딱 하나만 기억해. A > K > Q > J > 10 ... > 2 순서야. 쉽지?",
       animationKey: 'number_cards_staircase',
-      npcDialogue:
-          "나머지는 쉬워. 적힌 숫자 그대로거든! 10이 제일 형님이고, 2가 제일 막내 쫄병이지.",
+      npcDialogue: "나머진 더 쉬워, 애송아. 적힌 숫자 그대로야! 10이 제일 형님, 번호가 내려갈수록 쫄짜고, 2가 이 바닥 최약체 샌드백이지.",
       npcImageAsset: 'assets/images/characters/char_2.webp',
     ),
     // Q3: 미니 퀴즈 — 9 vs 7 하이카드
     MultipleChoiceQuestion(
       id: 'P2_Q3',
-      instructionText: '두 장 중 어느 카드가 더 강할까?',
+      instructionText: '두 장 중 어느 카드가 더 강할까? (9 vs 7)',
       options: ['9', '7'],
       correctOptionIndex: 0,
       displayCardLeft: PlayingCard(Suit.hearts, CardValue.nine),
       displayCardRight: PlayingCard(Suit.spades, CardValue.seven),
-      npcDialogue:
-          "나도 혼자, 너도 혼자지? 이럴 땐 누가 형님이야? 대장끼리 붙어봐!",
-      npcFeedbackCorrect:
-          "정답! 이걸 유식하게 '하이카드'라고 불러. 그냥 '솔로 대장전'인 거지!",
-      npcFeedbackWrong: "쯧쯧, 벌써부터 쫄았냐? 숫자가 큰 놈이 이기는 거야. 다시 한번!",
+      npcDialogue: "어이, 집중해! 나도 혼자, 너도 혼자 대장전 떴다 치자. 이런 '솔로전'에선 뭐가 깡패라고?",
+      npcFeedbackCorrect: "아따, 말귀 한 번 빨리 알아듣네! 단순무식하게 큰 놈이 장땡, 그걸 '하이카드'라고 부른다!",
+      npcFeedbackWrong: "하아... 애송아, 벌써부터 쫄았냐? 숫자가 큰 놈 주먹이 더 맵다고! 9가 7보다 형님이잖아!",
     ),
     // Q4-1: 무승부의 늪 (키커의 필요성)
     ConceptQuestion(
@@ -97,13 +93,13 @@ final phase2Data = Lesson(
     // Q5: 누가 진짜 대장이지? (Kicker 실전 퀴즈)
     MultipleChoiceQuestion(
       id: 'P2_Q5',
-      instructionText: '둘 다 대장이 J로 똑같은데, 판돈은 누가 가져갈까?',
+      instructionText: '둘 다 대장이 J로 똑같은데, 판돈은 누가 가져갈까? (내 키커 9 vs 쟤 키커 4)',
       options: ['무승부! 판돈을 반반 나눈다.', "내 키커 '9'가 쟤 키커 '4'보다 높으니 내 승리!", '무늬가 예쁜 쪽이 이긴다.'],
       correctOptionIndex: 1,
       animationKey: 'kicker_battle_view',
-      npcDialogue: "자, 방금 배운 거 테스트해보자. 둘 다 대장이 'J'로 똑같은데, 판돈은 누가 가져갈까?",
-      npcFeedbackCorrect: "빙고! 대장인 J가 똑같으니 무승부라고 착각하기 십상인데, 부대장인 9가 4보다 높으니 네 완승이라고!",
-      npcFeedbackWrong: "야 이 멍청아! 대장이 같으면 뭐 보라고 했어? 두 번째 카드! 네 부대장(9)이 쟤 부대장(4)보다 크잖아!",
+      npcDialogue: "자, 방금 배웠지? 대장은 'J'로 동급이야. 피 튀기는 키커 싸움에서 판갈이는 누가 할까?",
+      npcFeedbackCorrect: "빙고! J 똑같다고 무승부 외치는 호구들 널렸는데 넌 아니네. 네 부대장 9가 저쪽 부대장 4를 밟아버렸어!",
+      npcFeedbackWrong: "야 이 멍청아! 대장이 같으면 뭐부터 따지라고? 부대장! 네 부대장(9)이 쟤 막내둥이(4)보단 크잖아!",
     ),
     // Q6: 제왕의 귀환 (에이스 서열 재확인)
     MultipleChoiceQuestion(
