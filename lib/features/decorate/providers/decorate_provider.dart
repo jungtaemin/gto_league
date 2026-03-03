@@ -1,4 +1,4 @@
-import 'dart:developer' as developer;
+﻿import 'dart:developer' as developer;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import '../../../data/services/supabase_service.dart';
@@ -141,10 +141,10 @@ final equippedCharacterUrlProvider = Provider<String?>((ref) {
 
   // allItems가 아직 로드 안 됐을 때 fallback (기본 캐릭터)
   if (characterId == 'char_robot') {
-    return 'assets/images/characters/char_robot.png';
+    return 'assets/images/characters/char_robot.webp';
   }
   if (characterId == 'char_texas_jack') {
-    return 'assets/images/characters/char_2.png';
+    return 'assets/images/characters/char_2.webp';
   }
   return null;
 });

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:playing_cards/playing_cards.dart';
 import 'package:video_player/video_player.dart';
@@ -94,7 +94,7 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: NpcSpeechBubble(
                     imagePath: question.npcImageAsset ??
-                        'assets/images/characters/char_2.png',
+                        'assets/images/characters/char_2.webp',
                     dialogue: question.npcDialogue!,
                     isVisible: true,
                   ),
@@ -422,12 +422,8 @@ class _ConceptQuestionWidgetState extends State<ConceptQuestionWidget> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: List.generate(numberValues.length, (i) {
-                return Padding(
-                  // 이전 카드와 살짝 겹치게 좌측 마이너스 마진 흉내 및 아래로 갈수록 탑 패딩 증가
-                  padding: EdgeInsets.only(
-                    top: i * 8.0, 
-                    left: i == 0 ? 0 : -10.0 // 카드가 좌측으로 10px씩 겹침
-                  ),
+                return Transform.translate(
+                  offset: Offset(i == 0 ? 0 : -10.0 * i, i * 8.0),
                   child: SizedBox(
                     width: 50,
                     height: 70,

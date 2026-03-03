@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'dart:ui';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/responsive.dart';
@@ -81,7 +81,7 @@ class _ModeCarouselSelectorState extends State<ModeCarouselSelector> {
             daysLabels: const ['일', '월', '화'],
             gradientColors: const [Color(0xFF0F172A), Color(0xFF1E3A8A), Color(0xFF0EA5E9)],
             accentColor: const Color(0xFF38BDF8),
-            imageAsset: 'assets/images/banner/15BB_swipe.png',
+            imageAsset: 'assets/images/banner/15BB_swipe.webp',
           ),
           // 30BB 딥스택 마스터즈 카드
           _buildCard(
@@ -94,7 +94,7 @@ class _ModeCarouselSelectorState extends State<ModeCarouselSelector> {
             daysLabels: const ['수', '목', '금', '토'],
             gradientColors: const [Color(0xFF450A0A), Color(0xFF991B1B), Color(0xFFF97316)],
             accentColor: const Color(0xFFFBBF24),
-            imageAsset: 'assets/images/banner/30BB_DEEP.png',
+            imageAsset: 'assets/images/banner/30BB_DEEP.webp',
           ),
         ],
       ),

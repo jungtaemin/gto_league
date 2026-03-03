@@ -1,4 +1,4 @@
-import 'dart:developer' as developer;
+﻿import 'dart:developer' as developer;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/decorate_item_model.dart';
@@ -16,7 +16,7 @@ class DecorateRepository {
         id: 'char_texas_jack',
         type: 'character',
         name: '텍사스 잭',
-        assetUrl: 'assets/images/characters/char_2.png',
+        assetUrl: 'assets/images/characters/char_2.webp',
         rarity: 'epic',
         metadata: {'price': 0, 'desc': '안티그래비티 홀덤 아카데미의 마스코트 텍사스 잭입니다.'},
       ),
@@ -24,7 +24,7 @@ class DecorateRepository {
         id: 'char_robot',
         type: 'character',
         name: 'AI 로봇',
-        assetUrl: 'assets/images/characters/char_robot.png',
+        assetUrl: 'assets/images/characters/char_robot.webp',
         rarity: 'common',
         metadata: {'price': 0, 'desc': '안티그래비티 AI 로봇입니다.'},
       ),

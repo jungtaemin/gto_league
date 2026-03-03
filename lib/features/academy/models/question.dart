@@ -4,6 +4,7 @@ enum QuestionType {
   concept,       // 개념 설명 (애니메이션, 텍스트)
   multipleChoice,// 객관식 (4지선다, 비교 등)
   battle,        // AI와의 미니 승부
+  chapterTitle,  // 챕터 오프닝 타이틀
 }
 
 abstract class Question {
@@ -95,4 +96,18 @@ class BattleQuestion extends Question {
     this.isReversal = false,
     super.timeLimitSeconds = 10,
   }) : super(type: QuestionType.battle);
+}
+
+class ChapterTitleQuestion extends Question {
+  final String title;
+  final String? subtitle;
+
+  ChapterTitleQuestion({
+    required super.id,
+    required this.title,
+    this.subtitle,
+  }) : super(
+          type: QuestionType.chapterTitle,
+          instructionText: title,
+        );
 }

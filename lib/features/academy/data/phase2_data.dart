@@ -1,4 +1,4 @@
-import 'package:playing_cards/playing_cards.dart';
+﻿import 'package:playing_cards/playing_cards.dart';
 import '../models/lesson.dart';
 import '../models/question.dart';
 
@@ -14,7 +14,7 @@ final phase2Data = Lesson(
       instructionText: "일단 족보를 만들기 전에, 각각 카드의 힘부터 알아야 돼.",
       animationKey: 'intro_seven_cards_epic', // 챕터 1에서 썼던 7장 연출 재활용
       npcDialogue: "저번 시간에 배운 거 기억나지? 7장 조합으로 최고의 5장을 만드는 거! 이번엔 가장 기초적인 전투력인 '카드 서열'에 대해 알아보자고.",
-      npcImageAsset: 'assets/images/characters/char_2.png',
+      npcImageAsset: 'assets/images/characters/char_2.webp',
       customButtonText: '카드 서열 배우기',
     ),
     // Q1-A: Ace 카드 설명
@@ -23,7 +23,7 @@ final phase2Data = Lesson(
       instructionText: "숫자 1처럼 생겼지만, 사실 끝판왕이지. 에이스라고 불러.",
       animationKey: 'single_card_A',
       npcDialogue: "어이 애송이, 카드에 적힌 알파벳 보고 당황했나? 이놈들이 바로 이 판의 귀족들이야. 먼저 'A'부터 보실까?",
-      npcImageAsset: 'assets/images/characters/char_2.png',
+      npcImageAsset: 'assets/images/characters/char_2.webp',
       customButtonText: '오호, 끝판왕!',
     ),
     // Q1-K: King 카드 설명
@@ -32,7 +32,7 @@ final phase2Data = Lesson(
       instructionText: "수염 난 이 아저씨는 킹. 왕이니까 당연히 세겠지?",
       animationKey: 'single_card_K',
       npcDialogue: "그다음은 'K'. 왕(King)이지. 에이스 다음으로 무서운 영감탱이야.",
-      npcImageAsset: 'assets/images/characters/char_2.png',
+      npcImageAsset: 'assets/images/characters/char_2.webp',
     ),
     // Q1-Q: Queen 카드 설명
     ConceptQuestion(
@@ -40,7 +40,7 @@ final phase2Data = Lesson(
       instructionText: "이쪽은 퀸. 왕비님이야. 킹 다음으로 높다고.",
       animationKey: 'single_card_Q',
       npcDialogue: "이 아름다운 아가씨는 'Q', 여왕(Queen)이시다. 왕 다음으로 높은 분이지.",
-      npcImageAsset: 'assets/images/characters/char_2.png',
+      npcImageAsset: 'assets/images/characters/char_2.webp',
     ),
     // Q1-J: Jack 카드 설명
     ConceptQuestion(
@@ -48,7 +48,7 @@ final phase2Data = Lesson(
       instructionText: "마지막은 잭. 나랑 이름이 같네? 기사님이라고 생각하면 돼.",
       animationKey: 'single_card_J',
       npcDialogue: "마지막 귀족은 'J', 기사(Jack)야. 뭐, 내 이름인 '잭'이랑 똑같아서 내가 제일 좋아하는 놈이지. 하하!",
-      npcImageAsset: 'assets/images/characters/char_2.png',
+      npcImageAsset: 'assets/images/characters/char_2.webp',
       customButtonText: '알파벳 순서 완벽 이해!',
     ),
     // Q2: 나머지 숫자 카드 (10~2)
@@ -59,7 +59,7 @@ final phase2Data = Lesson(
       animationKey: 'number_cards_staircase',
       npcDialogue:
           "나머지는 쉬워. 적힌 숫자 그대로거든! 10이 제일 형님이고, 2가 제일 막내 쫄병이지.",
-      npcImageAsset: 'assets/images/characters/char_2.png',
+      npcImageAsset: 'assets/images/characters/char_2.webp',
     ),
     // Q3: 미니 퀴즈 — 9 vs 7 하이카드
     MultipleChoiceQuestion(
@@ -75,14 +75,24 @@ final phase2Data = Lesson(
           "정답! 이걸 유식하게 '하이카드'라고 불러. 그냥 '솔로 대장전'인 거지!",
       npcFeedbackWrong: "쯧쯧, 벌써부터 쫄았냐? 숫자가 큰 놈이 이기는 거야. 다시 한번!",
     ),
-    // Q4: 무승부의 늪 (Kicker란 무엇인가?)
+    // Q4-1: 무승부의 늪 (키커의 필요성)
     ConceptQuestion(
-      id: 'P2_Q4',
+      id: 'P2_Q4_1',
+      instructionText: "가장 센 대장이 똑같으면 누가 이길까?",
+      npcDialogue:
+          "근데 말이야, 이 바닥이 그렇게 호락호락하지가 않아. 너도 최고 대장이 'A'고 쟤도 'A'면 어쩔 건데?",
+      npcImageAsset: 'assets/images/characters/char_2.webp',
+      customButtonText: '그럼 비기나?',
+    ),
+    // Q4-2: 키커 설명
+    ConceptQuestion(
+      id: 'P2_Q4_2',
       instructionText: "제일 강한 카드가 같을 땐, 두 번째 카드(키커)로 승부한다!",
       animationKey: 'kicker_explain_view',
-      npcDialogue: "하우스에 온 걸 환영해! 근데 말이야, 너도 최고 카드가 'A'고 쟤도 'A'지? 이럴 땐 두 번째로 쎈 놈, '키커(Kicker)'를 비교하는 거야! 대장이 같으면 부대장이 쎈 놈이 이긴다, 명심해!",
-      npcImageAsset: 'assets/images/characters/char_2.png',
-      customButtonText: '키커, 완벽 이해!',
+      npcDialogue:
+          "그럴 땐 두 번째 부대장의 주먹, '키커(Kicker)'를 비교하는 거야! 대장이 비기면 부대장이 센 놈 보스가 이긴다, 텍사스 법관청 명심해라!",
+      npcImageAsset: 'assets/images/characters/char_2.webp',
+      customButtonText: '키커, 완벽 접수!',
     ),
     // Q5: 누가 진짜 대장이지? (Kicker 실전 퀴즈)
     MultipleChoiceQuestion(

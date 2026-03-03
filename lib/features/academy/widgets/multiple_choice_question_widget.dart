@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:playing_cards/playing_cards.dart';
 import '../models/question.dart';
@@ -96,7 +96,7 @@ class _MultipleChoiceQuestionWidgetState extends State<MultipleChoiceQuestionWid
           Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: NpcSpeechBubble(
-              imagePath: 'assets/images/characters/char_2.png',
+              imagePath: 'assets/images/characters/char_2.webp',
               dialogue: _currentNpcDialogue!,
             ),
           ),

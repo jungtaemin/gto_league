@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:holdem_allin_fold/core/theme/app_colors.dart';
 
 /// Robot avatar widget for 9 poker table seats
@@ -28,7 +28,7 @@ class RobotAvatarWidget extends StatelessWidget {
     if (avatarUrl != null) return avatarUrl!;
     
     // Unify all other positions to use the main robot character
-    return 'assets/images/characters/char_robot.png';
+    return 'assets/images/characters/char_robot.webp';
   }
 
   @override

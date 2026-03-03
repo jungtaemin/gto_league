@@ -68,7 +68,7 @@ class _CharacterDisplayWidgetState extends State<CharacterDisplayWidget>
 
   Widget _buildCharacterContent() {
     // If we have an exact asset URL provided (for example from preview item)
-    String effectiveUrl = widget.assetUrl ?? 'assets/images/characters/${widget.characterId}.png';
+    String effectiveUrl = widget.assetUrl ?? 'assets/images/characters/${widget.characterId}.webp';
 
     return AnimatedBuilder(
       animation: _controller,

@@ -1,4 +1,4 @@
-import '../models/lesson.dart';
+﻿import '../models/lesson.dart';
 import '../models/question.dart';
 
 final phase1Data = Lesson(
@@ -13,7 +13,7 @@ final phase1Data = Lesson(
       instructionText: "준비됐어? 인생을 바꿀 두 장의 교차점, 그게 바로 텍사스 마인드야.",
       animationKey: 'intro_shuffle_epic',
       npcDialogue: "어이, 뉴페이스! 여기선 카드 2장이면 인생을 바꿀 수 있지. 그게 바로 텍사스 방식이야. 준비됐나?",
-      npcImageAsset: 'assets/images/characters/char_2.png',
+      npcImageAsset: 'assets/images/characters/char_2.webp',
       customButtonText: '자리에 앉기',
     ),
     // --- NEW: Q2 (잭 영상 재생) ---
@@ -32,7 +32,7 @@ final phase1Data = Lesson(
       animationKey: 'hole_cards_deal',
       npcDialogue:
           "자, 너만 몰래 볼 수 있는 '내 패' 두 장이야. 남들한테 보여줬다간 바로 판 깨지는 거 알지? 이건 네 비밀 병기라고.",
-      npcImageAsset: 'assets/images/characters/char_2.png',
+      npcImageAsset: 'assets/images/characters/char_2.webp',
     ),
     // Q2-1: 바닥 카드 (공용 카드) 설명 시작
     ConceptQuestion(
@@ -42,7 +42,7 @@ final phase1Data = Lesson(
       animationKey: 'community_cards_reveal',
       npcDialogue:
           "그다음은 판 한가운데 깔리는 '바닥 카드'야. 이 판에 참여한 놈들이면 다 같이 나눠 쓰는 '공통 카드'지.",
-      npcImageAsset: 'assets/images/characters/char_2.png',
+      npcImageAsset: 'assets/images/characters/char_2.webp',
       customButtonText: '계속 듣기',
     ),
     // Q2-2: 바닥 카드 상세
@@ -53,7 +53,7 @@ final phase1Data = Lesson(
       // animationKey: 'community_cards_reveal', // 연속 재생 시 부자연스러울 수 있어 생략하거나 그대로 둬도 됨
       npcDialogue:
           "남의 떡이 더 커 보인다고? 걱정 마, 너도 이 5장 모두 네 것처럼 똑같이 쓸 수 있으니까.",
-      npcImageAsset: 'assets/images/characters/char_2.png',
+      npcImageAsset: 'assets/images/characters/char_2.webp',
     ),
     // Q3-1: 7장 룰 리마인드 (대사 분할)
     ConceptQuestion(
@@ -63,7 +63,7 @@ final phase1Data = Lesson(
       animationKey: 'intro_seven_cards_epic', // 시각적으로 7장 강조
       npcDialogue:
           "자, 이제 계산기 두드려봐. 네 손에 든 '내 패 2장'이랑 '바닥 카드 5장'을 합치면 총 7장이지?",
-      npcImageAsset: 'assets/images/characters/char_2.png',
+      npcImageAsset: 'assets/images/characters/char_2.webp',
       customButtonText: '계속 듣기',
     ),
     // Q3-2: 최강의 5장 (족보 만들기 핵심) (대사 1/2)
@@ -74,7 +74,7 @@ final phase1Data = Lesson(
       animationKey: 'best_five_highlight',
       npcDialogue:
           "그중 제일 센 놈들로 딱 5장만 추려 승부를 보는 거야. \n이걸로 '족보'를 만드는 거지.",
-      npcImageAsset: 'assets/images/characters/char_2.png',
+      npcImageAsset: 'assets/images/characters/char_2.webp',
       customButtonText: '이해했어!',
     ),
     // Q3-3: 7장 다 쓰지 마라 경고 (대사 2/2)
@@ -84,7 +84,7 @@ final phase1Data = Lesson(
           "단 5장만 쓴다는 걸 명심해!",
       npcDialogue:
           "7장 다 쓰려고 욕심부리지 마라, 애송아. \n명심해, 승부는 무조건 5장이다.",
-      npcImageAsset: 'assets/images/characters/char_2.png',
+      npcImageAsset: 'assets/images/characters/char_2.webp',
     ),
     // Q4: 신규 미니 퀴즈 1 - 비밀 병기 취급 주의
     MultipleChoiceQuestion(

@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../../../core/utils/responsive.dart';
@@ -142,7 +142,7 @@ class _FullScreenTableViewState extends State<FullScreenTableView> {
 
   String _getBotAvatar(int index) {
     int avatarIdx = (index % 4) + 1;
-    return 'assets/images/bot_avatar_$avatarIdx.png';
+    return 'assets/images/bot_avatar_$avatarIdx.webp';
   }
 
   @override
@@ -287,7 +287,7 @@ class _FullScreenTableViewState extends State<FullScreenTableView> {
                       child: ClipOval(
                         child: isHero
                             ? Image.asset(
-                                'assets/images/characters/char_robot.png',
+                                'assets/images/characters/char_robot.webp',
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) => Container(
                                   color: Colors.blueGrey,
@@ -352,7 +352,7 @@ class _FullScreenTableViewState extends State<FullScreenTableView> {
             // Table Background
             Positioned.fill(
               child: Image.asset(
-                'assets/images/poker_table_bg.png',
+                'assets/images/poker_table_bg.webp',
                 fit: BoxFit.contain,
                 alignment: Alignment.center,
                 errorBuilder: (_, __, ___) => Container(color: const Color(0xFF0A0E1A)),

@@ -3,6 +3,7 @@ import '../models/question.dart';
 import 'concept_question_widget.dart';
 import 'multiple_choice_question_widget.dart';
 import 'battle_question_widget.dart';
+import 'chapter_title_question_widget.dart';
 
 class QuestionRenderer extends StatelessWidget {
   final Question question;
@@ -16,11 +17,18 @@ class QuestionRenderer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 챕터 타이틀
+    if (question is ChapterTitleQuestion) {
+      return ChapterTitleQuestionWidget(
+        question: question as ChapterTitleQuestion,
+        onContinue: () => onAnswerSubmit(true),
+      );
+    }
     // 다형성 기반 렌더링
     if (question is ConceptQuestion) {
       return ConceptQuestionWidget(
         question: question as ConceptQuestion,
-        onContinue: () => onAnswerSubmit(true), // 개념은 무조건 통과 (임시)
+        onContinue: () => onAnswerSubmit(true),
       );
     } else if (question is MultipleChoiceQuestion) {
       return MultipleChoiceQuestionWidget(
